@@ -32,9 +32,11 @@ const placasState = {
  * Inicializa o módulo de placas
  */
 export function init() {
+  // SEMPRE reinicializar - remover verificação de inicialização
   if (placasState.initialized) {
-    console.log('⚠️ Módulo placas já inicializado');
-    return;
+    console.log('🔄 Reinicializando módulo de placas...');
+  } else {
+    console.log('🆕 Primeira inicialização do módulo de placas');
   }
   
   console.log('📋 Inicializando módulo de gestão de placas...');

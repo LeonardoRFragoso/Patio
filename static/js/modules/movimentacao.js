@@ -26,9 +26,11 @@ export function init(options = {}) {
   
   const { appState } = options;
   
+  // SEMPRE reinicializar - remover verificação de inicialização
   if (movimentacaoState.initialized) {
-    console.log('⚠️ Módulo de movimentação já inicializado');
-    return;
+    console.log('🔄 Reinicializando módulo de movimentação...');
+  } else {
+    console.log('🆕 Primeira inicialização do módulo de movimentação');
   }
   
   // Configurar estado inicial

@@ -35,10 +35,11 @@ const uiState = {
    */
   export function init() {
     if (uiState.initialized) {
-      console.log('⚠️ Módulo ui-utils já inicializado');
-      return;
+      console.log('🔄 Reinicializando módulo ui-utils...');
+    } else {
+      console.log('🆕 Primeira inicialização do módulo ui-utils');
     }
-    
+  
     console.log('🎨 Inicializando módulo de utilitários de interface...');
     uiState.initialized = true;
     
@@ -296,12 +297,13 @@ const uiState = {
     const {
       offset = uiState.scrollOffset,
       behavior = uiState.scrollBehavior,
-      block = 'start'
+      block = 'start',
+      alwaysScroll = false // força scroll mesmo se elemento já estiver visível
     } = options;
     
     console.log('📜 Iniciando scroll otimizado para formulário (ui-utils)...');
     
-    // Verificar se o elemento está visível
+    // Verificar se o elemento está visível (pode ser ignorado com alwaysScroll)
     const rect = elemento.getBoundingClientRect();
     const elementoVisivel = (
       rect.top >= 0 &&
@@ -310,8 +312,8 @@ const uiState = {
       rect.right <= (window.innerWidth || document.documentElement.clientWidth)
     );
     
-    // Se o elemento não estiver completamente visível, fazer scroll
-    if (!elementoVisivel) {
+    // Se alwaysScroll for true ou elemento não estiver visível, fazer scroll
+    if (alwaysScroll || !elementoVisivel) {
       window.scrollTo({
         top: Math.max(0, window.scrollY + rect.top - offset),
         behavior: behavior

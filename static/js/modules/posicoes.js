@@ -37,9 +37,11 @@ const posicoesState = {
    * Inicializa o módulo de posições
    */
   export function init() {
+    // SEMPRE reinicializar - remover verificação de inicialização
     if (posicoesState.initialized) {
-      console.log('⚠️ Módulo posições já inicializado');
-      return;
+      console.log('🔄 Reinicializando módulo de posições...');
+    } else {
+      console.log('🆕 Primeira inicialização do módulo de posições');
     }
     
     console.log('📍 Inicializando módulo de gestão de posições...');

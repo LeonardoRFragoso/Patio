@@ -29,9 +29,11 @@ const containersState = {
  * Inicializa o módulo de containers
  */
 export function init() {
+  // SEMPRE reinicializar - remover verificação de inicialização
   if (containersState.initialized) {
-    console.log('⚠️ Módulo containers-utils já inicializado');
-    return;
+    console.log('🔄 Reinicializando módulo de containers-utils...');
+  } else {
+    console.log('🆕 Primeira inicialização do módulo de containers-utils');
   }
   
   console.log('🗃️ Inicializando módulo de utilitários de containers...');

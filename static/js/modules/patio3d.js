@@ -22,9 +22,11 @@ const patio3dState = {
     
     const { appState } = options;
     
+    // SEMPRE reinicializar - remover verificação de inicialização
     if (patio3dState.initialized) {
-      console.log('⚠️ Módulo de visualização 3D já inicializado');
-      return;
+      console.log('🔄 Reinicializando módulo de visualização 3D...');
+    } else {
+      console.log('🆕 Primeira inicialização do módulo de visualização 3D');
     }
     
     // Configurar estado inicial

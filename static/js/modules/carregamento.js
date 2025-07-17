@@ -28,8 +28,9 @@ export function init(options = {}) {
   const { appState } = options;
   
   if (carregamentoState.initialized) {
-    console.log('⚠️ Módulo de carregamento já inicializado');
-    return;
+    console.log('🔄 Reinicializando módulo de carregamento...');
+  } else {
+    console.log('🆕 Primeira inicialização do módulo de carregamento');
   }
   
   // Configurar estado inicial

@@ -31,9 +31,11 @@ export function init(options = {}) {
   
   const { appState } = options;
   
+  // SEMPRE reinicializar - remover verificação de inicialização
   if (descargaState.initialized) {
-    console.log('[DESCARGA] Módulo de descarga já inicializado');
-    return;
+    console.log('[DESCARGA] Reinicializando módulo de descarga...');
+  } else {
+    console.log('[DESCARGA] Primeira inicialização do módulo de descarga');
   }
   
   // Configurar estado inicial

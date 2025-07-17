@@ -78,7 +78,7 @@ import('./modules/ui-utils.js')
  */
 async function mostrarOperacao(operation) {
   try {
-    console.log(`📱 Mostrando operação: ${operation}`);
+    console.log(`📱 Mostrando operação: ${operation} (reinicialização completa)`);
 
     // Limpar estado anterior
     hideAllOperations();
@@ -121,28 +121,27 @@ async function mostrarOperacao(operation) {
  */
 async function importarEInicializarModulo(operation) {
   try {
+    let modulo;
+    
     // Verificar se módulo já foi carregado
     if (loadedModules.has(operation)) {
-      const modulo = loadedModules.get(operation);
-      if (modulo && typeof modulo.init === 'function') {
-        modulo.init({ appState });
-        return;
-      }
-    }
-
-    // Importar módulo dinamicamente
-    console.log(`🔌 Importando módulo: ${moduleMap[operation]}`);
-    const modulo = await import(moduleMap[operation]);
-    
-    if (modulo && typeof modulo.init === 'function') {
+      modulo = loadedModules.get(operation);
+      console.log(`🔄 Reutilizando módulo carregado: ${operation}`);
+    } else {
+      // Importar módulo dinamicamente
+      console.log(`🔌 Importando módulo: ${moduleMap[operation]}`);
+      modulo = await import(moduleMap[operation]);
+      
       // Cachear módulo
       loadedModules.set(operation, modulo);
-      
-      // Inicializar módulo
-      console.log(`🔧 Inicializando módulo de ${operation}...`);
+    }
+    
+    if (modulo && typeof modulo.init === 'function') {
+      // SEMPRE reinicializar o módulo a cada clique
+      console.log(`🔄 Reinicializando módulo de ${operation}...`);
       modulo.init({ appState });
       
-      console.log(`✅ Módulo de ${operation} inicializado com sucesso`);
+      console.log(`✅ Módulo de ${operation} reinicializado com sucesso`);
     } else {
       throw new Error(`Módulo ${operation} não expõe função 'init'`);
     }
@@ -200,11 +199,28 @@ function hideAllOperations() {
  * @param {string} operation - Nome da operação
  */
 function showOperationSection(operation) {
+  console.log(`🔍 Tentando mostrar seção da operação: ${operation}`);
+  
   const operationElement = document.getElementById(`operacao-${operation}`);
   if (operationElement) {
     operationElement.style.display = 'block';
     operationElement.classList.add('show');
     console.log(`✅ Seção da operação ${operation} exibida com classe 'show'`);
+
+    // Garantir que o usuário veja a seção recém-aberta
+    if (typeof window.scrollToFormulario === 'function') {
+      console.log(`📜 Preparando scroll para operação ${operation}...`);
+      // Pequeno atraso para garantir que o layout foi aplicado
+      setTimeout(() => {
+        console.log(`📜 Executando scroll para operação ${operation} com alwaysScroll: true`);
+        window.scrollToFormulario(operationElement, { 
+          offset: 120, 
+          alwaysScroll: true // força scroll mesmo se elemento parecer visível
+        });
+      }, 100);
+    } else {
+      console.warn(`⚠️ Função scrollToFormulario não disponível para ${operation}`);
+    }
   } else {
     console.error(`❌ Elemento 'operacao-${operation}' não encontrado no DOM`);
   }
