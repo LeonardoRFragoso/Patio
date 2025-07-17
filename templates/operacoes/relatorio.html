@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block title %}Relatório de Operações{% endblock %}
+
+{% block head %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-chart-bar me-2"></i>Relatório de Operações
+                        </h5>
+                        <a href="{{ url_for('operacoes.index') }}" class="btn btn-sm btn-light">
+                            <i class="fas fa-arrow-left me-1"></i>Voltar
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Status dos Containers</h5>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="statusChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Tipos de Operações</h5>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="tipoChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Containers por Status</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Status</th>
+                                                    <th>Quantidade</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for status in status_counts %}
+                                                <tr>
+                                                    <td>
+                                                        {% if status.status == 'no patio' %}
+                                                        <span class="badge bg-success">No Pátio</span>
+                                                        {% else %}
+                                                        <span class="badge bg-secondary">Fora do Pátio</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>{{ status.total }}</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Operações por Tipo</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Tipo</th>
+                                                    <th>Quantidade</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for tipo in tipo_counts %}
+                                                <tr>
+                                                    <td>
+                                                        {% if tipo.tipo == 'descarga' %}
+                                                        <span class="badge bg-primary">Descarga</span>
+                                                        {% elif tipo.tipo == 'movimentacao' %}
+                                                        <span class="badge bg-warning">Movimentação</span>
+                                                        {% elif tipo.tipo == 'carregamento' %}
+                                                        <span class="badge bg-success">Carregamento</span>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>{{ tipo.total }}</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Dados para os gráficos
+        const statusLabels = [];
+        const statusData = [];
+        const statusColors = ['#198754', '#6c757d']; // verde para "no patio", cinza para "fora do patio"
+        
+        {% for status in status_counts %}
+            statusLabels.push('{{ "No Pátio" if status.status == "no patio" else "Fora do Pátio" }}');
+            statusData.push({{ status.total }});
+        {% endfor %}
+        
+        const tipoLabels = [];
+        const tipoData = [];
+        const tipoColors = ['#0d6efd', '#ffc107', '#198754']; // azul para descarga, amarelo para movimentação, verde para carregamento
+        
+        {% for tipo in tipo_counts %}
+            tipoLabels.push('{{ "Descarga" if tipo.tipo == "descarga" else "Movimentação" if tipo.tipo == "movimentacao" else "Carregamento" }}');
+            tipoData.push({{ tipo.total }});
+        {% endfor %}
+        
+        // Gráfico de status dos containers
+        const statusCtx = document.getElementById('statusChart').getContext('2d');
+        new Chart(statusCtx, {
+            type: 'pie',
+            data: {
+                labels: statusLabels,
+                datasets: [{
+                    data: statusData,
+                    backgroundColor: statusColors,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Distribuição de Containers por Status'
+                    }
+                }
+            }
+        });
+        
+        // Gráfico de tipos de operações
+        const tipoCtx = document.getElementById('tipoChart').getContext('2d');
+        new Chart(tipoCtx, {
+            type: 'bar',
+            data: {
+                labels: tipoLabels,
+                datasets: [{
+                    label: 'Quantidade',
+                    data: tipoData,
+                    backgroundColor: tipoColors,
+                    borderColor: tipoColors,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: true,
+                        text: 'Quantidade de Operações por Tipo'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

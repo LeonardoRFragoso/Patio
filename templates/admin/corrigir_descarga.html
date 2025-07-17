@@ -1,0 +1,49 @@
+{% extends 'admin/base.html' %}
+{% block title %}Correção de Descarga{% endblock %}
+{% block page_title %}Correção de Descarga{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <p class="text-muted">Selecione uma descarga para corrigir posição e demais campos.</p>
+
+  <!-- Container principal para lista/formulário -->
+  <div id="correcao-descarga-container" class="formulario-dinamico">
+    <div class="text-center p-4">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Carregando...</span>
+      </div>
+      <p class="mt-2">Carregando descargas corrigíveis...</p>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- Módulos utilitários -->
+  <script src="/static/js/modules/ui-utils.js" type="module"></script>
+  
+  <!-- Módulo de correção de descarga -->
+  <script type="module">
+    import { init } from '/static/js/modules/correcao-descarga.js';
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      try {
+        // Inicializa o módulo com o estado da aplicação
+        init({ appState: window.appState || {} });
+        console.log('✅ Módulo de correção de descarga inicializado');
+      } catch (error) {
+        console.error('❌ Erro ao inicializar módulo de correção:', error);
+        document.getElementById('correcao-descarga-container').innerHTML = `
+          <div class="alert alert-danger">
+            <h4>Erro ao carregar módulo</h4>
+            <p>${error.message}</p>
+            <button class="btn btn-outline-danger" onclick="location.reload()">Tentar novamente</button>
+          </div>
+        `;
+      }
+    });
+  </script>
+{% endblock %}

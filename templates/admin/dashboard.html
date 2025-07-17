@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard Administrativo - Sistema de Pátio{% endblock %}
+
+{% block extra_css %}
+<!-- CSS do tema admin -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin-theme.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid admin-page">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 d-md-block sidebar">
+            <div class="position-sticky">
+                <ul class="nav flex-column mt-3">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('admin.admin_dashboard') }}">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.listar_usuarios') }}">
+                            <i class="fas fa-users"></i> Usuários
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.listar_solicitacoes') }}">
+                            <i class="fas fa-user-plus"></i> Solicitações
+                            {% if solicitacoes_pendentes %} 
+                            <span class="badge bg-danger ms-2">{{ solicitacoes_pendentes|length }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.gerenciar_estruturas_avarias') }}">
+                            <i class="fas fa-tools"></i> Estruturas & Avarias
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.dashboard') }}">
+                            <i class="fas fa-user"></i> Meu Perfil
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.pagina_corrigir_descarga') }}">
+                            <i class="fas fa-tools text-danger"></i> Corrigir Descarga
+                        </a>
+                    </li>
+
+                    <li class="nav-item mt-4">
+                        <a class="nav-link text-danger" href="{{ url_for('auth.logout') }}" id="logoutBtn">
+                            <i class="fas fa-sign-out-alt"></i> Sair do Sistema
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Conteúdo principal -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 main-content">
+            <!-- Header da página -->
+            <div class="page-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h1>
+                        <i class="fas fa-tachometer-alt me-2"></i>
+                        Dashboard Administrativo
+                    </h1>
+                    <div class="btn-toolbar">
+                        <div class="btn-group">
+                            <a href="{{ url_for('admin.novo_usuario') }}" class="btn btn-outline-primary">
+                                <i class="fas fa-user-plus me-1"></i> Novo Usuário
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cards de estatísticas -->
+            <div class="admin-stats fade-in-up">
+                <div class="stat-card">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="stat-label">Total de Usuários</div>
+                            <div class="stat-value">{{ total_usuarios }}</div>
+                        </div>
+                        <div class="stats-icon">
+                            <i class="fas fa-users fa-3x text-itracker-blue"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="stat-label">Administradores</div>
+                            <div class="stat-value text-itracker-orange">{{ total_admins }}</div>
+                        </div>
+                        <div class="stats-icon">
+                            <i class="fas fa-user-shield fa-3x text-itracker-orange"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="stat-label">Usuários Padrão</div>
+                            <div class="stat-value text-success">{{ total_users }}</div>
+                        </div>
+                        <div class="stats-icon">
+                            <i class="fas fa-user fa-3x text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logs recentes -->
+            <div class="admin-card mb-4 slide-in-right">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-history me-2"></i>
+                        Atividades Recentes
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Data/Hora</th>
+                                    <th>Usuário</th>
+                                    <th>Nível</th>
+                                    <th>Ação</th>
+                                    <th>Descrição</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if logs_recentes %}
+                                    {% for log in logs_recentes %}
+                                    <tr>
+                                        <td>
+                                            <i class="fas fa-clock me-1 text-muted"></i>
+                                            {{ log.data_hora }}
+                                        </td>
+                                        <td>
+                                            <i class="fas fa-user me-1 text-muted"></i>
+                                            {{ log.usuario }}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{{ 'success' if log.nivel == 'user' else 'warning' if log.nivel == 'admin' else 'primary' }}">
+                                                {{ log.nivel }}
+                                            </span>
+                                        </td>
+                                        <td class="fw-semibold">{{ log.acao }}</td>
+                                        <td class="text-muted">{{ log.descricao }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted py-4">
+                                            <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
+                                            Nenhum log encontrado
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Dashboard administrativo carregado');
+        
+        // Adicionar animações aos cards
+        document.querySelectorAll('.stat-card').forEach((card, index) => {
+            card.style.animationDelay = `${index * 0.1}s`;
+            card.classList.add('fade-in-up');
+        });
+    });
+</script>
+{% endblock %}

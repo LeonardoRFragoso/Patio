@@ -1,0 +1,497 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciar Solicitações - Sistema de Pátio{% endblock %}
+
+{% block extra_css %}
+<!-- CSS do tema admin -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin-theme.css') }}">
+<style>
+    .approval-form {
+        display: none;
+        opacity: 0;
+        transform: translateY(-10px);
+        transition: all 0.3s ease;
+    }
+    
+    .approval-form.show {
+        display: block;
+        opacity: 1;
+        transform: translateY(0);
+    }
+    
+    .solicitacao-card {
+        transition: all 0.3s ease;
+        border-left: 4px solid var(--gray-300);
+    }
+    
+    .solicitacao-card:hover {
+        border-left: 4px solid var(--itracker-blue);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .actions-container {
+        transition: all 0.3s ease;
+    }
+    
+    .details-container {
+        background: var(--bg-glass);
+        border-radius: var(--border-radius-lg);
+        padding: var(--spacing-lg);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+    }
+    
+    .status-badge {
+        font-size: 0.875rem;
+        padding: 0.5rem 1rem;
+        border-radius: var(--border-radius-full);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    .solicitacao-card .card-body {
+        padding: var(--spacing-xl);
+    }
+    
+    .approval-card .card-header {
+        background: var(--gradient-primary);
+        color: var(--white-color);
+        border: none;
+        font-weight: 600;
+    }
+    
+    .approval-card.rejection .card-header {
+        background: var(--gradient-danger);
+    }
+    
+    .approval-card.success .card-header {
+        background: var(--gradient-success);
+    }
+    
+    .password-generator {
+        border-left: none;
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+        background: var(--gradient-primary);
+        color: var(--white-color);
+        border: 2px solid var(--itracker-blue);
+        transition: var(--transition-normal);
+    }
+    
+    .password-generator:hover {
+        background: var(--gradient-secondary);
+        border-color: var(--itracker-orange);
+        color: var(--white-color);
+        transform: scale(1.05);
+    }
+    
+    .form-control, .form-select, .btn {
+        min-height: 48px;
+        border-radius: var(--border-radius-md);
+        transition: var(--transition-normal);
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: var(--itracker-blue);
+        box-shadow: 0 0 0 3px rgba(0, 102, 179, 0.1);
+    }
+    
+    .empty-state {
+        background: var(--bg-glass);
+        border-radius: var(--border-radius-xl);
+        padding: var(--spacing-2xl);
+        text-align: center;
+        border: 2px dashed rgba(0, 102, 179, 0.3);
+        backdrop-filter: blur(10px);
+    }
+    
+    .empty-state i {
+        font-size: 4rem;
+        color: var(--itracker-blue);
+        margin-bottom: var(--spacing-lg);
+        opacity: 0.7;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid admin-page">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 d-md-block sidebar">
+            <div class="position-sticky">
+                <ul class="nav flex-column mt-3">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.admin_dashboard') }}">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.listar_usuarios') }}">
+                            <i class="fas fa-users"></i> Usuários
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('admin.listar_solicitacoes') }}">
+                            <i class="fas fa-user-plus"></i> Solicitações
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.gerenciar_estruturas_avarias') }}">
+                            <i class="fas fa-tools"></i> Estruturas & Avarias
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.dashboard') }}">
+                            <i class="fas fa-user"></i> Meu Perfil
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Conteúdo principal -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 main-content">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin.admin_dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Solicitações</li>
+                </ol>
+            </nav>
+
+            <!-- Header da página -->
+            <div class="page-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h1>
+                        <i class="fas fa-user-plus me-2"></i>
+                        Gerenciar Solicitações de Registro
+                    </h1>
+                    <div class="btn-toolbar">
+                        <a href="{{ url_for('admin.admin_dashboard') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-1"></i> Voltar ao Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Informações -->
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                Nesta página você pode gerenciar todas as solicitações de acesso ao sistema. Revise as informações antes de aprovar ou rejeitar.
+            </div>
+
+            <!-- Lista de solicitações -->
+            <div class="admin-card fade-in-up">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>
+                        Solicitações Pendentes
+                        {% if solicitacoes %}
+                        <span class="badge bg-warning ms-2">{{ solicitacoes|length }}</span>
+                        {% endif %}
+                    </h5>
+                </div>
+                
+                <div class="card-body">
+                    {% if solicitacoes %}
+                        {% for solicitacao in solicitacoes %}
+                            <div class="card mb-4 solicitacao-card slide-in-right" style="animation-delay: {{ loop.index0 * 0.1 }}s;">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <div>
+                                            <h5 class="card-title mb-0 text-itracker-blue">
+                                                <i class="fas fa-user me-2"></i>
+                                                {{ solicitacao.nome }} ({{ solicitacao.username }})
+                                            </h5>
+                                            <div class="text-muted small mt-2">
+                                                <i class="fas fa-envelope me-1"></i> {{ solicitacao.email }}
+                                                <span class="mx-2">|</span>
+                                                <i class="fas fa-building me-1"></i> {{ solicitacao.unidade }}
+                                                <span class="mx-2">|</span>
+                                                <i class="fas fa-briefcase me-1"></i> {{ solicitacao.setor }}
+                                            </div>
+                                        </div>
+                                        <span class="badge status-badge bg-warning">
+                                            <i class="fas fa-clock me-1"></i>Pendente
+                                        </span>
+                                    </div>
+                                    
+                                    <div class="details-container mb-3">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <p class="mb-2">
+                                                    <strong><i class="fas fa-calendar me-1 text-itracker-blue"></i>Data da solicitação:</strong> 
+                                                    {{ solicitacao.data_solicitacao }}
+                                                </p>
+                                                <p class="mb-2">
+                                                    <strong><i class="fas fa-comment-alt me-1 text-itracker-blue"></i>Justificativa:</strong> 
+                                                    {{ solicitacao.justificativa or 'Não informada' }}
+                                                </p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <p class="mb-2">
+                                                    <strong><i class="fas fa-phone me-1 text-itracker-blue"></i>Telefone:</strong> 
+                                                    {{ solicitacao.telefone or 'Não informado' }}
+                                                </p>
+                                                <p class="mb-2">
+                                                    <strong><i class="fas fa-id-badge me-1 text-itracker-blue"></i>Cargo:</strong> 
+                                                    {{ solicitacao.cargo or 'Não informado' }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="actions-container">
+                                        <div class="action-buttons">
+                                            <button class="btn btn-success show-approval-form" data-id="{{ solicitacao.id }}">
+                                                <i class="fas fa-check me-1"></i> Aprovar
+                                            </button>
+                                            <button class="btn btn-danger show-rejection-form" data-id="{{ solicitacao.id }}">
+                                                <i class="fas fa-times me-1"></i> Rejeitar
+                                            </button>
+                                        </div>
+                                        
+                                        <!-- Formulário de aprovação -->
+                                        <div class="approval-form mt-4" id="approval-form-{{ solicitacao.id }}">
+                                            <div class="card approval-card success">
+                                                <div class="card-header">
+                                                    <h6 class="mb-0">
+                                                        <i class="fas fa-check-circle me-2"></i>
+                                                        Aprovar Solicitação
+                                                    </h6>
+                                                </div>
+                                                <div class="card-body">
+                                                    <form action="{{ url_for('admin.aprovar_solicitacao', solicitacao_id=solicitacao.id) }}" method="post">
+                                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                        
+                                                        <div class="mb-3">
+                                                            <label for="nivel-{{ solicitacao.id }}" class="form-label">
+                                                                <i class="fas fa-user-shield me-1"></i>Nível de acesso:
+                                                            </label>
+                                                            <select class="form-select" id="nivel-{{ solicitacao.id }}" name="nivel" required>
+                                                                <option value="" disabled selected>Selecione o nível</option>
+                                                                <option value="operador">Operador</option>
+                                                                <option value="vistoriador">Vistoriador</option>
+                                                                <option value="admin">Administrador</option>
+                                                            </select>
+                                                        </div>
+                                                        
+                                                        <div class="mb-3">
+                                                            <label for="senha-{{ solicitacao.id }}" class="form-label">
+                                                                <i class="fas fa-key me-1"></i>Senha inicial:
+                                                            </label>
+                                                            <div class="input-group">
+                                                                <input type="text" class="form-control" id="senha-{{ solicitacao.id }}" name="senha_gerada" required minlength="8" placeholder="Senha será gerada automaticamente">
+                                                                <button class="btn password-generator generate-password" type="button" data-target="senha-{{ solicitacao.id }}">
+                                                                    <i class="fas fa-key"></i> Gerar
+                                                                </button>
+                                                            </div>
+                                                            <div class="form-text">
+                                                                <i class="fas fa-info-circle me-1"></i>
+                                                                A senha deve ter no mínimo 8 caracteres. O usuário poderá alterá-la depois.
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div class="d-flex justify-content-end">
+                                                            <button type="button" class="btn btn-outline-secondary me-2 cancel-form">
+                                                                <i class="fas fa-times me-1"></i>Cancelar
+                                                            </button>
+                                                            <button type="submit" class="btn btn-success">
+                                                                <i class="fas fa-check me-1"></i>Confirmar Aprovação
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Formulário de rejeição -->
+                                        <div class="approval-form mt-4" id="rejection-form-{{ solicitacao.id }}">
+                                            <div class="card approval-card rejection">
+                                                <div class="card-header">
+                                                    <h6 class="mb-0">
+                                                        <i class="fas fa-times-circle me-2"></i>
+                                                        Rejeitar Solicitação
+                                                    </h6>
+                                                </div>
+                                                <div class="card-body">
+                                                    <form action="{{ url_for('admin.rejeitar_solicitacao', solicitacao_id=solicitacao.id) }}" method="post">
+                                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                        
+                                                        <div class="mb-3">
+                                                            <label for="motivo-{{ solicitacao.id }}" class="form-label">
+                                                                <i class="fas fa-comment-dots me-1"></i>Motivo da rejeição:
+                                                            </label>
+                                                            <textarea class="form-control" id="motivo-{{ solicitacao.id }}" name="motivo" rows="4" required placeholder="Descreva o motivo da rejeição..."></textarea>
+                                                        </div>
+                                                        
+                                                        <div class="d-flex justify-content-end">
+                                                            <button type="button" class="btn btn-outline-secondary me-2 cancel-form">
+                                                                <i class="fas fa-times me-1"></i>Cancelar
+                                                            </button>
+                                                            <button type="submit" class="btn btn-danger">
+                                                                <i class="fas fa-times me-1"></i>Confirmar Rejeição
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-check-circle"></i>
+                            <h4 class="text-itracker-blue mb-3">Não há solicitações pendentes!</h4>
+                            <p class="text-muted mb-0">
+                                Todas as solicitações de registro foram processadas. Quando novos usuários solicitarem acesso, elas aparecerão aqui.
+                            </p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Gerar senhas automaticamente ao carregar
+    document.querySelectorAll('.generate-password').forEach(function(button) {
+        const targetId = button.getAttribute('data-target');
+        const passwordField = document.getElementById(targetId);
+        
+        // Gerar senha automaticamente
+        generatePassword(passwordField);
+    });
+    
+    // Mostrar formulário de aprovação
+    document.querySelectorAll('.show-approval-form').forEach(function(button) {
+        button.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            hideAllForms();
+            const form = document.getElementById('approval-form-' + id);
+            form.style.display = 'block';
+            setTimeout(() => form.classList.add('show'), 10);
+            
+            // Adicionar feedback visual
+            this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Carregando...';
+            this.disabled = true;
+            
+            setTimeout(() => {
+                this.innerHTML = '<i class="fas fa-check me-1"></i> Aprovar';
+                this.disabled = false;
+            }, 500);
+        });
+    });
+    
+    // Mostrar formulário de rejeição
+    document.querySelectorAll('.show-rejection-form').forEach(function(button) {
+        button.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            hideAllForms();
+            const form = document.getElementById('rejection-form-' + id);
+            form.style.display = 'block';
+            setTimeout(() => form.classList.add('show'), 10);
+            
+            // Adicionar feedback visual
+            this.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Carregando...';
+            this.disabled = true;
+            
+            setTimeout(() => {
+                this.innerHTML = '<i class="fas fa-times me-1"></i> Rejeitar';
+                this.disabled = false;
+            }, 500);
+        });
+    });
+    
+    // Ocultar formulários ao clicar em cancelar
+    document.querySelectorAll('.cancel-form').forEach(function(button) {
+        button.addEventListener('click', function() {
+            hideAllForms();
+        });
+    });
+    
+    // Função para esconder todos os formulários
+    function hideAllForms() {
+        document.querySelectorAll('.approval-form').forEach(function(form) {
+            form.classList.remove('show');
+            setTimeout(() => {
+                form.style.display = 'none';
+            }, 300);
+        });
+    }
+    
+    // Função para gerar senha
+    function generatePassword(passwordField) {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()';
+        let password = '';
+        for (let i = 0; i < 12; i++) {
+            password += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        passwordField.value = password;
+    }
+    
+    // Gerador de senhas aleatórias
+    document.querySelectorAll('.generate-password').forEach(function(button) {
+        button.addEventListener('click', function() {
+            const targetId = this.getAttribute('data-target');
+            const passwordField = document.getElementById(targetId);
+            
+            // Animação do botão
+            const originalText = this.innerHTML;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando...';
+            this.disabled = true;
+            
+            setTimeout(() => {
+                generatePassword(passwordField);
+                this.innerHTML = '<i class="fas fa-check"></i> Gerada!';
+                
+                setTimeout(() => {
+                    this.innerHTML = originalText;
+                    this.disabled = false;
+                }, 1000);
+            }, 500);
+        });
+    });
+    
+    // Validação dos formulários
+    document.querySelectorAll('form').forEach(function(form) {
+        form.addEventListener('submit', function(e) {
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Processando...';
+                submitBtn.disabled = true;
+                
+                // Se houver erro, restaurar o botão
+                setTimeout(() => {
+                    if (submitBtn.disabled) {
+                        submitBtn.innerHTML = originalText;
+                        submitBtn.disabled = false;
+                    }
+                }, 5000);
+            }
+        });
+    });
+    
+    // Adicionar animações aos cards
+    document.querySelectorAll('.solicitacao-card').forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.1}s`;
+        card.classList.add('slide-in-right');
+    });
+    
+    // Animação de entrada da página
+    setTimeout(() => {
+        document.querySelector('.admin-card').classList.add('fade-in-up');
+    }, 100);
+});
+</script>
+{% endblock %}

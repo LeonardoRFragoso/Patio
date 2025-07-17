@@ -1,0 +1,1577 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sistema de Pátio - Vistoriador</title>
+
+    <!-- Bootstrap 5 -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+
+    <!-- SweetAlert2 -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
+    />
+
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- CSS Personalizado -->
+    <style>
+      :root {
+        --primary-color: #007bff;
+        --secondary-color: #6c757d;
+        --success-color: #28a745;
+        --warning-color: #ffc107;
+        --danger-color: #dc3545;
+        --info-color: #17a2b8;
+        --light-color: #f8f9fa;
+        --dark-color: #343a40;
+      }
+
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #f5f6fa;
+        color: #2c3e50;
+      }
+
+      .main-card {
+        border: none;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+        border-radius: 15px;
+        margin-bottom: 2rem;
+      }
+
+      .card-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 15px 15px 0 0 !important;
+        padding: 1.5rem;
+      }
+
+      .header-logo {
+        height: 40px;
+        width: auto;
+      }
+
+      .user-actions {
+        display: flex;
+        align-items: center;
+      }
+
+      .user-info {
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 500;
+      }
+
+      .btn-logout {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        transition: all 0.3s ease;
+      }
+
+      .btn-logout:hover {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        transform: translateY(-1px);
+      }
+
+      /* Indicadores do Pátio */
+      .indicators-section {
+        margin-bottom: 2rem;
+      }
+
+      .indicator-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border: none;
+        transition: all 0.3s ease;
+        height: 100%;
+      }
+
+      .indicator-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+      }
+
+      .indicator-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+        margin-bottom: 1rem;
+      }
+
+      .indicator-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+      }
+
+      .indicator-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+        font-weight: 500;
+      }
+
+      .indicator-change {
+        font-size: 0.8rem;
+        font-weight: 500;
+        margin-top: 0.5rem;
+      }
+
+      .change-positive {
+        color: var(--success-color);
+      }
+
+      .change-negative {
+        color: var(--danger-color);
+      }
+
+      /* Filtros e Consulta */
+      .filters-section {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        margin-bottom: 2rem;
+      }
+
+      .filter-group {
+        margin-bottom: 1rem;
+      }
+
+      .container-table {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      }
+
+      .table {
+        margin-bottom: 0;
+      }
+
+      .table thead th {
+        background-color: #f8f9fa;
+        border: none;
+        color: #495057;
+        font-weight: 600;
+        padding: 1rem;
+      }
+
+      .table tbody td {
+        padding: 1rem;
+        border-color: #e9ecef;
+        vertical-align: middle;
+      }
+
+      .status-badge {
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+      }
+
+      .status-vistoriado {
+        background-color: #d4edda;
+        color: #155724;
+      }
+
+      .status-no-patio {
+        background-color: #d1ecf1;
+        color: #0c5460;
+      }
+
+      .status-carregado {
+        background-color: #fff3cd;
+        color: #856404;
+      }
+
+      .btn-view-details {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+        transition: all 0.3s ease;
+      }
+
+      .btn-view-details:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        color: white;
+      }
+
+      /* Navegação por abas */
+      .nav-tabs .nav-link {
+        color: #495057;
+        border: none;
+        border-radius: 8px 8px 0 0;
+        font-weight: 500;
+        transition: all 0.3s ease;
+      }
+
+      .nav-tabs .nav-link.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+      }
+
+      .nav-tabs .nav-link:hover:not(.active) {
+        background-color: #f8f9fa;
+        border: none;
+      }
+
+      /* Paginação */
+      .pagination {
+        margin-bottom: 0;
+      }
+
+      .page-link {
+        border: none;
+        color: var(--primary-color);
+        padding: 0.6rem 1rem;
+        margin: 0 0.2rem;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+      }
+
+      .page-link:hover {
+        background-color: var(--primary-color);
+        color: white;
+        transform: translateY(-1px);
+      }
+
+      .page-item.active .page-link {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+      }
+
+      /* Responsividade */
+      @media (max-width: 768px) {
+        .indicator-card {
+          margin-bottom: 1rem;
+        }
+
+        .table-responsive {
+          border: none;
+        }
+
+        .filters-section .row > div {
+          margin-bottom: 1rem;
+        }
+      }
+
+      /* Animações */
+      .fade-in {
+        animation: fadeIn 0.5s ease-in;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .loading {
+        text-align: center;
+        padding: 2rem;
+      }
+
+      .spinner-border {
+        width: 3rem;
+        height: 3rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-12">
+          <div class="card main-card">
+            <div class="card-header">
+              <div class="d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                  <img
+                    src="/static/assets/itracker_logo.png"
+                    alt="iTracker"
+                    class="header-logo me-2"
+                  />
+                  Sistema de Pátio
+                </h5>
+                <div class="user-actions">
+                  <span class="user-info me-3">
+                    <i class="fas fa-user-circle me-1"></i>
+                    Vistoriador | {{ unidade }}
+                  </span>
+                  <button class="btn btn-logout" onclick="confirmarLogout()">
+                    <i class="fas fa-sign-out-alt me-1"></i>
+                    Sair
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-body">
+              <!-- Seção de Boas-vindas -->
+              <div class="welcome-section mb-4">
+                <h4 class="welcome-title">
+                  Bem-vindo(a), {{ user.nome if user.nome else user.username }}!
+                </h4>
+                <p class="text-muted mb-3">
+                  Nível de acesso:
+                  <span class="badge bg-warning">Vistoriador</span>
+                  <span class="badge bg-info">{{ unidade }}</span>
+                </p>
+
+                <!-- Botão de Visualização 3D -->
+                <div class="text-center">
+                  <button
+                    class="btn btn-primary btn-lg"
+                    onclick="window.location.href='/visualizacao_patio'"
+                    style="
+                      background: linear-gradient(
+                        135deg,
+                        #667eea 0%,
+                        #764ba2 100%
+                      );
+                      border: none;
+                    "
+                  >
+                    <i class="fas fa-cube me-2"></i>
+                    Visualização 3D do Pátio
+                  </button>
+                </div>
+              </div>
+
+              <!-- Navegação por Abas -->
+              <ul class="nav nav-tabs mb-4" id="mainTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                  <button
+                    class="nav-link active"
+                    id="vistoria-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#vistoria-panel"
+                    type="button"
+                    role="tab"
+                  >
+                    <i class="fas fa-clipboard-check me-2"></i>
+                    Registrar Vistoria
+                  </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button
+                    class="nav-link"
+                    id="indicadores-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#indicadores-panel"
+                    type="button"
+                    role="tab"
+                  >
+                    <i class="fas fa-chart-bar me-2"></i>
+                    Indicadores do Pátio
+                  </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button
+                    class="nav-link"
+                    id="consulta-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#consulta-panel"
+                    type="button"
+                    role="tab"
+                  >
+                    <i class="fas fa-search me-2"></i>
+                    Consulta de Containers
+                  </button>
+                </li>
+              </ul>
+
+              <!-- Conteúdo das Abas -->
+              <div class="tab-content" id="mainTabContent">
+                <!-- Aba de Vistoria -->
+                <div
+                  class="tab-pane fade show active"
+                  id="vistoria-panel"
+                  role="tabpanel"
+                >
+                  <!-- Formulário de Vistoria (conteúdo original) -->
+                  <div class="vistoria-card">
+                    <div class="vistoria-header">
+                      <h4>
+                        <i class="fas fa-clipboard-check text-primary me-2"></i>
+                        Registrar Vistoria de Container
+                      </h4>
+                      <p class="text-muted">
+                        Preencha os campos abaixo para registrar a vistoria de
+                        um novo container
+                      </p>
+                    </div>
+
+                    <!-- Formulário de Vistoria -->
+                    <form id="formVistoria" method="POST">
+                      <input
+                        type="hidden"
+                        name="csrf_token"
+                        value="{{ csrf_token() }}"
+                      />
+
+                      <!-- SEÇÃO 1: INFORMAÇÕES BÁSICAS DO CONTAINER -->
+                      <div class="mb-4">
+                        <h5 class="text-primary mb-3">
+                          <i class="fas fa-info-circle me-2"></i>Informações
+                          Básicas
+                        </h5>
+
+                        <!-- Primeira linha - 3 colunas -->
+                        <div class="row">
+                          <!-- Número do Container -->
+                          <div class="col-md-4 mb-4">
+                            <label for="container_numero" class="form-label"
+                              >Número do Container:</label
+                            >
+                            <input
+                              type="text"
+                              class="form-control"
+                              id="container_numero"
+                              name="container_numero"
+                              placeholder="Ex: ABCD1234567"
+                              required
+                            />
+                          </div>
+
+                          <!-- Status (Cheio/Vazio) -->
+                          <div class="col-md-4 mb-4">
+                            <label for="status" class="form-label"
+                              >Status:</label
+                            >
+                            <select
+                              class="form-select"
+                              id="status"
+                              name="status"
+                              required
+                            >
+                              <option value="" selected disabled>
+                                Selecione o status
+                              </option>
+                              <option value="cheio">Cheio</option>
+                              <option value="vazio">Vazio</option>
+                            </select>
+                          </div>
+
+                          <!-- ISO Container -->
+                          <div class="col-md-4 mb-4">
+                            <label for="iso_container" class="form-label"
+                              >ISO Container:</label
+                            >
+                            <input
+                              type="text"
+                              class="form-control"
+                              id="iso_container"
+                              name="iso_container"
+                              placeholder="Ex: 22G1"
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        <!-- Segunda linha - 3 colunas -->
+                        <div class="row">
+                          <!-- Capacidade Máxima -->
+                          <div class="col-md-4 mb-4">
+                            <label for="capacidade" class="form-label"
+                              >Capacidade Máxima (kg):</label
+                            >
+                            <input
+                              type="number"
+                              class="form-control"
+                              id="capacidade"
+                              name="capacidade"
+                              placeholder="Ex: 30480"
+                              required
+                            />
+                          </div>
+
+                          <!-- Tara -->
+                          <div class="col-md-4 mb-4">
+                            <label for="tara" class="form-label"
+                              >Tara (kg):</label
+                            >
+                            <input
+                              type="number"
+                              class="form-control"
+                              id="tara"
+                              name="tara"
+                              placeholder="Ex: 2300"
+                              required
+                            />
+                          </div>
+
+                          <!-- Lacre -->
+                          <div class="col-md-4 mb-4">
+                            <label for="lacre" class="form-label">Lacre:</label>
+                            <input
+                              type="text"
+                              class="form-control"
+                              id="lacre"
+                              name="lacre"
+                              placeholder="Ex: BR123456"
+                            />
+                          </div>
+                        </div>
+
+                        <!-- Terceira linha -->
+                        <div class="row">
+                          <!-- Armador -->
+                          <div class="col-md-4 mb-4">
+                            <label for="armador" class="form-label"
+                              >Armador:</label
+                            >
+                            <select
+                              class="form-select"
+                              id="armador"
+                              name="armador"
+                              required
+                            >
+                              <option value="">Carregando armadores...</option>
+                            </select>
+                          </div>
+
+                          <!-- Tamanho do Container -->
+                          <div class="col-md-4 mb-4">
+                            <label for="tamanho" class="form-label"
+                              >Tamanho (pés):</label
+                            >
+                            <select
+                              class="form-select"
+                              id="tamanho"
+                              name="tamanho"
+                              required
+                            >
+                              <option value="">Selecione o tamanho</option>
+                              <option value="20">20</option>
+                              <option value="40">40</option>
+                            </select>
+                          </div>
+
+                          <!-- Booking -->
+                          <div class="col-md-4 mb-4">
+                            <label for="booking" class="form-label"
+                              >Booking:</label
+                            >
+                            <input
+                              type="text"
+                              class="form-control"
+                              id="booking"
+                              name="booking"
+                              placeholder="Ex: BK2023456789"
+                            />
+                          </div>
+                        </div>
+
+                        <!-- Quarta linha -->
+                        <div class="row">
+                          <!-- Número do Vagão -->
+                          <div class="col-md-4 mb-4">
+                            <label for="vagao" class="form-label"
+                              >Número do Vagão:</label
+                            >
+                            <input
+                              type="text"
+                              class="form-control"
+                              id="vagao"
+                              name="vagao"
+                              placeholder="Ex: V12345"
+                            />
+                          </div>
+
+                          <!-- Placa do Caminhão -->
+                          <div class="col-md-4 mb-4">
+                            <label for="placa" class="form-label"
+                              >Placa do Caminhão:</label
+                            >
+                            <input
+                              type="text"
+                              class="form-control"
+                              id="placa"
+                              name="placa"
+                              placeholder="Ex: ABC-1234"
+                            />
+                          </div>
+                        </div>
+
+                        <!-- Observações gerais -->
+                        <div class="row">
+                          <div class="col-12 mb-4">
+                            <label for="observacoes_gerais" class="form-label"
+                              >Observações Gerais:</label
+                            >
+                            <textarea
+                              class="form-control"
+                              id="observacoes_gerais"
+                              name="observacoes_gerais"
+                              rows="2"
+                              placeholder="Observações gerais sobre o container"
+                            ></textarea>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- SEÇÃO 2: REGISTRO DE AVARIAS -->
+                      <div class="avarias-section">
+                        <h5 class="text-primary mb-3">
+                          <i class="fas fa-exclamation-triangle me-2"></i
+                          >Registro de Avarias
+                        </h5>
+
+                        <div class="row">
+                          <!-- Estrutura -->
+                          <div class="col-md-4 mb-3">
+                            <label for="estrutura" class="form-label"
+                              >Estrutura:</label
+                            >
+                            <select
+                              class="form-select"
+                              id="estrutura"
+                              name="estrutura"
+                            >
+                              <option value="">Selecione a estrutura...</option>
+                            </select>
+                          </div>
+
+                          <!-- Avaria -->
+                          <div class="col-md-4 mb-3">
+                            <label for="avaria" class="form-label"
+                              >Tipo de Avaria:</label
+                            >
+                            <select
+                              class="form-select"
+                              id="avaria"
+                              name="avaria"
+                            >
+                              <option value="">Selecione a avaria...</option>
+                            </select>
+                          </div>
+
+                          <!-- Botão Adicionar -->
+                          <div class="col-md-4 mb-3 d-flex align-items-end">
+                            <button
+                              type="button"
+                              class="btn btn-success w-100"
+                              id="btn-adicionar-avaria"
+                            >
+                              <i class="fas fa-plus me-2"></i>Adicionar Avaria
+                            </button>
+                          </div>
+                        </div>
+
+                        <!-- Observações da avaria -->
+                        <div class="row">
+                          <div class="col-12 mb-3">
+                            <label for="observacoes_avaria" class="form-label"
+                              >Observações da Avaria:</label
+                            >
+                            <textarea
+                              class="form-control"
+                              id="observacoes_avaria"
+                              name="observacoes_avaria"
+                              rows="2"
+                              placeholder="Descreva detalhes específicos desta avaria..."
+                            ></textarea>
+                          </div>
+                        </div>
+
+                        <!-- Lista de Avarias Adicionadas -->
+                        <div
+                          id="avarias-adicionadas-section"
+                          style="display: none"
+                        >
+                          <h6 class="text-primary mt-4 mb-3">
+                            <i class="fas fa-list me-2"></i>Avarias Registradas
+                          </h6>
+                          <div
+                            id="lista-avarias-adicionadas"
+                            class="avarias-lista"
+                          ></div>
+
+                          <div
+                            class="d-flex justify-content-between align-items-center mt-3"
+                          >
+                            <small class="text-muted">
+                              <i class="fas fa-info-circle me-1"></i>
+                              Total:
+                              <span id="contador-avarias-adicionadas">0</span>
+                              avaria(s)
+                            </small>
+                            <button
+                              type="button"
+                              class="btn btn-sm btn-outline-danger"
+                              onclick="limparTodasAvarias()"
+                            >
+                              <i class="fas fa-trash me-1"></i> Limpar Todas
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Botões de Ação -->
+                      <div class="text-center mt-4">
+                        <button
+                          type="submit"
+                          class="btn btn-primary btn-lg me-3"
+                          id="btn-registrar"
+                        >
+                          <i class="fas fa-save me-2"></i> Registrar Vistoria
+                        </button>
+                        <button
+                          type="reset"
+                          class="btn btn-secondary btn-lg"
+                          onclick="limparFormularioCompleto()"
+                        >
+                          <i class="fas fa-eraser me-2"></i> Limpar Formulário
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+
+                <!-- Aba de Indicadores do Pátio -->
+                <div
+                  class="tab-pane fade"
+                  id="indicadores-panel"
+                  role="tabpanel"
+                >
+                  <div class="indicators-section">
+                    <!-- Cards de Indicadores -->
+                    <div class="row" id="indicators-container">
+                      <!-- Indicadores serão carregados aqui via JavaScript -->
+                      <div class="col-12 text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                          <span class="visually-hidden"
+                            >Carregando indicadores...</span
+                          >
+                        </div>
+                        <p class="mt-3 text-muted">
+                          Carregando dados do pátio...
+                        </p>
+                      </div>
+                    </div>
+
+                    <!-- Gráficos de Distribuição -->
+                    <div class="row mt-4">
+                      <div class="col-md-6">
+                        <div class="card">
+                          <div class="card-header">
+                            <h6 class="mb-0">
+                              <i class="fas fa-chart-pie me-2"></i>Distribuição
+                              por Status
+                            </h6>
+                          </div>
+                          <div class="card-body">
+                            <canvas id="statusChart" height="200"></canvas>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-md-6">
+                        <div class="card">
+                          <div class="card-header">
+                            <h6 class="mb-0">
+                              <i class="fas fa-ship me-2"></i>Containers
+                              por Armador
+                            </h6>
+                          </div>
+                          <div class="card-body">
+                            <canvas id="alturaChart" height="200"></canvas>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Aba de Consulta de Containers -->
+                <div class="tab-pane fade" id="consulta-panel" role="tabpanel">
+                  <!-- Filtros de Busca -->
+                  <div class="filters-section">
+                    <h5 class="mb-3">
+                      <i class="fas fa-filter me-2"></i>Filtros de Busca
+                    </h5>
+
+                    <div class="row">
+                      <div class="col-md-3 filter-group">
+                        <label for="filter-numero" class="form-label"
+                          >Número do Container</label
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="filter-numero"
+                          placeholder="Ex: ABCD1234567"
+                        />
+                      </div>
+
+                      <div class="col-md-3 filter-group">
+                        <label for="filter-status" class="form-label"
+                          >Status</label
+                        >
+                        <select class="form-select" id="filter-status">
+                          <option value="">Todos os status</option>
+                          <option value="vistoriado">Vistoriado</option>
+                          <option value="no patio">No Pátio</option>
+                          <option value="carregado">Carregado</option>
+                          <option value="fora do patio">Fora do Pátio</option>
+                        </select>
+                      </div>
+
+                      <div class="col-md-3 filter-group">
+                        <label for="filter-posicao" class="form-label"
+                          >Posição/Baia</label
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="filter-posicao"
+                          placeholder="Ex: A01-1 ou A"
+                        />
+                      </div>
+
+                      <div class="col-md-3 filter-group">
+                        <label for="filter-armador" class="form-label"
+                          >Armador</label
+                        >
+                        <select class="form-select" id="filter-armador">
+                          <option value="">Todos os armadores</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div class="row">
+                      <div class="col-md-3 filter-group">
+                        <label for="filter-data-inicio" class="form-label"
+                          >Data Início</label
+                        >
+                        <input
+                          type="date"
+                          class="form-control"
+                          id="filter-data-inicio"
+                        />
+                      </div>
+
+                      <div class="col-md-3 filter-group">
+                        <label for="filter-data-fim" class="form-label"
+                          >Data Fim</label
+                        >
+                        <input
+                          type="date"
+                          class="form-control"
+                          id="filter-data-fim"
+                        />
+                      </div>
+
+                      <div class="col-md-6 filter-group d-flex align-items-end">
+                        <button
+                          type="button"
+                          class="btn btn-primary me-2"
+                          id="btn-aplicar-filtros"
+                        >
+                          <i class="fas fa-search me-2"></i>Buscar
+                        </button>
+                        <button
+                          type="button"
+                          class="btn btn-outline-secondary me-2"
+                          id="btn-limpar-filtros"
+                        >
+                          <i class="fas fa-times me-2"></i>Limpar
+                        </button>
+                        <button
+                          type="button"
+                          class="btn btn-outline-success"
+                          id="btn-exportar"
+                        >
+                          <i class="fas fa-download me-2"></i>Exportar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Tabela de Containers -->
+                  <div class="container-table">
+                    <div
+                      class="d-flex justify-content-between align-items-center p-3 border-bottom"
+                    >
+                      <h6 class="mb-0">
+                        <i class="fas fa-list me-2"></i>Containers Encontrados
+                      </h6>
+                      <span class="badge bg-primary" id="total-containers"
+                        >0 containers</span
+                      >
+                    </div>
+
+                    <div class="table-responsive">
+                      <table class="table table-hover">
+                        <thead>
+                          <tr>
+                            <th>Número</th>
+                            <th>Status</th>
+                            <th>Posição</th>
+                            <th>Armador</th>
+                            <th>Tamanho</th>
+                            <th>Última Atualização</th>
+                            <th>Ações</th>
+                          </tr>
+                        </thead>
+                        <tbody id="containers-table-body">
+                          <!-- Dados serão carregados via JavaScript -->
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <!-- Paginação -->
+                    <div
+                      class="d-flex justify-content-between align-items-center p-3 border-top"
+                    >
+                      <div class="text-muted">
+                        Mostrando <span id="showing-from">0</span> a
+                        <span id="showing-to">0</span> de
+                        <span id="total-records">0</span> registros
+                      </div>
+                      <nav>
+                        <ul class="pagination mb-0" id="pagination-container">
+                          <!-- Paginação será gerada via JavaScript -->
+                        </ul>
+                      </nav>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Lista de Vistorias Recentes (mantida na parte inferior) -->
+              <div class="vistoria-card container-list mt-4">
+                <div class="vistoria-header">
+                  <h4>
+                    <i class="fas fa-history text-primary me-2"></i> Vistorias
+                    Recentes
+                  </h4>
+                  <p class="text-muted">
+                    Containers vistoriados recentemente nesta unidade
+                  </p>
+                </div>
+
+                <div id="containers-vistoriados">
+                  <div class="text-center py-4" id="loading-containers">
+                    <div class="spinner-border text-primary" role="status">
+                      <span class="visually-hidden">Carregando...</span>
+                    </div>
+                    <p class="mt-2">Carregando containers vistoriados...</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal para Detalhes do Container -->
+    <div class="modal fade" id="containerDetailsModal" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="fas fa-cube me-2"></i>
+              Detalhes do Container <span id="modal-container-number"></span>
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body" id="container-details-content">
+            <!-- Conteúdo será carregado via JavaScript -->
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Fechar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/static/js/armadores.js"></script>
+    <script src="/static/js/dashboard_vistoriador.js"></script>
+
+    <script>
+      // JavaScript para as novas funcionalidades
+      // Variáveis já declaradas no dashboard_vistoriador.js
+
+      document.addEventListener("DOMContentLoaded", function () {
+        // Carregar dados iniciais quando a aba é ativada
+        document
+          .getElementById("indicadores-tab")
+          .addEventListener("shown.bs.tab", function () {
+            carregarIndicadoresPatio();
+          });
+
+        document
+          .getElementById("consulta-tab")
+          .addEventListener("shown.bs.tab", function () {
+            carregarConsultaContainers();
+          });
+
+        // Event listeners para filtros
+        document
+          .getElementById("btn-aplicar-filtros")
+          .addEventListener("click", aplicarFiltros);
+        document
+          .getElementById("btn-limpar-filtros")
+          .addEventListener("click", limparFiltros);
+        document
+          .getElementById("btn-exportar")
+          .addEventListener("click", exportarDados);
+
+        // Auto-busca ao digitar
+        document
+          .getElementById("filter-numero")
+          .addEventListener("input", debounce(aplicarFiltros, 500));
+      });
+
+      function carregarIndicadoresPatio() {
+        fetch("/vistoriador/indicadores-patio")
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              renderizarIndicadores(data.indicadores);
+              renderizarGraficos(data.indicadores);
+            }
+          })
+          .catch((error) =>
+            console.error("Erro ao carregar indicadores:", error)
+          );
+      }
+
+      /* BLOCO DUPLICADO REMOVIDO
+if (false) {
+        function renderizarIndicadores(indicadores) {
+        const container = document.getElementById("indicators-container");
+        container.innerHTML = `
+          <div class="col-md-3 col-sm-6 mb-4 fade-in">
+            <div class="indicator-card">
+              <div class="indicator-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <i class="fas fa-cube"></i>
+              </div>
+              <div class="indicator-value">${indicadores.total_containers}</div>
+              <div class="indicator-label">Total de Containers</div>
+              <div class="indicator-change change-positive">
+                <i class="fas fa-arrow-up"></i> +${
+                  indicadores.novos_hoje || 0
+                } hoje
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-3 col-sm-6 mb-4 fade-in">
+            <div class="indicator-card">
+              <div class="indicator-icon" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                <i class="fas fa-check-circle"></i>
+              </div>
+              <div class="indicator-value">${
+                indicadores.containers_vistoriados
+              }</div>
+              <div class="indicator-label">Vistoriados</div>
+              <div class="indicator-change change-positive">
+                <i class="fas fa-arrow-up"></i> ${
+                  indicadores.vistoriados_hoje || 0
+                } hoje
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-3 col-sm-6 mb-4 fade-in">
+            <div class="indicator-card">
+              <div class="indicator-icon" style="background: linear-gradient(135deg, #17a2b8 0%, #6f42c1 100%);">
+                <i class="fas fa-warehouse"></i>
+              </div>
+              <div class="indicator-value">${
+                indicadores.containers_no_patio
+              }</div>
+              <div class="indicator-label">No Pátio</div>
+              <div class="indicator-change">
+                Taxa de ocupação: ${indicadores.taxa_ocupacao || 0}%
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-3 col-sm-6 mb-4 fade-in">
+            <div class="indicator-card">
+              <div class="indicator-icon" style="background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);">
+                <i class="fas fa-truck"></i>
+              </div>
+              <div class="indicator-value">${
+                indicadores.containers_carregados
+              }</div>
+              <div class="indicator-label">Carregados</div>
+              <div class="indicator-change change-positive">
+                <i class="fas fa-arrow-up"></i> ${
+                  indicadores.carregados_hoje || 0
+                } hoje
+              </div>
+            </div>
+          `;
+        }
+          type: "doughnut",
+          data: {
+            labels: ["Vistoriado", "No Pátio", "Carregado", "Fora do Pátio"],
+            datasets: [
+              {
+                data: [
+                  indicadores.containers_vistoriados,
+                  indicadores.containers_no_patio,
+                  indicadores.containers_carregados,
+                  indicadores.containers_fora_patio || 0,
+                ],
+                backgroundColor: ["#28a745", "#17a2b8", "#ffc107", "#dc3545"],
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: "bottom" },
+            },
+          },
+        });
+
+        // Gráfico de Altura
+        const ctxAltura = document
+          .getElementById("alturaChart")
+          .getContext("2d");
+        new Chart(ctxAltura, {
+          type: "bar",
+          data: {
+            labels: [
+              "Altura 1",
+              "Altura 2",
+              "Altura 3",
+              "Altura 4",
+              "Altura 5",
+            ],
+            datasets: [
+              {
+                label: "Containers",
+                data: [
+                  indicadores.containers_por_altura?.["1"] || 0,
+                  indicadores.containers_por_altura?.["2"] || 0,
+                  indicadores.containers_por_altura?.["3"] || 0,
+                  indicadores.containers_por_altura?.["4"] || 0,
+                  indicadores.containers_por_altura?.["5"] || 0,
+                ],
+                backgroundColor: "rgba(102, 126, 234, 0.6)",
+                borderColor: "rgba(102, 126, 234, 1)",
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: { beginAtZero: true },
+            },
+          },
+        });
+      }
+
+      */
+function carregarConsultaContainers() {
+        // Carregar armadores para o filtro
+        fetch("/vistoriador/listar-armadores")
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              const select = document.getElementById("filter-armador");
+              select.innerHTML = '<option value="">Todos os armadores</option>';
+              data.armadores.forEach((armador) => {
+                select.innerHTML += `<option value="${armador}">${armador}</option>`;
+              });
+            }
+          });
+
+        // Carregar containers
+        carregarContainers();
+      }
+
+      function carregarContainers() {
+        fetch("/vistoriador/listar-containers-completo")
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              containers = data.containers;
+              filteredContainers = containers;
+              renderizarTabela();
+              atualizarPaginacao();
+            }
+          })
+          .catch((error) =>
+            console.error("Erro ao carregar containers:", error)
+          );
+      }
+
+      function aplicarFiltros() {
+        const numero = document
+          .getElementById("filter-numero")
+          .value.toLowerCase();
+        const status = document.getElementById("filter-status").value;
+        const posicao = document
+          .getElementById("filter-posicao")
+          .value.toLowerCase();
+        const armador = document.getElementById("filter-armador").value;
+        const dataInicio = document.getElementById("filter-data-inicio").value;
+        const dataFim = document.getElementById("filter-data-fim").value;
+
+        filteredContainers = containers.filter((container) => {
+          let match = true;
+
+          if (numero && !container.numero.toLowerCase().includes(numero))
+            match = false;
+          if (status && container.status !== status) match = false;
+          if (
+            posicao &&
+            !container.posicao_atual?.toLowerCase().includes(posicao)
+          )
+            match = false;
+          if (armador && container.armador !== armador) match = false;
+
+          if (dataInicio) {
+            const containerDate = new Date(container.ultima_atualizacao);
+            const startDate = new Date(dataInicio);
+            if (containerDate < startDate) match = false;
+          }
+
+          if (dataFim) {
+            const containerDate = new Date(container.ultima_atualizacao);
+            const endDate = new Date(dataFim);
+            if (containerDate > endDate) match = false;
+          }
+
+          return match;
+        });
+
+        currentPage = 1;
+        renderizarTabela();
+        atualizarPaginacao();
+      }
+
+      function limparFiltros() {
+        document.getElementById("filter-numero").value = "";
+        document.getElementById("filter-status").value = "";
+        document.getElementById("filter-posicao").value = "";
+        document.getElementById("filter-armador").value = "";
+        document.getElementById("filter-data-inicio").value = "";
+        document.getElementById("filter-data-fim").value = "";
+
+        filteredContainers = containers;
+        currentPage = 1;
+        renderizarTabela();
+        atualizarPaginacao();
+      }
+
+      function renderizarTabela() {
+        const tbody = document.getElementById("containers-table-body");
+        const itemsPerPage = 10;
+        const start = (currentPage - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        const pageContainers = filteredContainers.slice(start, end);
+
+        if (pageContainers.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="7" class="text-center py-4">
+                <i class="fas fa-search text-muted"></i>
+                <p class="text-muted mb-0">Nenhum container encontrado</p>
+              </td>
+            </tr>
+          `;
+        } else {
+          tbody.innerHTML = pageContainers
+            .map(
+              (container) => `
+            <tr>
+              <td><strong>${container.numero}</strong></td>
+              <td><span class="status-badge status-${container.status.replace(
+                " ",
+                "-"
+              )}">${container.status}</span></td>
+              <td>${container.posicao_atual || "-"}</td>
+              <td>${container.armador || "-"}</td>
+              <td>${container.tamanho || "20"} TEU</td>
+              <td>${formatarData(container.ultima_atualizacao)}</td>
+              <td>
+                <button class="btn btn-view-details" onclick="verDetalhesContainer('${
+                  container.numero
+                }')">
+                  <i class="fas fa-eye"></i> Ver
+                </button>
+              </td>
+            </tr>
+          `
+            )
+            .join("");
+        }
+
+        // Atualizar contador
+        document.getElementById("total-containers").textContent = `${
+          filteredContainers.length
+        } container${filteredContainers.length !== 1 ? "s" : ""}`;
+        document.getElementById("showing-from").textContent = Math.min(
+          start + 1,
+          filteredContainers.length
+        );
+        document.getElementById("showing-to").textContent = Math.min(
+          end,
+          filteredContainers.length
+        );
+        document.getElementById("total-records").textContent =
+          filteredContainers.length;
+      }
+
+      function atualizarPaginacao() {
+        const itemsPerPage = 10;
+        totalPages = Math.ceil(filteredContainers.length / itemsPerPage);
+        const pagination = document.getElementById("pagination-container");
+
+        if (totalPages <= 1) {
+          pagination.innerHTML = "";
+          return;
+        }
+
+        let paginationHtml = "";
+
+        // Botão anterior
+        paginationHtml += `
+          <li class="page-item ${currentPage === 1 ? "disabled" : ""}">
+            <a class="page-link" href="#" onclick="mudarPagina(${
+              currentPage - 1
+            })">
+              <i class="fas fa-chevron-left"></i>
+            </a>
+          </li>
+        `;
+
+        // Páginas
+        for (let i = 1; i <= totalPages; i++) {
+          if (
+            i === 1 ||
+            i === totalPages ||
+            (i >= currentPage - 2 && i <= currentPage + 2)
+          ) {
+            paginationHtml += `
+              <li class="page-item ${i === currentPage ? "active" : ""}">
+                <a class="page-link" href="#" onclick="mudarPagina(${i})">${i}</a>
+              </li>
+            `;
+          } else if (i === currentPage - 3 || i === currentPage + 3) {
+            paginationHtml +=
+              '<li class="page-item disabled"><span class="page-link">...</span></li>';
+          }
+        }
+
+        // Botão próximo
+        paginationHtml += `
+          <li class="page-item ${currentPage === totalPages ? "disabled" : ""}">
+            <a class="page-link" href="#" onclick="mudarPagina(${
+              currentPage + 1
+            })">
+              <i class="fas fa-chevron-right"></i>
+            </a>
+          </li>
+        `;
+
+        pagination.innerHTML = paginationHtml;
+      }
+
+      function mudarPagina(page) {
+        if (page >= 1 && page <= totalPages) {
+          currentPage = page;
+          renderizarTabela();
+          atualizarPaginacao();
+        }
+      }
+
+      function verDetalhesContainer(numero) {
+        fetch(`/vistoriador/detalhes-container/${numero}`)
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              document.getElementById("modal-container-number").textContent =
+                numero;
+              document.getElementById("container-details-content").innerHTML = `
+                <div class="row">
+                  <div class="col-md-6">
+                    <h6>Informações Básicas</h6>
+                    <p><strong>Status:</strong> ${data.container.status}</p>
+                    <p><strong>Posição:</strong> ${
+                      data.container.posicao_atual || "-"
+                    }</p>
+                    <p><strong>Armador:</strong> ${
+                      data.container.armador || "-"
+                    }</p>
+                    <p><strong>Tamanho:</strong> ${
+                      data.container.tamanho || "20"
+                    } TEU</p>
+                    <p><strong>ISO:</strong> ${
+                      data.container.iso_container || "-"
+                    }</p>
+                  </div>
+                  <div class="col-md-6">
+                    <h6>Dados Técnicos</h6>
+                    <p><strong>Capacidade:</strong> ${
+                      data.container.capacidade || "-"
+                    } kg</p>
+                    <p><strong>Tara:</strong> ${
+                      data.container.tara || "-"
+                    } kg</p>
+                    <p><strong>Tipo:</strong> ${
+                      data.container.tipo_container || "-"
+                    }</p>
+                    <p><strong>Criado em:</strong> ${formatarData(
+                      data.container.data_criacao
+                    )}</p>
+                    <p><strong>Atualizado em:</strong> ${formatarData(
+                      data.container.ultima_atualizacao
+                    )}</p>
+                  </div>
+                </div>
+                ${
+                  data.container.observacoes
+                    ? `
+                  <div class="mt-3">
+                    <h6>Observações</h6>
+                    <p>${data.container.observacoes}</p>
+                  </div>
+                `
+                    : ""
+                }
+              `;
+              new bootstrap.Modal(
+                document.getElementById("containerDetailsModal")
+              ).show();
+            }
+          })
+          .catch((error) => console.error("Erro ao carregar detalhes:", error));
+      }
+
+      function exportarDados() {
+        // Implementar exportação para CSV
+        const csv = [
+          "Número,Status,Posição,Armador,Tamanho,Última Atualização",
+        ];
+        filteredContainers.forEach((container) => {
+          csv.push(
+            [
+              container.numero,
+              container.status,
+              container.posicao_atual || "",
+              container.armador || "",
+              container.tamanho || "20",
+              container.ultima_atualizacao,
+            ].join(",")
+          );
+        });
+
+        const blob = new Blob([csv.join("\n")], { type: "text/csv" });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `containers_${new Date().toISOString().split("T")[0]}.csv`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      }
+
+      function formatarData(dataStr) {
+        if (!dataStr) return "-";
+        const date = new Date(dataStr);
+        return (
+          date.toLocaleDateString("pt-BR") +
+          " " +
+          date.toLocaleTimeString("pt-BR", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        );
+      }
+
+      function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+          const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+          };
+          clearTimeout(timeout);
+          timeout = setTimeout(later, wait);
+        };
+      }
+
+      function confirmarLogout() {
+        Swal.fire({
+          title: "Confirmar Logout",
+          text: "Deseja realmente sair do sistema?",
+          icon: "question",
+          showCancelButton: true,
+          confirmButtonColor: "#d33",
+          cancelButtonColor: "#3085d6",
+          confirmButtonText: "Sim, sair",
+          cancelButtonText: "Cancelar",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            window.location.href = "/auth/logout";
+          }
+        });
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Usuário - Sistema de Pátio{% endblock %}
+
+{% block extra_css %}
+<!-- CSS do tema admin -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin-theme.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid admin-page">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 d-md-block sidebar">
+            <div class="position-sticky">
+                <ul class="nav flex-column mt-3">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.admin_dashboard') }}">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('admin.listar_usuarios') }}">
+                            <i class="fas fa-users"></i> Usuários
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.listar_solicitacoes') }}">
+                            <i class="fas fa-user-plus"></i> Solicitações
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.gerenciar_estruturas_avarias') }}">
+                            <i class="fas fa-tools"></i> Estruturas & Avarias
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.dashboard') }}">
+                            <i class="fas fa-user"></i> Meu Perfil
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Conteúdo principal -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 main-content">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb" class="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin.admin_dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin.listar_usuarios') }}">Usuários</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Editar Usuário</li>
+                </ol>
+            </nav>
+
+            <!-- Header da página -->
+            <div class="page-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h1>
+                        <i class="fas fa-user-edit me-2"></i>
+                        Editar Usuário {{ usuario.username }}
+                    </h1>
+                    <div class="btn-toolbar">
+                        <a href="{{ url_for('admin.listar_usuarios') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-1"></i> Voltar
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulário de edição de usuário -->
+            <div class="admin-card fade-in-up">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Informações do Usuário
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('admin.editar_usuario', usuario_id=usuario.id) }}">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="username" class="form-label">Nome de Usuário</label>
+                                <input type="text" class="form-control" id="username" value="{{ usuario.username }}" readonly>
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    O nome de usuário não pode ser alterado
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" value="{{ usuario.email }}" required>
+                                <div class="form-text">
+                                    <i class="fas fa-envelope me-1"></i>
+                                    Email válido para contato
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="role" class="form-label">Função</label>
+                                <select class="form-select" id="role" name="role" required>
+                                    <option value="admin" {% if usuario.role == 'admin' %}selected{% endif %}>Administrador</option>
+                                    <option value="operador" {% if usuario.role == 'operador' %}selected{% endif %}>Operador</option>
+                                    <option value="vistoriador" {% if usuario.role == 'vistoriador' %}selected{% endif %}>Vistoriador</option>
+                                    <option value="user" {% if usuario.role == 'user' %}selected{% endif %}>Usuário</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="unidade" class="form-label">Unidade</label>
+                                <select class="form-select" id="unidade" name="unidade">
+                                    <option value="Rio de Janeiro" {% if usuario.unidade == 'Rio de Janeiro' %}selected{% endif %}>Rio de Janeiro</option>
+                                    <option value="Suzano" {% if usuario.unidade == 'Suzano' or usuario.unidade == 'Floriano' %}selected{% endif %}>Suzano</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="password" class="form-label">Nova Senha (deixe em branco para manter a atual)</label>
+                                <input type="password" class="form-control" id="password" name="password">
+                                <div class="form-text">
+                                    <i class="fas fa-lock me-1"></i>
+                                    Preencha apenas se desejar alterar a senha
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Requisitos de senha -->
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <div class="alert alert-info">
+                                    <h6><i class="fas fa-key me-2"></i>Requisitos de Senha:</h6>
+                                    <ul class="mb-0">
+                                        <li>Mínimo de 8 caracteres</li>
+                                        <li>Pelo menos uma letra maiúscula</li>
+                                        <li>Pelo menos uma letra minúscula</li>
+                                        <li>Pelo menos um número</li>
+                                        <li>Pelo menos um caractere especial (!@#$%^&*)</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Informações de sistema -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Data de Criação</label>
+                                <input type="text" class="form-control" value="{{ usuario.created_at }}" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Último Login</label>
+                                <input type="text" class="form-control" value="{{ usuario.last_login if usuario.last_login else 'Nunca' }}" readonly>
+                            </div>
+                        </div>
+                        
+                        <!-- Botões de ação -->
+                        <div class="d-flex justify-content-end">
+                            <a href="{{ url_for('admin.listar_usuarios') }}" class="btn btn-outline-secondary me-2">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Salvar Alterações
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Validação de senha em tempo real
+        const passwordInput = document.getElementById('password');
+        const form = document.querySelector('form');
+        
+        if (passwordInput) {
+            passwordInput.addEventListener('input', function() {
+                validatePassword(this.value);
+            });
+        }
+        
+        function validatePassword(password) {
+            if (password === '') {
+                passwordInput.className = 'form-control';
+                return;
+            }
+            
+            const requirements = {
+                length: password.length >= 8,
+                uppercase: /[A-Z]/.test(password),
+                lowercase: /[a-z]/.test(password),
+                number: /\d/.test(password),
+                special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+            };
+            
+            const isValid = Object.values(requirements).every(req => req);
+            
+            passwordInput.className = isValid ? 'form-control is-valid' : 'form-control is-invalid';
+        }
+        
+        // Validação do formulário antes do envio
+        form.addEventListener('submit', function(e) {
+            const password = passwordInput.value;
+            if (password !== '') {
+                const requirements = {
+                    length: password.length >= 8,
+                    uppercase: /[A-Z]/.test(password),
+                    lowercase: /[a-z]/.test(password),
+                    number: /\d/.test(password),
+                    special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+                };
+                
+                const isValid = Object.values(requirements).every(req => req);
+                
+                if (!isValid) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Senha inválida!',
+                        text: 'Por favor, verifique se a senha atende a todos os requisitos.',
+                        confirmButtonColor: '#0066b3'
+                    });
+                    return false;
+                }
+            }
+        });
+        
+        // Adicionar animação ao formulário
+        document.querySelector('.admin-card').classList.add('fade-in-up');
+        
+        // Feedback visual ao salvar
+        form.addEventListener('submit', function() {
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Salvando...';
+                submitBtn.disabled = true;
+            }
+        });
+    });
+</script>
+{% endblock %}

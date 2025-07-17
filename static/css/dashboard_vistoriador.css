@@ -1,0 +1,276 @@
+/* Estilos específicos para o dashboard de vistoriador */
+.vistoriador-section {
+  margin-top: 20px;
+}
+
+.form-label {
+  font-size: 1.3rem;
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+
+.form-control, .form-select {
+  min-height: 60px;
+  padding: 18px;
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+  touch-action: manipulation;
+}
+
+.btn-action {
+  padding: 18px 40px;
+  min-height: 60px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+}
+
+.btn-primary-action {
+  background: linear-gradient(135deg, #0055a4, #0066cc);
+  border: none;
+  color: white;
+  box-shadow: 0 4px 6px rgba(0, 85, 164, 0.2);
+}
+
+.btn-secondary-action {
+  background: linear-gradient(135deg, #6c757d, #495057);
+  border: none;
+  color: white;
+  box-shadow: 0 4px 6px rgba(108, 117, 125, 0.2);
+}
+
+.vistoria-card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  padding: 25px;
+  margin-bottom: 30px;
+}
+
+.vistoria-header {
+  margin-bottom: 25px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 15px;
+}
+
+.vistoria-header h4 {
+  font-size: 1.8rem;
+  color: #0055a4;
+}
+
+.container-list {
+  margin-top: 30px;
+}
+
+.container-list .container-item {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 15px;
+  border-left: 5px solid #0055a4;
+}
+
+/* Badge de status */
+.status-badge {
+  font-size: 1rem;
+  padding: 8px 12px;
+  border-radius: 20px;
+}
+
+.status-badge.cheio {
+  background: #198754;
+  color: white;
+}
+
+.status-badge.vazio {
+  background: #ffc107;
+  color: #212529;
+}
+
+.action-buttons {
+  margin-top: 25px;
+  display: flex;
+  gap: 15px;
+}
+
+/* Otimização para tablets */
+@media (max-width: 768px) {
+  .action-buttons {
+    flex-direction: column;
+  }
+  
+  .vistoria-card {
+    padding: 20px 15px;
+  }
+}
+
+/* Estilos para botões otimizados para tablets */
+.touch-friendly {
+  min-height: 56px;
+  padding: 12px 28px;
+  font-size: 1.1rem;
+  touch-action: manipulation;
+  transition: all 0.2s ease;
+}
+
+/* Estilos para indicadores clicáveis */
+.indicator-card.clickable {
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.indicator-card.clickable:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+}
+
+.indicator-card.clickable:active {
+  transform: translateY(-2px);
+}
+
+/* Efeito de clique para os indicadores */
+@keyframes card-click-effect {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+
+.indicator-card.clicked {
+  animation: card-click-effect 0.3s ease-in-out;
+}
+
+.indicator-card.clickable::after {
+  content: '';
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  width: 24px;
+  height: 24px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23cccccc'%3E%3Cpath d='M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6-6-6z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: contain;
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+}
+
+.indicator-card.clickable:hover::after {
+  opacity: 1;
+}
+
+.touch-friendly i {
+  font-size: 1.2rem;
+}
+
+.touch-friendly:active {
+  transform: scale(0.96);
+}
+
+/* Aumentar área de toque nos botões de ação modal */
+.modal-footer .btn {
+  min-height: 52px;
+  padding: 12px 24px;
+  font-size: 1.1rem;
+}
+
+/* Espaçamento maior para botões em containers */
+.container-item .d-flex.justify-content-end {
+  margin-top: 15px;
+}
+
+/* Estilos para seção de avarias adicionadas */
+.avarias-adicionadas-section {
+  border: 2px solid #ffc107;
+  background: linear-gradient(135deg, #fff8e1, #ffffff);
+}
+
+.avarias-lista {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 15px;
+}
+
+.avaria-item {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
+.avaria-item:hover {
+  background: #e9ecef;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.avaria-info {
+  flex-grow: 1;
+}
+
+.avaria-estrutura {
+  font-weight: 600;
+  color: #0055a4;
+  font-size: 1.1rem;
+  margin-bottom: 5px;
+}
+
+.avaria-tipo {
+  color: #dc3545;
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+
+.avaria-observacao {
+  color: #6c757d;
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+.avaria-acoes {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-remover-avaria {
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 40px;
+  touch-action: manipulation;
+}
+
+.btn-remover-avaria:hover {
+  background: #c82333;
+  transform: scale(1.05);
+}
+
+#contador-avarias-adicionadas {
+  font-weight: 600;
+  color: #ffc107;
+}
+
+/* Responsividade para tablets */
+@media (max-width: 768px) {
+  .avaria-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .avaria-acoes {
+    align-self: flex-end;
+  }
+}

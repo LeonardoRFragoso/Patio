@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Erro - Sistema de Patiamento{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-warning mt-5">
+                <div class="card-header bg-warning text-dark text-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Erro Interno
+                    </h4>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-cog text-warning" style="font-size: 4rem;"></i>
+                    </div>
+                    
+                    <h5 class="card-title text-warning">Oops! Algo deu errado</h5>
+                    
+                    <p class="card-text">
+                        {{ message if message else "Ocorreu um erro interno no servidor. Tente novamente em alguns instantes." }}
+                    </p>
+                    
+                    <div class="mt-4">
+                        <button onclick="history.back()" class="btn btn-secondary me-2">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            Voltar
+                        </button>
+                        
+                        <button onclick="window.location.reload()" class="btn btn-outline-primary me-2">
+                            <i class="fas fa-sync-alt me-2"></i>
+                            Tentar Novamente
+                        </button>
+                        
+                        {% if is_authenticated %}
+                            <a href="{{ url_for('auth.dashboard') }}" class="btn btn-primary">
+                                <i class="fas fa-home me-2"></i>
+                                Ir para Dashboard
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

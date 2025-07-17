@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciar Usuários - Sistema de Pátio{% endblock %}
+
+{% block extra_css %}
+<!-- CSS do tema admin -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin-theme.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid admin-page">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 col-lg-2 d-md-block sidebar">
+            <div class="position-sticky">
+                <ul class="nav flex-column mt-3">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.admin_dashboard') }}">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('admin.listar_usuarios') }}">
+                            <i class="fas fa-users"></i> Usuários
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.listar_solicitacoes') }}">
+                            <i class="fas fa-user-plus"></i> Solicitações
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.gerenciar_estruturas_avarias') }}">
+                            <i class="fas fa-tools"></i> Estruturas & Avarias
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.dashboard') }}">
+                            <i class="fas fa-user"></i> Meu Perfil
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Conteúdo principal -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 main-content">
+            <!-- Header da página -->
+            <div class="page-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h1>
+                        <i class="fas fa-users me-2"></i>
+                        Gerenciamento de Usuários
+                    </h1>
+                    <div class="btn-toolbar">
+                        <div class="btn-group">
+                            <a href="{{ url_for('admin.novo_usuario') }}" class="btn btn-primary">
+                                <i class="fas fa-user-plus me-1"></i> Novo Usuário
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabela de usuários -->
+            <div class="admin-card fade-in-up">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-list me-2"></i>
+                            Lista de Usuários
+                        </h5>
+                        <div class="input-group" style="width: 300px;">
+                            <input type="text" id="searchInput" class="form-control" placeholder="Buscar usuário...">
+                            <button class="btn btn-outline-secondary" type="button">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="usersTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Usuário</th>
+                                    <th>Email</th>
+                                    <th>Função</th>
+                                    <th>Último Login</th>
+                                    <th>Criado em</th>
+                                    <th class="text-center">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if usuarios %}
+                                    {% for usuario in usuarios %}
+                                    <tr class="container-item">
+                                        <td>
+                                            <span class="badge bg-secondary">{{ usuario.id }}</span>
+                                        </td>
+                                        <td class="fw-semibold">
+                                            <i class="fas fa-user me-1 text-muted"></i>
+                                            {{ usuario.username }}
+                                        </td>
+                                        <td>
+                                            <i class="fas fa-envelope me-1 text-muted"></i>
+                                            {{ usuario.email }}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{{ 'warning' if usuario.nivel == 'admin' else 'primary' }}">
+                                                {{ usuario.nivel }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <i class="fas fa-clock me-1 text-muted"></i>
+                                            {{ usuario.last_login if usuario.last_login else 'Nunca' }}
+                                        </td>
+                                        <td>
+                                            <i class="fas fa-calendar me-1 text-muted"></i>
+                                            {{ usuario.created_at }}
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="action-buttons">
+                                                <a href="{{ url_for('admin.editar_usuario', usuario_id=usuario.id) }}" 
+                                                   class="btn btn-outline-primary btn-sm" title="Editar">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                {% if usuario.username != session.username %}
+                                                <button type="button" class="btn btn-outline-danger btn-sm" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#deleteModal" 
+                                                        data-usuario-id="{{ usuario.id }}"
+                                                        data-usuario-nome="{{ usuario.username }}"
+                                                        title="Excluir">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                                {% else %}
+                                                <button type="button" class="btn btn-outline-danger btn-sm" disabled title="Não é possível excluir a si mesmo">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted py-4">
+                                            <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
+                                            Nenhum usuário encontrado
+                                        </td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Modal de confirmação de exclusão -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Confirmar Exclusão
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Atenção!</strong> Esta ação não pode ser desfeita.
+                </div>
+                <p>Tem certeza que deseja excluir o usuário <strong id="usuario-nome"></strong>?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Cancelar
+                </button>
+                <form id="deleteForm" method="POST" action="" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-2"></i>Excluir
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Configurar o modal de exclusão
+        const deleteModal = document.getElementById('deleteModal');
+        if (deleteModal) {
+            deleteModal.addEventListener('show.bs.modal', function(event) {
+                const button = event.relatedTarget;
+                const usuarioId = button.getAttribute('data-usuario-id');
+                const usuarioNome = button.getAttribute('data-usuario-nome');
+                
+                document.getElementById('usuario-nome').textContent = usuarioNome;
+                document.getElementById('deleteForm').action = "{{ url_for('admin.excluir_usuario', usuario_id=0) }}".replace('0', usuarioId);
+            });
+        }
+        
+        // Função de busca na tabela
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function() {
+                const filter = searchInput.value.toLowerCase();
+                const table = document.getElementById('usersTable');
+                const rows = table.getElementsByTagName('tr');
+                
+                for (let i = 1; i < rows.length; i++) {
+                    let found = false;
+                    const cells = rows[i].getElementsByTagName('td');
+                    
+                    for (let j = 0; j < cells.length; j++) {
+                        const cellText = cells[j].textContent || cells[j].innerText;
+                        if (cellText.toLowerCase().indexOf(filter) > -1) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    
+                    rows[i].style.display = found ? '' : 'none';
+                }
+            });
+        }
+        
+        // Adicionar animações às linhas da tabela
+        document.querySelectorAll('.container-item').forEach((item, index) => {
+            item.style.animationDelay = `${index * 0.05}s`;
+            item.classList.add('slide-in-right');
+        });
+    });
+</script>
+{% endblock %}

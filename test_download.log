@@ -1,0 +1,8 @@
+2025-07-01 10:56:37,188 - test_download - INFO - Iniciando teste de download do arquivo do SharePoint...
+2025-07-01 10:56:37,189 - test_download - INFO - URL de download: https://ictsi-my.sharepoint.com/:x:/p/leonardo_fragoso_itracker/EV8B0yiu9txKjo3I45WIYXkBK9u7ye7q9YF7bMb1E81fOA?download=1
+2025-07-01 10:56:37,189 - test_download - INFO - Tentativa 1/3: Iniciando download do arquivo: https://ictsi-my.sharepoint.com/:x:/p/leonardo_fragoso_itracker/EV8B0yiu9txKjo3I45WIYXkBK9u7ye7q9YF7bMb1E81fOA?download=1
+2025-07-01 10:56:40,440 - test_download - INFO - Download concluído. Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, Tamanho: 128801 bytes
+2025-07-01 10:56:40,445 - test_download - INFO - Arquivo Excel salvo como 'downloaded_excel.xlsx'
+2025-07-01 10:56:40,447 - test_download - INFO - Download bem-sucedido! Tamanho do arquivo: 128801 bytes
+2025-07-01 10:56:40,448 - test_download - INFO - O arquivo é um arquivo ZIP válido (começa com PK)
+2025-07-01 10:56:40,450 - test_download - INFO - Conteúdo do arquivo ZIP: ['[Content_Types].xml', '_rels/.rels', 'xl/_rels/workbook.xml.rels', 'xl/worksheets/sheet1.xml', 'xl/worksheets/sheet2.xml', 'xl/worksheets/sheet3.xml', 'xl/workbook.xml', 'xl/sharedStrings.xml', 'xl/styles.xml', 'xl/theme/theme1.xml', 'xl/worksheets/_rels/sheet3.xml.rels', 'docProps/core.xml', 'docProps/app.xml', 'xl/tables/table1.xml', 'xl/worksheets/sheet4.xml', 'xl/worksheets/sheet5.xml']

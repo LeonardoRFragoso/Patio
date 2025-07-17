@@ -1,0 +1,3080 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - Sistema de Pátio</title>
+
+    <!-- Bootstrap 5 -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+
+    <!-- SweetAlert2 -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
+    />
+
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      /* ========================================
+           RESET E ESTILOS BASE MODERNOS
+           ======================================== */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        /* Cores principais atualizadas */
+        --primary-color: #667eea;
+        --primary-dark: #5a67d8;
+        --primary-light: #a5b4fc;
+        --secondary-color: #6c757d;
+        --success-color: #10b981;
+        --info-color: #06b6d4;
+        --warning-color: #f59e0b;
+        --danger-color: #ef4444;
+        --light-color: #f8fafc;
+        --dark-color: #1e293b;
+
+        /* Gradientes modernos */
+        --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        --gradient-warning: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        --gradient-danger: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        --gradient-info: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+        --gradient-dark: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+
+        /* Cores de background */
+        --bg-primary: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        --bg-secondary: #f8fafc;
+        --bg-white: #ffffff;
+        --bg-glass: rgba(255, 255, 255, 0.95);
+
+        /* Cores de texto */
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --text-muted: #94a3b8;
+        --text-white: #ffffff;
+
+        /* Sombras modernas */
+        --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+          0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+          0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+          0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        --shadow-glow: 0 0 0 1px rgba(255, 255, 255, 0.05),
+          0 1px 0 0 rgba(255, 255, 255, 0.05);
+
+        /* Transições modernas */
+        --transition-fast: all 0.15s ease;
+        --transition-normal: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        --transition-slow: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        --transition-bounce: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+        /* Bordas modernas */
+        --border-radius-sm: 0.375rem;
+        --border-radius-md: 0.5rem;
+        --border-radius-lg: 0.75rem;
+        --border-radius-xl: 1rem;
+        --border-radius-2xl: 1.5rem;
+        --border-radius-full: 9999px;
+
+        /* Espaçamentos */
+        --spacing-xs: 0.25rem;
+        --spacing-sm: 0.5rem;
+        --spacing-md: 1rem;
+        --spacing-lg: 1.5rem;
+        --spacing-xl: 2rem;
+        --spacing-2xl: 3rem;
+        --spacing-3xl: 4rem;
+      }
+
+      /* Tipografia moderna */
+      body {
+        font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+          Roboto, "Helvetica Neue", Arial, sans-serif;
+        line-height: 1.6;
+        color: var(--text-primary);
+        background: var(--bg-primary);
+        font-size: 16px;
+        min-height: 100vh;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* ========================================
+           CONTAINER E LAYOUT MODERNOS
+           ======================================== */
+      .container-fluid {
+        width: 100%;
+        padding: var(--spacing-xl);
+        margin: 0 auto;
+      }
+
+      .main-card {
+        background: var(--bg-white);
+        border-radius: var(--border-radius-2xl);
+        box-shadow: var(--shadow-xl);
+        overflow: hidden;
+        border: none;
+        backdrop-filter: blur(10px);
+      }
+
+      .card-header {
+        background: var(--gradient-primary);
+        color: var(--text-white);
+        padding: var(--spacing-xl);
+        border: none;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .card-title {
+        font-size: 1.75rem;
+        font-weight: 800;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+      }
+
+      .card-body {
+        padding: var(--spacing-xl);
+        background: var(--bg-white);
+      }
+
+      /* ========================================
+           HEADER COM LOGOUT
+           ======================================== */
+      .user-actions {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+      }
+
+      .user-info {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 0.95rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-xs);
+      }
+
+      .btn-logout {
+        background: rgba(255, 255, 255, 0.1);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        color: var(--text-white);
+        padding: 0.5rem 1rem;
+        border-radius: var(--border-radius-full);
+        font-size: 0.875rem;
+        font-weight: 600;
+        transition: var(--transition-normal);
+        backdrop-filter: blur(10px);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .btn-logout:hover {
+        background: rgba(220, 53, 69, 0.2);
+        border-color: rgba(220, 53, 69, 0.5);
+        color: #ff6b6b;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+      }
+
+      /* ========================================
+           SEÇÃO DE BOAS-VINDAS
+           ======================================== */
+      .welcome-section {
+        margin-bottom: var(--spacing-xl);
+        padding: var(--spacing-lg);
+        background: var(--bg-glass);
+        border-radius: var(--border-radius-xl);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .welcome-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        margin-bottom: var(--spacing-xs);
+        background: var(--gradient-primary);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .access-level {
+        font-size: 1rem;
+        margin-bottom: var(--spacing-sm);
+        color: var(--text-secondary);
+      }
+
+      /* ========================================
+           BADGES MODERNOS
+           ======================================== */
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        line-height: 1;
+        color: var(--text-white);
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: baseline;
+        border-radius: var(--border-radius-full);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        box-shadow: var(--shadow-sm);
+      }
+
+      .bg-secondary {
+        background: var(--gradient-dark);
+      }
+      .bg-primary {
+        background: var(--gradient-primary);
+      }
+      .bg-success {
+        background: var(--gradient-success);
+      }
+      .bg-warning {
+        background: var(--gradient-warning);
+        color: var(--text-primary);
+      }
+      .bg-info {
+        background: var(--gradient-info);
+      }
+
+      /* ========================================
+           SEÇÃO DE OPERAÇÕES MODERNAS
+           ======================================== */
+      .operador-section {
+        padding: var(--spacing-xl);
+        background: var(--bg-glass);
+        border-radius: var(--border-radius-2xl);
+        box-shadow: var(--shadow-lg);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(20px);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .operacoes-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        opacity: 0;
+        transform: translateY(20px);
+        transition: var(--transition-slow);
+        position: relative;
+        z-index: 1;
+      }
+
+      /* ========================================
+           HEADER DAS OPERAÇÕES
+           ======================================== */
+      .operacoes-header {
+        text-align: center;
+        margin-bottom: var(--spacing-xl);
+      }
+
+      .operacoes-header h3 {
+        font-size: 2.25rem;
+        font-weight: 900;
+        color: var(--text-primary);
+        margin-bottom: var(--spacing-sm);
+        background: var(--gradient-primary);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: none;
+        letter-spacing: -0.02em;
+      }
+
+      .operacoes-subtitle {
+        font-size: 1rem;
+        color: var(--text-secondary);
+        margin: 0;
+        font-weight: 500;
+      }
+
+      /* ========================================
+           GRID DE OPERAÇÕES
+           ======================================== */
+      .operacoes-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: var(--spacing-md);
+        margin-bottom: var(--spacing-xl);
+      }
+
+      /* ========================================
+           BOTÕES DE OPERAÇÃO MODERNOS
+           ======================================== */
+      .operacao-btn {
+        background: var(--bg-white);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: var(--border-radius-xl);
+        padding: var(--spacing-lg);
+        text-align: center;
+        cursor: pointer;
+        transition: var(--transition-bounce);
+        box-shadow: var(--shadow-lg);
+        position: relative;
+        overflow: hidden;
+        min-height: 180px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+      }
+
+      .operacao-btn:hover {
+        transform: translateY(-10px) scale(1.02);
+        box-shadow: var(--shadow-xl);
+        border-color: rgba(103, 126, 234, 0.5);
+      }
+
+      .operacao-btn.active {
+        background: var(--gradient-primary);
+        border-color: var(--primary-dark);
+        color: var(--text-white);
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: var(--shadow-xl), 0 0 0 4px rgba(103, 126, 234, 0.3);
+      }
+
+      /* Ícones dos botões */
+      .operacao-icon {
+        font-size: 3rem;
+        display: block;
+        margin-bottom: var(--spacing-md);
+        filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+        transition: var(--transition-normal);
+        position: relative;
+        z-index: 2;
+      }
+
+      /* Títulos dos botões */
+      .operacao-title {
+        font-size: 1.25rem;
+        font-weight: 800;
+        margin-bottom: var(--spacing-xs);
+        color: var(--text-primary);
+        transition: var(--transition-normal);
+        position: relative;
+        z-index: 2;
+        letter-spacing: -0.02em;
+      }
+
+      .operacao-btn.active .operacao-title {
+        color: var(--text-white);
+      }
+
+      /* Descrições dos botões */
+      .operacao-desc {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        margin: 0;
+        line-height: 1.4;
+        transition: var(--transition-normal);
+        position: relative;
+        z-index: 2;
+        font-weight: 500;
+      }
+
+      .operacao-btn.active .operacao-desc {
+        color: rgba(255, 255, 255, 0.9);
+      }
+
+      /* ========================================
+           INDICADOR DE SELEÇÃO
+           ======================================== */
+      #selecione-operacao {
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 1.25rem;
+        margin: var(--spacing-3xl) 0;
+        padding: var(--spacing-3xl);
+        background: var(--bg-glass);
+        border-radius: var(--border-radius-2xl);
+        border: 2px dashed rgba(103, 126, 234, 0.3);
+        backdrop-filter: blur(10px);
+      }
+
+      #selecione-operacao i {
+        font-size: 4rem;
+        margin-bottom: var(--spacing-lg);
+        display: block;
+        opacity: 0.6;
+        animation: pulse 2s infinite;
+        color: var(--primary-color);
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+          opacity: 0.6;
+        }
+        50% {
+          transform: scale(1.1);
+          opacity: 0.8;
+        }
+      }
+
+      /* ========================================
+           CONTEÚDO DAS OPERAÇÕES - CORRIGIDO
+           ======================================== */
+      .operacao-content {
+        display: none !important;
+        opacity: 0;
+        transform: translateY(30px);
+        transition: var(--transition-slow);
+        width: 100%;
+        padding: var(--spacing-2xl);
+        background: var(--bg-white);
+        border-radius: var(--border-radius-2xl);
+        box-shadow: var(--shadow-lg);
+        margin-top: var(--spacing-xl);
+        position: relative;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+      }
+
+      .operacao-content.show {
+        display: block !important;
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      /* ========================================
+           BREADCRUMB E NAVEGAÇÃO
+           ======================================== */
+      .operacao-breadcrumb {
+        margin-bottom: var(--spacing-xl);
+        padding: var(--spacing-md) var(--spacing-lg);
+        background: var(--bg-glass);
+        border-radius: var(--border-radius-lg);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .breadcrumb {
+        background: transparent;
+        padding: 0;
+        margin: 0;
+        font-size: 1rem;
+      }
+
+      .breadcrumb-item {
+        font-weight: 500;
+      }
+
+      .breadcrumb-item a {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 600;
+        transition: var(--transition-fast);
+      }
+
+      .breadcrumb-item a:hover {
+        color: var(--primary-dark);
+        text-decoration: underline;
+      }
+
+      .breadcrumb-item.active {
+        color: var(--text-secondary);
+        font-weight: 700;
+      }
+
+      .breadcrumb-item + .breadcrumb-item::before {
+        content: "→";
+        color: var(--text-muted);
+        font-weight: 400;
+        margin: 0 0.5rem;
+      }
+
+      /* Botão voltar moderno */
+      .btn-voltar {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        z-index: 10;
+        background: var(--gradient-dark);
+        color: var(--text-white);
+        border: none;
+        padding: 0.875rem 1.5rem;
+        border-radius: var(--border-radius-full);
+        font-size: 0.875rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: var(--transition-bounce);
+        box-shadow: var(--shadow-md);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .btn-voltar:hover {
+        background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: var(--shadow-lg);
+      }
+
+      /* ========================================
+           SUB-OPÇÕES MODERNAS
+           ======================================== */
+      .sub-opcoes {
+        display: flex;
+        gap: var(--spacing-xl);
+        margin: var(--spacing-3xl) 0;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .sub-opcao-btn {
+        background: var(--bg-white);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: var(--border-radius-xl);
+        padding: var(--spacing-xl);
+        text-align: center;
+        cursor: pointer;
+        transition: var(--transition-bounce);
+        flex: 1;
+        max-width: 280px;
+        min-width: 220px;
+        min-height: 180px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+        box-shadow: var(--shadow-md);
+        backdrop-filter: blur(10px);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .sub-opcao-btn:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: var(--shadow-xl);
+        border-color: rgba(103, 126, 234, 0.5);
+      }
+
+      .sub-opcao-btn.active {
+        background: var(--gradient-primary);
+        border-color: var(--primary-dark);
+        color: var(--text-white);
+        transform: translateY(-5px) scale(1.02);
+        box-shadow: var(--shadow-xl), 0 0 0 3px rgba(103, 126, 234, 0.3);
+      }
+
+      .sub-opcao-icon {
+        font-size: 3rem;
+        display: block;
+        margin-bottom: var(--spacing-md);
+        transition: var(--transition-normal);
+        position: relative;
+        z-index: 1;
+      }
+
+      .sub-opcao-title {
+        font-size: 1.375rem;
+        font-weight: 700;
+        margin-bottom: var(--spacing-sm);
+        transition: var(--transition-normal);
+        position: relative;
+        z-index: 1;
+      }
+
+      .sub-opcao-desc {
+        font-size: 0.95rem;
+        color: var(--text-secondary);
+        margin: 0;
+        transition: var(--transition-normal);
+        position: relative;
+        z-index: 1;
+        font-weight: 500;
+      }
+
+      .sub-opcao-btn.active .sub-opcao-desc {
+        color: rgba(255, 255, 255, 0.9);
+      }
+
+      /* ========================================
+           FORMULÁRIOS MODERNOS - CORRIGIDO
+           ======================================== */
+      .operacao-form {
+        display: none !important;
+        margin-top: var(--spacing-2xl);
+        opacity: 0;
+        transform: translateY(20px);
+        transition: var(--transition-slow);
+        background: var(--bg-glass);
+        padding: var(--spacing-2xl);
+        border-radius: var(--border-radius-xl);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+      }
+
+      .operacao-form.show {
+        display: block !important;
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .operacao-form h5 {
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        margin-bottom: var(--spacing-xl);
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--spacing-sm);
+      }
+
+      .form-group {
+        margin-bottom: var(--spacing-xl);
+      }
+
+      .form-label {
+        font-size: 1.125rem;
+        font-weight: 700;
+        margin-bottom: var(--spacing-sm);
+        color: var(--text-primary);
+        display: block;
+        letter-spacing: -0.01em;
+      }
+
+      .form-control {
+        min-height: 60px;
+        padding: 1.25rem 1.5rem;
+        font-size: 1.125rem;
+        border: 2px solid rgba(226, 232, 240, 0.8);
+        border-radius: var(--border-radius-lg);
+        transition: var(--transition-normal);
+        background: var(--bg-white);
+        backdrop-filter: blur(10px);
+        font-weight: 500;
+      }
+
+      .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(103, 126, 234, 0.1);
+        transform: translateY(-1px);
+        background: var(--bg-white);
+      }
+
+      .form-control.is-invalid {
+        border-color: var(--danger-color);
+        animation: shake 0.5s ease-in-out;
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+      }
+
+      .form-control.is-valid {
+        border-color: var(--success-color);
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+      }
+
+      @keyframes shake {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        25% {
+          transform: translateX(-5px);
+        }
+        75% {
+          transform: translateX(5px);
+        }
+      }
+
+      textarea.form-control {
+        resize: vertical;
+        min-height: 120px;
+        font-family: inherit;
+      }
+
+      .input-group {
+        display: flex;
+        border-radius: var(--border-radius-lg);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+      }
+
+      .input-group .form-control {
+        border-radius: 0;
+        border-right: none;
+      }
+
+      .input-group .btn {
+        border-radius: 0;
+        border-left: none;
+        padding: 0 var(--spacing-xl);
+      }
+
+      /* ========================================
+           COMBOBOX MODERNO - NOVO
+           ======================================== */
+      .combobox-wrapper {
+        position: relative;
+      }
+
+      .combobox-suggestions {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-xl);
+        max-height: 250px;
+        overflow-y: auto;
+        z-index: 1000;
+        margin-top: 4px;
+        backdrop-filter: blur(10px);
+      }
+
+      .suggestion-item {
+        padding: 12px 16px;
+        cursor: pointer;
+        border-bottom: 1px solid #f1f5f9;
+        transition: var(--transition-fast);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .suggestion-item:last-child {
+        border-bottom: none;
+      }
+
+      .suggestion-item:hover {
+        background: var(--bg-glass);
+        color: var(--primary-color);
+      }
+
+      .suggestion-item.selected {
+        background: var(--primary-color);
+        color: white;
+      }
+
+      .suggestion-meta {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        font-weight: 500;
+      }
+
+      .suggestion-item.selected .suggestion-meta {
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+      .btn-refresh {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: var(--primary-color);
+        cursor: pointer;
+        padding: 8px;
+        border-radius: var(--border-radius-sm);
+        transition: var(--transition-fast);
+        z-index: 10;
+      }
+
+      .btn-refresh:hover {
+        background: var(--bg-glass);
+        color: var(--primary-dark);
+      }
+
+      .btn-refresh.loading {
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        from {
+          transform: translateY(-50%) rotate(0deg);
+        }
+        to {
+          transform: translateY(-50%) rotate(360deg);
+        }
+      }
+
+      /* Status indicator para campo de posição atual */
+      .status-indicator {
+        position: absolute;
+        right: 50px;
+        top: 50%;
+        transform: translateY(-50%);
+        padding: 4px 8px;
+        border-radius: var(--border-radius-sm);
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .status-loading {
+        background: #f59e0b;
+        color: white;
+      }
+
+      .status-found {
+        background: #10b981;
+        color: white;
+      }
+
+      .status-not-found {
+        background: #ef4444;
+        color: white;
+      }
+
+      /* ========================================
+           BOTÕES DE AÇÃO MODERNOS
+           ======================================== */
+      .action-buttons {
+        margin-top: var(--spacing-2xl);
+        display: flex;
+        gap: var(--spacing-lg);
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .btn-action {
+        padding: 1.25rem 2.5rem;
+        border-radius: var(--border-radius-full);
+        font-size: 1.125rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: var(--transition-bounce);
+        border: none;
+        min-width: 200px;
+        position: relative;
+        overflow: hidden;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        box-shadow: var(--shadow-md);
+      }
+
+      .btn-primary-action {
+        background: var(--gradient-primary);
+        color: var(--text-white);
+      }
+
+      .btn-primary-action:hover {
+        background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+        transform: translateY(-3px) scale(1.02);
+        box-shadow: var(--shadow-lg);
+      }
+
+      .btn-secondary-action {
+        background: var(--bg-white);
+        border: 2px solid var(--text-muted);
+        color: var(--text-secondary);
+      }
+
+      .btn-secondary-action:hover {
+        background: var(--bg-glass);
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+      }
+
+      .btn:disabled,
+      .btn-action:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none !important;
+      }
+
+      .btn-loading {
+        pointer-events: none;
+        opacity: 0.7;
+      }
+
+      /* ========================================
+           BOTÕES BOOTSTRAP MELHORADOS
+           ======================================== */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--spacing-sm);
+        font-weight: 600;
+        text-align: center;
+        vertical-align: middle;
+        user-select: none;
+        border: 2px solid transparent;
+        padding: 0.75rem 1.5rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        border-radius: var(--border-radius-md);
+        transition: var(--transition-normal);
+        cursor: pointer;
+        text-decoration: none;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        box-shadow: var(--shadow-sm);
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+      }
+
+      .btn-primary {
+        background: var(--gradient-primary);
+        color: var(--text-white);
+        border-color: var(--primary-color);
+      }
+
+      .btn-primary:hover {
+        background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+        border-color: var(--primary-dark);
+        color: var(--text-white);
+      }
+
+      /* ========================================
+           STATUS E RESULTADOS
+           ======================================== */
+      .status-container {
+        display: none;
+        margin-top: var(--spacing-xl);
+        opacity: 0;
+        transform: translateY(20px);
+        transition: var(--transition-slow);
+      }
+
+      .status-container.show {
+        display: block;
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .status-card {
+        background: var(--bg-white);
+        border-radius: var(--border-radius-xl);
+        padding: var(--spacing-xl);
+        margin-bottom: var(--spacing-lg);
+        box-shadow: var(--shadow-md);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+      }
+
+      .status-card h6 {
+        font-size: 1.375rem;
+        font-weight: 800;
+        margin-bottom: var(--spacing-lg);
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+      }
+
+      .status-info {
+        display: grid;
+        gap: var(--spacing-md);
+      }
+
+      .status-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--spacing-lg);
+        background: var(--bg-glass);
+        border-radius: var(--border-radius-md);
+        border-left: 4px solid var(--primary-color);
+        transition: var(--transition-fast);
+      }
+
+      /* ========================================
+           RESPONSIVIDADE PARA TABLETS
+           ======================================== */
+
+      /* Desktop grande (1200px+) - 4 colunas */
+      @media (min-width: 1200px) {
+        .operacoes-grid {
+          grid-template-columns: repeat(4, 1fr);
+          gap: var(--spacing-lg);
+        }
+      }
+
+      /* Desktop médio (992px-1199px) - 4 colunas menores */
+      @media (min-width: 992px) and (max-width: 1199px) {
+        .operacoes-grid {
+          grid-template-columns: repeat(4, 1fr);
+          gap: var(--spacing-md);
+        }
+
+        .operacao-btn {
+          min-height: 160px;
+          padding: var(--spacing-md);
+        }
+
+        .operacao-icon {
+          font-size: 2.5rem;
+        }
+
+        .operacao-title {
+          font-size: 1.125rem;
+        }
+
+        .operacao-desc {
+          font-size: 0.8rem;
+        }
+      }
+
+      /* Tablets em modo paisagem (768px-991px) - 2 colunas */
+      @media (min-width: 768px) and (max-width: 991px) {
+        .operacoes-grid {
+          grid-template-columns: repeat(2, 1fr);
+          gap: var(--spacing-lg);
+        }
+
+        .operacao-btn {
+          min-height: 180px;
+        }
+      }
+
+      /* Tablets em modo retrato e mobile (até 767px) - 1 coluna */
+      @media (max-width: 767px) {
+        .container-fluid {
+          padding: var(--spacing-md);
+        }
+
+        .operacoes-grid {
+          grid-template-columns: 1fr;
+          gap: var(--spacing-lg);
+        }
+
+        .operacao-btn {
+          min-height: 160px;
+          padding: var(--spacing-lg);
+        }
+
+        .operacao-title {
+          font-size: 1.375rem;
+        }
+
+        .operacao-icon {
+          font-size: 3.5rem;
+        }
+
+        .sub-opcoes {
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .action-buttons {
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .operacoes-header h3 {
+          font-size: 2rem;
+        }
+      }
+
+      /* ========================================
+           CLASSES BOOTSTRAP NECESSÁRIAS
+           ======================================== */
+      .d-flex {
+        display: flex !important;
+      }
+      .justify-content-between {
+        justify-content: space-between !important;
+      }
+      .align-items-center {
+        align-items: center !important;
+      }
+      .text-center {
+        text-align: center !important;
+      }
+      .text-muted {
+        color: var(--text-muted) !important;
+      }
+      .text-success {
+        color: var(--success-color) !important;
+      }
+      .text-warning {
+        color: var(--warning-color) !important;
+      }
+      .text-info {
+        color: var(--info-color) !important;
+      }
+      .text-primary {
+        color: var(--primary-color) !important;
+      }
+      .me-1 {
+        margin-right: 0.25rem !important;
+      }
+      .me-2 {
+        margin-right: 0.5rem !important;
+      }
+      .me-3 {
+        margin-right: 1rem !important;
+      }
+      .mb-4 {
+        margin-bottom: 1.5rem !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-12">
+          <div class="card main-card">
+            <div class="card-header">
+              <div class="d-flex justify-content-between align-items-center">
+                <h5 class="card-title">
+                  <i class="fas fa-tachometer-alt me-2"></i>
+                  Dashboard do Sistema de Pátio
+                </h5>
+                <!-- Botão de Logout -->
+                <div class="user-actions">
+                  <span class="user-info me-3">
+                    <i class="fas fa-user-circle me-1"></i>
+                    Operador
+                  </span>
+                  <button class="btn btn-logout" onclick="confirmarLogout()">
+                    <i class="fas fa-sign-out-alt me-1"></i>
+                    Sair
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="card-body">
+              <!-- Seção de Boas-vindas -->
+              <div class="welcome-section">
+                <h4 class="welcome-title">Bem-vindo(a), Operador!</h4>
+                <p class="access-level">
+                  Nível de acesso:
+                  <span class="badge bg-secondary">Operador</span>
+                </p>
+              </div>
+
+              <!-- Seção de Operações -->
+              <div class="operador-section">
+                <div class="operacoes-container">
+                  <!-- Header das Operações -->
+                  <div class="operacoes-header">
+                    <h3>🚢 Operações de Container</h3>
+                    <p class="operacoes-subtitle">
+                      Selecione uma operação abaixo para começar
+                    </p>
+                  </div>
+
+                  <!-- Grid dos Botões Principais -->
+                  <div class="operacoes-grid">
+                    <div
+                      class="operacao-btn"
+                      data-operacao="descarga"
+                      onclick="mostrarOperacao('descarga')"
+                    >
+                      <span class="operacao-icon">⬇️</span>
+                      <h4 class="operacao-title">Descarga</h4>
+                      <p class="operacao-desc">
+                        Descarregar container do transporte
+                      </p>
+                    </div>
+
+                    <div
+                      class="operacao-btn"
+                      data-operacao="carregamento"
+                      onclick="mostrarOperacao('carregamento')"
+                    >
+                      <span class="operacao-icon">⬆️</span>
+                      <h4 class="operacao-title">Carregamento</h4>
+                      <p class="operacao-desc">
+                        Carregar container no transporte
+                      </p>
+                    </div>
+
+                    <div
+                      class="operacao-btn"
+                      data-operacao="movimentacao"
+                      onclick="mostrarOperacao('movimentacao')"
+                    >
+                      <span class="operacao-icon">🔄</span>
+                      <h4 class="operacao-title">Movimentação</h4>
+                      <p class="operacao-desc">Movimentar container no pátio</p>
+                    </div>
+
+                    <div
+                      class="operacao-btn"
+                      data-operacao="consultar"
+                      onclick="mostrarOperacao('consultar')"
+                    >
+                      <span class="operacao-icon">🔍</span>
+                      <h4 class="operacao-title">Consultar Status</h4>
+                      <p class="operacao-desc">Consultar status do container</p>
+                    </div>
+                  </div>
+
+                  <!-- Indicador de "Selecione uma operação" -->
+                  <div id="selecione-operacao" class="text-center">
+                    <i class="fas fa-hand-pointer"></i>
+                    <p>Selecione uma operação acima para começar</p>
+                  </div>
+                </div>
+
+                <!-- Área de Conteúdo Dinâmico -->
+
+                <!-- DESCARGA -->
+                <div id="operacao-descarga" class="operacao-content">
+                  <!-- Breadcrumb -->
+                  <div class="operacao-breadcrumb">
+                    <nav>
+                      <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                          <a href="#" onclick="voltarInicio()">Início</a>
+                        </li>
+                        <li class="breadcrumb-item active">Descarga</li>
+                      </ol>
+                    </nav>
+                  </div>
+
+                  <button class="btn-voltar" onclick="voltarInicio()">
+                    <i class="fas fa-arrow-left"></i> Voltar
+                  </button>
+
+                  <div class="text-center mb-4">
+                    <h4>
+                      <i class="fas fa-download text-success"></i> Descarga de
+                      Container
+                    </h4>
+                    <p class="text-muted">
+                      Escolha o modo de transporte para continuar
+                    </p>
+                  </div>
+
+                  <div class="sub-opcoes">
+                    <div
+                      class="sub-opcao-btn"
+                      onclick="mostrarSubOpcao('descarga', 'rodoviaria')"
+                    >
+                      <span class="sub-opcao-icon">🚛</span>
+                      <h5 class="sub-opcao-title">Rodoviária</h5>
+                      <p class="sub-opcao-desc">Descarga de caminhão</p>
+                    </div>
+
+                    <div
+                      class="sub-opcao-btn"
+                      onclick="mostrarSubOpcao('descarga', 'ferroviaria')"
+                    >
+                      <span class="sub-opcao-icon">🚂</span>
+                      <h5 class="sub-opcao-title">Ferroviária</h5>
+                      <p class="sub-opcao-desc">Descarga de trem</p>
+                    </div>
+                  </div>
+
+                  <!-- Formulário Descarga Rodoviária -->
+                  <div id="form-descarga-rodoviaria" class="operacao-form">
+                    <h5>
+                      <i class="fas fa-truck text-primary"></i> Descarga
+                      Rodoviária
+                    </h5>
+                    <form id="formDescargaRodoviaria">
+                      <div class="form-group">
+                        <label class="form-label" for="container_descarga_rod"
+                          >Número do Container:</label
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="container_descarga_rod"
+                          name="container_id"
+                          required
+                          placeholder="Ex: ABCD1234567"
+                        />
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label" for="posicao_descarga_rod"
+                          >Posição no Pátio:</label
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="posicao_descarga_rod"
+                          name="posicao"
+                          required
+                          placeholder="Ex: A1-15"
+                        />
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label" for="placa_descarga_rod"
+                          >Placa do Caminhão:</label
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="placa_descarga_rod"
+                          name="placa"
+                          required
+                          placeholder="Ex: ABC-1234"
+                        />
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label" for="observacoes_descarga_rod"
+                          >Observações:</label
+                        >
+                        <textarea
+                          class="form-control"
+                          id="observacoes_descarga_rod"
+                          name="observacoes"
+                          rows="3"
+                          placeholder="Observações opcionais..."
+                        ></textarea>
+                      </div>
+                      <div class="action-buttons">
+                        <button
+                          type="submit"
+                          class="btn-action btn-primary-action"
+                        >
+                          <i class="fas fa-save"></i> Registrar Descarga
+                        </button>
+                        <button
+                          type="button"
+                          class="btn-action btn-secondary-action"
+                          onclick="voltarInicio()"
+                        >
+                          <i class="fas fa-times"></i> Cancelar
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+
+                  <!-- Formulário Descarga Ferroviária -->
+                  <div id="form-descarga-ferroviaria" class="operacao-form">
+                    <h5>
+                      <i class="fas fa-train text-primary"></i> Descarga
+                      Ferroviária
+                    </h5>
+                    <form id="formDescargaFerroviaria">
+                      <div class="form-group">
+                        <label class="form-label" for="container_descarga_fer"
+                          >Número do Container:</label
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="container_descarga_fer"
+                          name="container_id"
+                          required
+                          placeholder="Ex: ABCD1234567"
+                        />
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label" for="posicao_descarga_fer"
+                          >Posição no Pátio:</label
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="posicao_descarga_fer"
+                          name="posicao"
+                          required
+                          placeholder="Ex: A1-15"
+                        />
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label" for="vagao_descarga_fer"
+                          >Número do Vagão:</label
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="vagao_descarga_fer"
+                          name="vagao"
+                          required
+                          placeholder="Ex: V12345"
+                        />
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label" for="observacoes_descarga_fer"
+                          >Observações:</label
+                        >
+                        <textarea
+                          class="form-control"
+                          id="observacoes_descarga_fer"
+                          name="observacoes"
+                          rows="3"
+                          placeholder="Observações opcionais..."
+                        ></textarea>
+                      </div>
+                      <div class="action-buttons">
+                        <button
+                          type="submit"
+                          class="btn-action btn-primary-action"
+                        >
+                          <i class="fas fa-save"></i> Registrar Descarga
+                        </button>
+                        <button
+                          type="button"
+                          class="btn-action btn-secondary-action"
+                          onclick="voltarInicio()"
+                        >
+                          <i class="fas fa-times"></i> Cancelar
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+
+                <!-- CARREGAMENTO -->
+                <div id="operacao-carregamento" class="operacao-content">
+                  <!-- Breadcrumb -->
+                  <div class="operacao-breadcrumb">
+                    <nav>
+                      <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                          <a href="#" onclick="voltarInicio()">Início</a>
+                        </li>
+                        <li class="breadcrumb-item active">Carregamento</li>
+                      </ol>
+                    </nav>
+                  </div>
+
+                  <button class="btn-voltar" onclick="voltarInicio()">
+                    <i class="fas fa-arrow-left"></i> Voltar
+                  </button>
+
+                  <div class="text-center mb-4">
+                    <h4>
+                      <i class="fas fa-upload text-warning"></i> Carregamento de
+                      Container
+                    </h4>
+                    <p class="text-muted">
+                      Escolha o modo de transporte para continuar
+                    </p>
+                  </div>
+
+                  <div class="sub-opcoes">
+                    <div
+                      class="sub-opcao-btn"
+                      onclick="mostrarSubOpcao('carregamento', 'rodoviaria')"
+                    >
+                      <span class="sub-opcao-icon">🚛</span>
+                      <h5 class="sub-opcao-title">Rodoviária</h5>
+                      <p class="sub-opcao-desc">Carregamento em caminhão</p>
+                    </div>
+
+                    <div
+                      class="sub-opcao-btn"
+                      onclick="mostrarSubOpcao('carregamento', 'ferroviaria')"
+                    >
+                      <span class="sub-opcao-icon">🚂</span>
+                      <h5 class="sub-opcao-title">Ferroviária</h5>
+                      <p class="sub-opcao-desc">Carregamento em trem</p>
+                    </div>
+                  </div>
+
+                  <!-- Formulário Carregamento Rodoviário -->
+                  <div id="form-carregamento-rodoviario" class="operacao-form">
+                    <h5>
+                      <i class="fas fa-truck text-primary"></i> Carregamento
+                      Rodoviário
+                    </h5>
+                    <form id="formCarregamentoRodoviario">
+                      <div class="form-group">
+                        <label
+                          class="form-label"
+                          for="container_carregamento_rod"
+                          >Número do Container:</label
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="container_carregamento_rod"
+                          name="container_id"
+                          required
+                          placeholder="Ex: ABCD1234567"
+                        />
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label" for="placa_carregamento_rod"
+                          >Placa do Caminhão:</label
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="placa_carregamento_rod"
+                          name="placa"
+                          required
+                          placeholder="Ex: ABC-1234"
+                        />
+                      </div>
+                      <div class="form-group">
+                        <label
+                          class="form-label"
+                          for="observacoes_carregamento_rod"
+                          >Observações:</label
+                        >
+                        <textarea
+                          class="form-control"
+                          id="observacoes_carregamento_rod"
+                          name="observacoes"
+                          rows="3"
+                          placeholder="Observações opcionais..."
+                        ></textarea>
+                      </div>
+                      <div class="action-buttons">
+                        <button
+                          type="submit"
+                          class="btn-action btn-primary-action"
+                        >
+                          <i class="fas fa-save"></i> Registrar Carregamento
+                        </button>
+                        <button
+                          type="button"
+                          class="btn-action btn-secondary-action"
+                          onclick="voltarInicio()"
+                        >
+                          <i class="fas fa-times"></i> Cancelar
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+
+                  <!-- Formulário Carregamento Ferroviário -->
+                  <div id="form-carregamento-ferroviario" class="operacao-form">
+                    <h5>
+                      <i class="fas fa-train text-primary"></i> Carregamento
+                      Ferroviário
+                    </h5>
+                    <form id="formCarregamentoFerroviario">
+                      <div class="form-group">
+                        <label
+                          class="form-label"
+                          for="container_carregamento_fer"
+                          >Número do Container:</label
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="container_carregamento_fer"
+                          name="container_id"
+                          required
+                          placeholder="Ex: ABCD1234567"
+                        />
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label" for="vagao_carregamento_fer"
+                          >Número do Vagão:</label
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="vagao_carregamento_fer"
+                          name="vagao"
+                          required
+                          placeholder="Ex: V12345"
+                        />
+                      </div>
+                      <div class="form-group">
+                        <label
+                          class="form-label"
+                          for="observacoes_carregamento_fer"
+                          >Observações:</label
+                        >
+                        <textarea
+                          class="form-control"
+                          id="observacoes_carregamento_fer"
+                          name="observacoes"
+                          rows="3"
+                          placeholder="Observações opcionais..."
+                        ></textarea>
+                      </div>
+                      <div class="action-buttons">
+                        <button
+                          type="submit"
+                          class="btn-action btn-primary-action"
+                        >
+                          <i class="fas fa-save"></i> Registrar Carregamento
+                        </button>
+                        <button
+                          type="button"
+                          class="btn-action btn-secondary-action"
+                          onclick="voltarInicio()"
+                        >
+                          <i class="fas fa-times"></i> Cancelar
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+
+                <!-- MOVIMENTAÇÃO - ATUALIZADA -->
+                <div id="operacao-movimentacao" class="operacao-content">
+                  <!-- Breadcrumb -->
+                  <div class="operacao-breadcrumb">
+                    <nav>
+                      <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                          <a href="#" onclick="voltarInicio()">Início</a>
+                        </li>
+                        <li class="breadcrumb-item active">Movimentação</li>
+                      </ol>
+                    </nav>
+                  </div>
+
+                  <button class="btn-voltar" onclick="voltarInicio()">
+                    <i class="fas fa-arrow-left"></i> Voltar
+                  </button>
+
+                  <div class="text-center mb-4">
+                    <h4>
+                      <i class="fas fa-exchange-alt text-info"></i> Movimentação
+                      de Container
+                    </h4>
+                    <p class="text-muted">
+                      Movimentar container dentro do pátio
+                    </p>
+                  </div>
+
+                  <!-- Formulário Movimentação ATUALIZADO -->
+                  <div id="form-movimentacao" class="operacao-form">
+                    <h5>
+                      <i class="fas fa-arrows-alt text-primary"></i>
+                      Movimentação Interna
+                    </h5>
+                    <form id="formMovimentacao">
+                      <div class="form-group">
+                        <label class="form-label" for="container_movimentacao"
+                          >Número do Container:</label
+                        >
+                        <div class="combobox-wrapper">
+                          <input
+                            type="text"
+                            class="form-control"
+                            id="container_movimentacao"
+                            name="container_id"
+                            required
+                            placeholder="Digite ou selecione um container"
+                          />
+                          <button
+                            type="button"
+                            class="btn-refresh"
+                            onclick="atualizarContainers()"
+                            title="Atualizar lista de containers"
+                          >
+                            <i class="fas fa-sync-alt"></i>
+                          </button>
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label" for="posicao_original"
+                          >Posição Atual:</label
+                        >
+                        <div class="combobox-wrapper">
+                          <input
+                            type="text"
+                            class="form-control"
+                            id="posicao_original"
+                            name="posicao_original"
+                            required
+                            placeholder="Posição será carregada automaticamente"
+                            readonly
+                          />
+                          <div
+                            class="status-indicator"
+                            id="posicao_status"
+                            style="display: none"
+                          ></div>
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label" for="posicao_nova"
+                          >Nova Posição:</label
+                        >
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="posicao_nova"
+                          name="posicao"
+                          required
+                          placeholder="Ex: B2-20"
+                        />
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label" for="observacoes_movimentacao"
+                          >Observações:</label
+                        >
+                        <textarea
+                          class="form-control"
+                          id="observacoes_movimentacao"
+                          name="observacoes"
+                          rows="3"
+                          placeholder="Observações opcionais..."
+                        ></textarea>
+                      </div>
+                      <div class="action-buttons">
+                        <button
+                          type="submit"
+                          class="btn-action btn-primary-action"
+                        >
+                          <i class="fas fa-save"></i> Registrar Movimentação
+                        </button>
+                        <button
+                          type="button"
+                          class="btn-action btn-secondary-action"
+                          onclick="voltarInicio()"
+                        >
+                          <i class="fas fa-times"></i> Cancelar
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+
+                <!-- CONSULTAR STATUS -->
+                <div id="operacao-consultar" class="operacao-content">
+                  <!-- Breadcrumb -->
+                  <div class="operacao-breadcrumb">
+                    <nav>
+                      <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                          <a href="#" onclick="voltarInicio()">Início</a>
+                        </li>
+                        <li class="breadcrumb-item active">Consultar Status</li>
+                      </ol>
+                    </nav>
+                  </div>
+
+                  <button class="btn-voltar" onclick="voltarInicio()">
+                    <i class="fas fa-arrow-left"></i> Voltar
+                  </button>
+
+                  <div class="text-center mb-4">
+                    <h4>
+                      <i class="fas fa-search text-primary"></i> Consultar
+                      Status do Container
+                    </h4>
+                    <p class="text-muted">
+                      Digite o número do container para consultar
+                    </p>
+                  </div>
+
+                  <!-- Formulário Consulta -->
+                  <div id="form-consulta" class="operacao-form">
+                    <h5>
+                      <i class="fas fa-info-circle text-primary"></i> Buscar
+                      Container
+                    </h5>
+                    <form id="formConsulta">
+                      <div class="form-group">
+                        <label class="form-label" for="container_consulta"
+                          >Número do Container:</label
+                        >
+                        <div class="combobox-wrapper">
+                          <input
+                            type="text"
+                            class="form-control"
+                            id="container_consulta"
+                            name="numero_container"
+                            required
+                            placeholder="Digite ou selecione um container"
+                          />
+                          <button
+                            type="button"
+                            class="btn-refresh"
+                            onclick="atualizarContainersConsulta()"
+                            title="Atualizar lista de containers"
+                          >
+                            <i class="fas fa-sync-alt"></i>
+                          </button>
+                        </div>
+                      </div>
+                      <div class="action-buttons">
+                        <button
+                          type="submit"
+                          class="btn-action btn-primary-action"
+                        >
+                          <i class="fas fa-search"></i> Buscar Container
+                        </button>
+                      </div>
+                    </form>
+
+                    <!-- Resultado da Consulta -->
+                    <div
+                      id="resultado-consulta"
+                      class="status-container"
+                      style="display: none"
+                    >
+                      <h6>
+                        <i class="fas fa-info-circle"></i> Informações do
+                        Container
+                      </h6>
+                      <div id="info-container"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+      // ========================================
+      // DASHBOARD ATUALIZADO COM BUSCA AUTOMÁTICA
+      // Versão completa com integração backend
+      // ✅ NOVO: Sistema de containers com busca automática
+      // ✅ NOVO: Auto-preenchimento da posição atual
+      // ========================================
+
+      let appState = {
+        currentOperation: null,
+        currentMode: null,
+        activeForm: null,
+        placasCache: [], // Cache das placas (sistema existente)
+        placasCacheTime: null,
+        containersCache: [], // ✅ NOVO: Cache dos containers
+        containersCacheTime: null,
+      };
+
+      console.log("🚀 Iniciando Dashboard com busca automática...");
+
+      // ========================================
+      // GESTÃO DE CONTAINERS - NOVO
+      // ========================================
+
+      async function carregarContainers(forceRefresh = false) {
+        try {
+          // Verificar cache local (válido por 2 minutos)
+          const agora = new Date();
+          if (
+            !forceRefresh &&
+            appState.containersCacheTime &&
+            agora - appState.containersCacheTime < 120000 &&
+            appState.containersCache.length > 0
+          ) {
+            console.log("📦 Usando containers do cache local");
+            return appState.containersCache;
+          }
+
+          console.log("🔄 Carregando containers do banco de dados...");
+
+          const response = await fetch(
+            `/operacoes/containers/lista${forceRefresh ? "?refresh=true" : ""}`
+          );
+          const result = await response.json();
+
+          if (result.success) {
+            appState.containersCache = result.data;
+            appState.containersCacheTime = agora;
+            console.log(`✅ ${result.data.length} containers carregados`);
+            return result.data;
+          } else {
+            console.error("❌ Erro ao carregar containers:", result.error);
+            return [];
+          }
+        } catch (error) {
+          console.error("❌ Erro na requisição de containers:", error);
+          return [];
+        }
+      }
+
+      async function buscarPosicaoContainer(containerNumero) {
+        try {
+          console.log(`🔍 Buscando posição do container: ${containerNumero}`);
+
+          const response = await fetch(
+            `/operacoes/buscar_container?numero=${encodeURIComponent(
+              containerNumero
+            )}`
+          );
+          const result = await response.json();
+
+          if (result.success && result.container) {
+            return {
+              success: true,
+              posicao: result.container.posicao_atual,
+              status: result.container.status,
+            };
+          } else {
+            return {
+              success: false,
+              error: result.message || "Container não encontrado",
+            };
+          }
+        } catch (error) {
+          console.error("❌ Erro ao buscar posição do container:", error);
+          return {
+            success: false,
+            error: "Erro de conexão",
+          };
+        }
+      }
+
+      function criarComboboxContainers(inputElement, containers) {
+        const wrapper = inputElement.closest(".combobox-wrapper");
+
+        // Configurar funcionalidade de busca
+        inputElement.setAttribute("autocomplete", "off");
+        inputElement.addEventListener("input", function () {
+          mostrarSugestoesContainers(this, containers);
+        });
+
+        inputElement.addEventListener("focus", function () {
+          mostrarSugestoesContainers(this, containers);
+        });
+
+        // ✅ NOVO: Event listener para buscar posição quando container for selecionado
+        inputElement.addEventListener("change", async function () {
+          const containerNumero = this.value.trim();
+          if (containerNumero && containerNumero.length >= 4) {
+            await atualizarPosicaoAtual(containerNumero);
+          }
+        });
+      }
+
+      function mostrarSugestoesContainers(input, containers) {
+        // Remover lista existente
+        const existingList = document.querySelector(".combobox-suggestions");
+        if (existingList) existingList.remove();
+
+        const termo = input.value.toUpperCase();
+
+        // Filtrar containers disponíveis para movimentação (apenas os que estão no pátio)
+        const containersFiltrados = containers
+          .filter(
+            (container) =>
+              container.numero.toUpperCase().includes(termo) &&
+              container.status === "no patio" && // Apenas containers no pátio podem ser movimentados
+              container.posicao_atual // E que tenham uma posição definida
+          )
+          .slice(0, 10); // Máximo 10 sugestões
+
+        if (containersFiltrados.length === 0) return;
+
+        // Criar lista de sugestões
+        const suggestionsList = document.createElement("div");
+        suggestionsList.className = "combobox-suggestions";
+
+        containersFiltrados.forEach((container) => {
+          const item = document.createElement("div");
+          item.className = "suggestion-item";
+
+          item.innerHTML = `
+                    <div>
+                        <strong>${container.numero}</strong>
+                        <div class="suggestion-meta">Posição: ${container.posicao_atual}</div>
+                    </div>
+                    <div class="suggestion-meta">${container.status}</div>
+                `;
+
+          item.addEventListener("mouseenter", function () {
+            this.style.backgroundColor = "var(--bg-glass)";
+          });
+
+          item.addEventListener("mouseleave", function () {
+            this.style.backgroundColor = "white";
+          });
+
+          item.addEventListener("click", async function () {
+            input.value = container.numero;
+            input.classList.add("is-valid");
+            suggestionsList.remove();
+
+            // ✅ NOVO: Buscar e preencher posição automaticamente
+            await atualizarPosicaoAtual(container.numero);
+
+            input.focus();
+          });
+
+          suggestionsList.appendChild(item);
+        });
+
+        // Adicionar à página
+        input.closest(".combobox-wrapper").appendChild(suggestionsList);
+
+        // Fechar ao clicar fora
+        setTimeout(() => {
+          document.addEventListener("click", function closeSuggestions(e) {
+            if (
+              !input.contains(e.target) &&
+              !suggestionsList.contains(e.target)
+            ) {
+              suggestionsList.remove();
+              document.removeEventListener("click", closeSuggestions);
+            }
+          });
+        }, 100);
+      }
+
+      // ✅ NOVA FUNÇÃO: Atualizar posição atual automaticamente
+      async function atualizarPosicaoAtual(containerNumero) {
+        const posicaoField = document.getElementById("posicao_original");
+        const statusIndicator = document.getElementById("posicao_status");
+
+        if (!posicaoField || !containerNumero) return;
+
+        // Mostrar indicador de carregamento
+        posicaoField.value = "";
+        posicaoField.placeholder = "Buscando posição...";
+        statusIndicator.style.display = "block";
+        statusIndicator.className = "status-indicator status-loading";
+        statusIndicator.textContent = "Buscando...";
+
+        try {
+          const resultado = await buscarPosicaoContainer(containerNumero);
+
+          if (resultado.success) {
+            posicaoField.value = resultado.posicao || "Sem posição definida";
+            posicaoField.placeholder = "Posição atual do container";
+
+            statusIndicator.className = "status-indicator status-found";
+            statusIndicator.textContent = "Encontrado";
+
+            // Marcar como válido
+            posicaoField.classList.remove("is-invalid");
+            posicaoField.classList.add("is-valid");
+
+            console.log(`✅ Posição encontrada: ${resultado.posicao}`);
+          } else {
+            posicaoField.value = "";
+            posicaoField.placeholder =
+              "Container não encontrado ou fora do pátio";
+
+            statusIndicator.className = "status-indicator status-not-found";
+            statusIndicator.textContent = "Não encontrado";
+
+            // Marcar como inválido
+            posicaoField.classList.remove("is-valid");
+            posicaoField.classList.add("is-invalid");
+
+            console.warn(`⚠️ ${resultado.error}`);
+          }
+
+          // Esconder indicador após 3 segundos
+          setTimeout(() => {
+            statusIndicator.style.display = "none";
+          }, 3000);
+        } catch (error) {
+          console.error("❌ Erro ao buscar posição:", error);
+
+          posicaoField.value = "";
+          posicaoField.placeholder = "Erro ao buscar posição";
+
+          statusIndicator.className = "status-indicator status-not-found";
+          statusIndicator.textContent = "Erro";
+
+          setTimeout(() => {
+            statusIndicator.style.display = "none";
+          }, 3000);
+        }
+      }
+
+      // ✅ NOVA FUNÇÃO: Atualizar lista de containers
+      async function atualizarContainers() {
+        const refreshBtn = document.querySelector(".btn-refresh");
+        if (refreshBtn) {
+          refreshBtn.classList.add("loading");
+        }
+
+        try {
+          const novosContainers = await carregarContainers(true);
+          await inicializarComboboxesContainers();
+
+          Swal.fire({
+            icon: "success",
+            title: "Containers atualizados!",
+            text: `${novosContainers.length} containers carregados do banco`,
+            timer: 2000,
+            showConfirmButton: false,
+          });
+        } catch (error) {
+          console.error("❌ Erro ao atualizar containers:", error);
+
+          Swal.fire({
+            icon: "error",
+            title: "Erro ao atualizar",
+            text: "Não foi possível atualizar a lista de containers",
+            timer: 3000,
+            showConfirmButton: false,
+          });
+        } finally {
+          if (refreshBtn) {
+            refreshBtn.classList.remove("loading");
+          }
+        }
+      }
+
+      async function inicializarComboboxesContainers() {
+        console.log("🔧 Inicializando comboboxes de containers...");
+
+        const containers = await carregarContainers();
+
+        if (containers.length === 0) {
+          console.warn(
+            "⚠️ Nenhum container carregado - usando campo de texto normal"
+          );
+          return;
+        }
+
+        // Configurar campo de container na movimentação
+        const campoContainer = document.getElementById(
+          "container_movimentacao"
+        );
+        if (campoContainer) {
+          criarComboboxContainers(campoContainer, containers);
+          console.log(
+            "✅ Combobox de containers configurado para movimentação"
+          );
+        }
+      }
+
+      // ========================================
+      // GESTÃO DE PLACAS (SISTEMA EXISTENTE)
+      // ========================================
+
+      async function carregarPlacas(forceRefresh = false) {
+        try {
+          // Verificar cache local (válido por 5 minutos)
+          const agora = new Date();
+          if (
+            !forceRefresh &&
+            appState.placasCacheTime &&
+            agora - appState.placasCacheTime < 300000 &&
+            appState.placasCache.length > 0
+          ) {
+            console.log("📋 Usando placas do cache local");
+            return appState.placasCache;
+          }
+
+          console.log("🔄 Carregando placas da planilha OneDrive...");
+
+          const response = await fetch(
+            `/api/sharepoint/placas/lista${forceRefresh ? "?refresh=true" : ""}`
+          );
+          const result = await response.json();
+
+          if (result.success) {
+            appState.placasCache = result.data;
+            appState.placasCacheTime = agora;
+            console.log(`✅ ${result.data.length} placas carregadas`);
+            return result.data;
+          } else {
+            console.error("❌ Erro ao carregar placas:", result.error);
+            return [];
+          }
+        } catch (error) {
+          console.error("❌ Erro na requisição de placas:", error);
+          return [];
+        }
+      }
+
+      function criarComboboxPlacas(inputElement, placas) {
+        const container = inputElement.parentElement;
+
+        // Criar wrapper para o combobox
+        const wrapper = document.createElement("div");
+        wrapper.className = "combobox-wrapper";
+        wrapper.style.position = "relative";
+
+        // Substituir input por combobox
+        inputElement.parentNode.insertBefore(wrapper, inputElement);
+        wrapper.appendChild(inputElement);
+
+        // Adicionar funcionalidade de busca
+        inputElement.setAttribute("autocomplete", "off");
+        inputElement.addEventListener("input", function () {
+          mostrarSugestoes(this, placas);
+        });
+
+        inputElement.addEventListener("focus", function () {
+          mostrarSugestoes(this, placas);
+        });
+
+        // Adicionar ícone de refresh
+        const refreshBtn = document.createElement("button");
+        refreshBtn.type = "button";
+        refreshBtn.className = "btn-refresh-placas";
+        refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i>';
+        refreshBtn.title = "Atualizar placas da planilha";
+        refreshBtn.style.cssText = `
+                position: absolute;
+                right: 10px;
+                top: 50%;
+                transform: translateY(-50%);
+                background: none;
+                border: none;
+                color: #667eea;
+                cursor: pointer;
+                padding: 5px;
+                border-radius: 3px;
+                transition: all 0.2s;
+            `;
+
+        refreshBtn.addEventListener("click", async function () {
+          this.classList.add("fa-spin");
+          const novasPlacas = await carregarPlacas(true);
+          await atualizarTodosComboboxes();
+          this.classList.remove("fa-spin");
+
+          Swal.fire({
+            icon: "success",
+            title: "Placas atualizadas!",
+            text: `${novasPlacas.length} placas carregadas da planilha`,
+            timer: 2000,
+            showConfirmButton: false,
+          });
+        });
+
+        wrapper.appendChild(refreshBtn);
+      }
+
+      function mostrarSugestoes(input, placas) {
+        // Remover lista existente
+        const existingList = document.querySelector(".placas-suggestions");
+        if (existingList) existingList.remove();
+
+        const termo = input.value.toUpperCase();
+
+        // Filtrar placas
+        const placasFiltradas = placas
+          .filter((placa) => placa.toUpperCase().includes(termo))
+          .slice(0, 8); // Máximo 8 sugestões
+
+        if (placasFiltradas.length === 0) return;
+
+        // Criar lista de sugestões
+        const suggestionsList = document.createElement("div");
+        suggestionsList.className = "placas-suggestions";
+        suggestionsList.style.cssText = `
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: white;
+                border: 1px solid #e2e8f0;
+                border-radius: 8px;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+                max-height: 200px;
+                overflow-y: auto;
+                z-index: 1000;
+                margin-top: 2px;
+            `;
+
+        placasFiltradas.forEach((placa) => {
+          const item = document.createElement("div");
+          item.className = "suggestion-item";
+          item.textContent = placa;
+          item.style.cssText = `
+                    padding: 10px 15px;
+                    cursor: pointer;
+                    border-bottom: 1px solid #f1f5f9;
+                    transition: background-color 0.2s;
+                `;
+
+          item.addEventListener("mouseenter", function () {
+            this.style.backgroundColor = "#f8fafc";
+          });
+
+          item.addEventListener("mouseleave", function () {
+            this.style.backgroundColor = "white";
+          });
+
+          item.addEventListener("click", function () {
+            input.value = placa;
+            input.classList.add("is-valid");
+            suggestionsList.remove();
+            input.focus();
+          });
+
+          suggestionsList.appendChild(item);
+        });
+
+        // Adicionar à página
+        input.parentElement.appendChild(suggestionsList);
+
+        // Fechar ao clicar fora
+        setTimeout(() => {
+          document.addEventListener("click", function closeSuggestions(e) {
+            if (
+              !input.contains(e.target) &&
+              !suggestionsList.contains(e.target)
+            ) {
+              suggestionsList.remove();
+              document.removeEventListener("click", closeSuggestions);
+            }
+          });
+        }, 100);
+      }
+
+      async function atualizarTodosComboboxes() {
+        const placas = await carregarPlacas();
+
+        // Atualizar todos os campos de placa existentes
+        const camposPlaca = document.querySelectorAll('input[name="placa"]');
+        camposPlaca.forEach((campo) => {
+          // Limpar sugestões existentes
+          const suggestions = campo.parentElement.querySelector(
+            ".placas-suggestions"
+          );
+          if (suggestions) suggestions.remove();
+        });
+      }
+
+      async function inicializarComboboxesPlacas() {
+        console.log("🔧 Inicializando comboboxes de placas...");
+
+        const placas = await carregarPlacas();
+
+        if (placas.length === 0) {
+          console.warn(
+            "⚠️ Nenhuma placa carregada - usando campos de texto normais"
+          );
+          return;
+        }
+
+        // Configurar todos os campos de placa
+        const camposPlaca = document.querySelectorAll('input[name="placa"]');
+        camposPlaca.forEach((campo) => {
+          criarComboboxPlacas(campo, placas);
+        });
+
+        console.log(
+          `✅ ${camposPlaca.length} comboboxes de placas configurados`
+        );
+      }
+
+      // ========================================
+      // INICIALIZAÇÃO
+      // ========================================
+      document.addEventListener("DOMContentLoaded", function () {
+        console.log("✅ DOM carregado");
+
+        // Ativar animação da entrada
+        setTimeout(() => {
+          const container = document.querySelector(".operacoes-container");
+          if (container) {
+            container.style.opacity = "1";
+            container.style.transform = "translateY(0)";
+            console.log("✅ Animação inicial ativada");
+          }
+        }, 100);
+
+        // Configurar event listeners
+        setupFormListeners();
+
+        // Garantir estado inicial limpo
+        resetToInitialState();
+
+        // ✅ NOVO: Inicializar comboboxes de containers E placas
+        setTimeout(async () => {
+          await inicializarComboboxesPlacas();
+          await inicializarComboboxesContainers();
+        }, 500);
+
+        console.log("✅ Dashboard inicializado com sucesso");
+      });
+
+      // ========================================
+      // FUNÇÕES DE NAVEGAÇÃO PRINCIPAIS
+      // ========================================
+
+      function mostrarOperacao(operation) {
+        console.log(`📱 Mostrando operação: ${operation}`);
+
+        hideAllOperations();
+        hideAllForms();
+        esconderSelecaoInicial();
+        clearPreviousState();
+
+        appState.currentOperation = operation;
+        appState.currentMode = null;
+        appState.activeForm = null;
+
+        activateOperationButton(operation);
+
+        setTimeout(() => {
+          showOperationSection(operation);
+        }, 50);
+      }
+
+      function mostrarSubOpcao(operation, mode) {
+        console.log(`🔧 Sub-opção: ${operation} - ${mode}`);
+
+        hideAllForms();
+        activateSubOptionButton(operation, mode);
+
+        const formId = getFormId(operation, mode);
+
+        appState.currentMode = mode;
+        appState.activeForm = formId;
+
+        console.log(
+          `📊 Estado atualizado - Modo: ${appState.currentMode}, Form: ${appState.activeForm}`
+        );
+
+        setTimeout(() => {
+          showForm(formId);
+          console.log(`✅ Formulário ${formId} exibido`);
+        }, 50);
+      }
+
+      function voltarInicio() {
+        console.log("🏠 Voltando ao início");
+
+        hideAllOperations();
+        hideAllForms();
+        clearPreviousState();
+
+        appState = {
+          currentOperation: null,
+          currentMode: null,
+          activeForm: null,
+          placasCache: appState.placasCache, // Manter cache
+          placasCacheTime: appState.placasCacheTime,
+          containersCache: appState.containersCache, // Manter cache
+          containersCacheTime: appState.containersCacheTime,
+        };
+
+        setTimeout(() => {
+          showInitialSelection();
+          console.log("✅ Voltou ao estado inicial");
+        }, 50);
+
+        clearAllForms();
+      }
+
+      // ========================================
+      // FUNÇÕES AUXILIARES DE CONTROLE
+      // ========================================
+
+      function clearPreviousState() {
+        document
+          .querySelectorAll(".operacao-btn, .sub-opcao-btn")
+          .forEach((btn) => {
+            btn.classList.remove("active");
+          });
+
+        hideAllOperations();
+        hideAllForms();
+      }
+
+      function resetToInitialState() {
+        hideAllOperations();
+        hideAllForms();
+        esconderSelecaoInicial();
+        clearAllForms();
+
+        document
+          .querySelectorAll(".operacao-btn, .sub-opcao-btn")
+          .forEach((btn) => {
+            btn.classList.remove("active");
+          });
+
+        setTimeout(() => {
+          showInitialSelection();
+        }, 50);
+      }
+
+      function activateOperationButton(operation) {
+        const button = document.querySelector(`[data-operacao="${operation}"]`);
+        if (button) {
+          button.classList.add("active");
+          console.log(`✅ Botão ${operation} ativado`);
+        }
+      }
+
+      function activateSubOptionButton(operation, mode) {
+        const operationContainer = document.getElementById(
+          `operacao-${operation}`
+        );
+        if (operationContainer) {
+          const buttons = operationContainer.querySelectorAll(".sub-opcao-btn");
+          buttons.forEach((btn, index) => {
+            btn.classList.remove("active");
+            if (
+              (mode === "rodoviaria" && index === 0) ||
+              (mode === "ferroviaria" && index === 1)
+            ) {
+              btn.classList.add("active");
+              console.log(`✅ Sub-opção ${mode} ativada`);
+            }
+          });
+        }
+      }
+
+      function showOperationSection(operation) {
+        const element = document.getElementById(`operacao-${operation}`);
+        if (element) {
+          element.style.display = "block";
+          element.offsetHeight;
+          element.classList.add("show");
+
+          console.log(`✅ Seção ${operation} exibida`);
+
+          if (operation === "consultar") {
+            setTimeout(() => showFormConsulta(), 200);
+          }
+          if (operation === "movimentacao") {
+            setTimeout(() => showFormMovimentacao(), 200);
+          }
+        } else {
+          console.error(`❌ Seção operacao-${operation} não encontrada`);
+        }
+      }
+
+      function getFormId(operation, mode) {
+        if (operation === "descarga") {
+          return mode === "rodoviaria"
+            ? "form-descarga-rodoviaria"
+            : "form-descarga-ferroviaria";
+        } else if (operation === "carregamento") {
+          return mode === "rodoviaria"
+            ? "form-carregamento-rodoviario"
+            : "form-carregamento-ferroviario";
+        }
+        return null;
+      }
+
+      function showForm(formId) {
+        if (!formId) return;
+
+        const form = document.getElementById(formId);
+        if (form) {
+          console.log(`📝 Exibindo formulário: ${formId}`);
+
+          form.style.display = "block";
+          form.offsetHeight;
+          form.classList.add("show");
+
+          console.log(`✅ Formulário ${formId} exibido com sucesso`);
+        } else {
+          console.error(`❌ Formulário ${formId} não encontrado`);
+        }
+      }
+
+      function showFormConsulta() {
+        hideAllForms();
+        setTimeout(() => {
+          showForm("form-consulta");
+          appState.activeForm = "form-consulta";
+        }, 50);
+      }
+
+      function showFormMovimentacao() {
+        hideAllForms();
+        setTimeout(() => {
+          showForm("form-movimentacao");
+          appState.activeForm = "form-movimentacao";
+        }, 50);
+      }
+
+      // ========================================
+      // FUNÇÕES DE OCULTAÇÃO
+      // ========================================
+
+      function hideAllOperations() {
+        document.querySelectorAll(".operacao-content").forEach((content) => {
+          content.classList.remove("show");
+          content.style.display = "none";
+        });
+      }
+
+      function hideAllForms() {
+        document.querySelectorAll(".operacao-form").forEach((form) => {
+          form.classList.remove("show");
+          form.style.display = "none";
+        });
+      }
+
+      function showInitialSelection() {
+        const selection = document.getElementById("selecione-operacao");
+        if (selection) {
+          selection.style.display = "block";
+        }
+      }
+
+      function esconderSelecaoInicial() {
+        const selection = document.getElementById("selecione-operacao");
+        if (selection) {
+          selection.style.display = "none";
+        }
+      }
+
+      function clearAllForms() {
+        document.querySelectorAll(".operacao-form form").forEach((form) => {
+          form.reset();
+          form.querySelectorAll(".form-control").forEach((input) => {
+            input.classList.remove("is-invalid", "is-valid");
+          });
+
+          // Limpar indicadores de status
+          const statusIndicator = form.querySelector(".status-indicator");
+          if (statusIndicator) {
+            statusIndicator.style.display = "none";
+          }
+        });
+      }
+
+      // ========================================
+      // FUNÇÕES DE FORMULÁRIO
+      // ========================================
+
+      function validateForm(form) {
+        let isValid = true;
+        const requiredFields = form.querySelectorAll("[required]");
+
+        requiredFields.forEach((field) => {
+          field.classList.remove("is-invalid", "is-valid");
+
+          if (!field.value.trim()) {
+            field.classList.add("is-invalid");
+            isValid = false;
+          } else {
+            field.classList.add("is-valid");
+          }
+        });
+
+        return isValid;
+      }
+
+      function showLoading(button) {
+        const originalText = button.innerHTML;
+        button.setAttribute("data-original-text", originalText);
+        button.innerHTML =
+          '<i class="fas fa-spinner fa-spin"></i> Processando...';
+        button.disabled = true;
+        button.classList.add("btn-loading");
+      }
+
+      function hideLoading(button) {
+        const originalText = button.getAttribute("data-original-text");
+        if (originalText) {
+          button.innerHTML = originalText;
+        }
+        button.disabled = false;
+        button.classList.remove("btn-loading");
+      }
+
+      async function processForm(formData, submitButton, operationType) {
+        showLoading(submitButton);
+
+        try {
+          formData.append("tipo", operationType);
+
+          if (appState.currentMode) {
+            formData.append("modo", appState.currentMode);
+          }
+
+          console.log("📦 Dados sendo enviados:");
+          for (let [key, value] of formData.entries()) {
+            console.log(`  ${key}: ${value}`);
+          }
+
+          const csrfResponse = await fetch("/api/csrf-token");
+          const csrfData = await csrfResponse.json();
+          const csrfToken = csrfData.csrf_token;
+
+          console.log(
+            "🔐 Token CSRF obtido:",
+            csrfToken.substring(0, 20) + "..."
+          );
+
+          const response = await fetch("/operacoes/registrar", {
+            method: "POST",
+            headers: {
+              "X-CSRFToken": csrfToken,
+            },
+            body: formData,
+          });
+
+          const result = await response.json();
+          console.log("📥 Resposta do servidor:", result);
+
+          hideLoading(submitButton);
+
+          if (result.success) {
+            Swal.fire({
+              icon: "success",
+              title: "Sucesso!",
+              text:
+                result.message ||
+                `${
+                  operationType.charAt(0).toUpperCase() + operationType.slice(1)
+                } registrada com sucesso!`,
+              confirmButtonText: "OK",
+              confirmButtonColor: "#667eea",
+            }).then(() => {
+              voltarInicio();
+            });
+          } else {
+            Swal.fire({
+              icon: "error",
+              title: "Erro!",
+              text: result.error || "Erro ao processar operação",
+              confirmButtonText: "OK",
+              confirmButtonColor: "#ef4444",
+            });
+          }
+        } catch (error) {
+          hideLoading(submitButton);
+          console.error("Erro ao enviar formulário:", error);
+
+          Swal.fire({
+            icon: "error",
+            title: "Erro!",
+            text: "Erro de conexão. Verifique sua internet e tente novamente.",
+            confirmButtonText: "OK",
+            confirmButtonColor: "#ef4444",
+          });
+        }
+      }
+
+      async function searchContainerStatus(containerNumber, searchButton) {
+        showLoading(searchButton);
+
+        try {
+          const response = await fetch(
+            `/operacoes/buscar_container?numero=${encodeURIComponent(
+              containerNumber
+            )}`
+          );
+          const result = await response.json();
+
+          hideLoading(searchButton);
+
+          if (result.success) {
+            displayContainerStatus(result.container, result.operacoes);
+          } else {
+            Swal.fire({
+              icon: "info",
+              title: "Container não encontrado",
+              text: result.message || "Container não foi encontrado no sistema",
+              confirmButtonText: "OK",
+              confirmButtonColor: "#667eea",
+            });
+          }
+        } catch (error) {
+          hideLoading(searchButton);
+          console.error("Erro ao buscar container:", error);
+
+          Swal.fire({
+            icon: "error",
+            title: "Erro!",
+            text: "Erro de conexão. Verifique sua internet e tente novamente.",
+            confirmButtonText: "OK",
+            confirmButtonColor: "#ef4444",
+          });
+        }
+      }
+
+      function displayContainerStatus(container, operacoes = []) {
+        const resultContainer = document.getElementById("resultado-consulta");
+        if (resultContainer) {
+          resultContainer.innerHTML = generateStatusHTML(container, operacoes);
+          resultContainer.style.display = "block";
+          setTimeout(() => {
+            resultContainer.classList.add("show");
+          }, 100);
+        }
+      }
+
+      function generateStatusHTML(container, operacoes = []) {
+        let html = `
+                <div class="status-card">
+                    <h6><i class="fas fa-cube text-primary"></i> Informações do Container</h6>
+                    <div class="status-info">
+                        <div class="status-item">
+                            <strong>Número:</strong> ${container.numero}
+                        </div>
+                        <div class="status-item">
+                            <strong>Status:</strong> <span class="badge bg-info">${
+                              container.status
+                            }</span>
+                        </div>
+                        <div class="status-item">
+                            <strong>Posição Atual:</strong> ${
+                              container.posicao_atual || "Não informada"
+                            }
+                        </div>
+                        <div class="status-item">
+                            <strong>Última Atualização:</strong> ${new Date(
+                              container.ultima_atualizacao
+                            ).toLocaleString("pt-BR")}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+        if (operacoes && operacoes.length > 0) {
+          html += `
+                    <div class="status-card">
+                        <h6><i class="fas fa-history text-secondary"></i> Histórico de Operações</h6>
+                        <div class="status-info">
+                `;
+
+          operacoes.forEach((operacao) => {
+            const badge = getBadgeClass(operacao.tipo);
+            html += `
+                        <div class="status-item">
+                            <div>
+                                <div><strong>${new Date(
+                                  operacao.data_operacao
+                                ).toLocaleString("pt-BR")}</strong></div>
+                                <div><span class="badge bg-${badge}">${operacao.tipo.toUpperCase()}</span>
+                                ${operacao.modo ? ` - ${operacao.modo}` : ""}
+                                ${
+                                  operacao.posicao
+                                    ? ` - ${operacao.posicao}`
+                                    : ""
+                                }
+                                ${
+                                  operacao.placa
+                                    ? ` - Placa: ${operacao.placa}`
+                                    : ""
+                                }
+                                ${
+                                  operacao.vagao
+                                    ? ` - Vagão: ${operacao.vagao}`
+                                    : ""
+                                }
+                                </div>
+                                ${
+                                  operacao.observacoes
+                                    ? `<div class="text-muted" style="font-size: 0.9rem; font-style: italic;">${operacao.observacoes}</div>`
+                                    : ""
+                                }
+                            </div>
+                        </div>
+                    `;
+          });
+
+          html += `
+                        </div>
+                    </div>
+                `;
+        }
+
+        return html;
+      }
+
+      function getBadgeClass(tipo) {
+        switch (tipo) {
+          case "descarga":
+            return "success";
+          case "carregamento":
+            return "warning";
+          case "movimentacao":
+            return "info";
+          default:
+            return "secondary";
+        }
+      }
+
+      // ========================================
+      // CONFIGURAÇÃO DE EVENT LISTENERS
+      // ========================================
+
+      function setupFormListeners() {
+        console.log("🔧 Configurando event listeners...");
+
+        // Formulários de descarga
+        setupFormHandler("formDescargaRodoviaria", "descarga");
+        setupFormHandler("formDescargaFerroviaria", "descarga");
+
+        // Formulários de carregamento
+        setupFormHandler("formCarregamentoRodoviario", "carregamento");
+        setupFormHandler("formCarregamentoFerroviario", "carregamento");
+
+        // Formulário de movimentação
+        setupFormHandler("formMovimentacao", "movimentacao");
+
+        // Formulário de consulta
+        const consultaForm = document.getElementById("formConsulta");
+        if (consultaForm) {
+          consultaForm.addEventListener("submit", function (e) {
+            e.preventDefault();
+            console.log("📝 Processando consulta...");
+
+            if (!validateForm(this)) {
+              Swal.fire({
+                icon: "warning",
+                title: "Atenção!",
+                text: "Por favor, preencha todos os campos obrigatórios",
+                confirmButtonColor: "#ffc107",
+              });
+              return;
+            }
+
+            const containerNumber = this.querySelector(
+              '[name="numero_container"]'
+            ).value;
+            const submitButton = this.querySelector('[type="submit"]');
+
+            searchContainerStatus(containerNumber, submitButton);
+          });
+        }
+
+        // Formatação automática de containers
+        document
+          .querySelectorAll(
+            'input[name="container_id"], input[name="numero_container"]'
+          )
+          .forEach((field) => {
+            field.addEventListener("input", function () {
+              let value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+              if (value.length > 11) value = value.substring(0, 11);
+              this.value = value;
+            });
+          });
+
+        console.log("✅ Event listeners configurados");
+      }
+
+      function setupFormHandler(formId, operationType) {
+        const form = document.getElementById(formId);
+        if (form) {
+          form.addEventListener("submit", function (e) {
+            e.preventDefault();
+            console.log(`📝 Processando ${formId}...`);
+
+            if (!validateForm(this)) {
+              Swal.fire({
+                icon: "warning",
+                title: "Atenção!",
+                text: "Por favor, preencha todos os campos obrigatórios",
+                confirmButtonColor: "#ffc107",
+              });
+              return;
+            }
+
+            const formData = new FormData(this);
+            const submitButton = this.querySelector('[type="submit"]');
+
+            processForm(formData, submitButton, operationType);
+          });
+        } else {
+          console.warn(`⚠️ Formulário ${formId} não encontrado`);
+        }
+      }
+
+      // ========================================
+      // FUNÇÕES DE AUTENTICAÇÃO
+      // ========================================
+
+      function confirmarLogout() {
+        Swal.fire({
+          title: "Sair do Sistema",
+          text: "Tem certeza que deseja sair?",
+          icon: "question",
+          showCancelButton: true,
+          confirmButtonColor: "#dc3545",
+          cancelButtonColor: "#6c757d",
+          confirmButtonText: "Sim, sair",
+          cancelButtonText: "Cancelar",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            realizarLogout();
+          }
+        });
+      }
+
+      async function realizarLogout() {
+        Swal.fire({
+          title: "Saindo...",
+          text: "Encerrando sessão",
+          allowOutsideClick: false,
+          showConfirmButton: false,
+          didOpen: () => Swal.showLoading(),
+        });
+
+        try {
+          const response = await fetch("/auth/logout", {
+            method: "GET",
+            credentials: "same-origin",
+          });
+
+          setTimeout(() => {
+            Swal.fire({
+              title: "Logout realizado!",
+              icon: "success",
+              timer: 1500,
+              showConfirmButton: false,
+            }).then(() => {
+              window.location.href = "/auth/login";
+            });
+          }, 1000);
+        } catch (error) {
+          console.error("Erro no logout:", error);
+
+          setTimeout(() => {
+            Swal.fire({
+              title: "Sessão encerrada",
+              icon: "info",
+              timer: 1500,
+              showConfirmButton: false,
+            }).then(() => {
+              window.location.href = "/auth/login";
+            });
+          }, 1000);
+        }
+      }
+
+      // ========================================
+      // DEBUG E MONITORAMENTO
+      // ========================================
+
+      setInterval(() => {
+        const debugInfo = {
+          operation: appState.currentOperation,
+          mode: appState.currentMode,
+          form: appState.activeForm,
+          containersCache: appState.containersCache.length,
+          placasCache: appState.placasCache.length,
+          timestamp: new Date().toLocaleTimeString(),
+        };
+
+        if (window.lastDebugInfo !== JSON.stringify(debugInfo)) {
+          console.log("📊 Estado atual:", debugInfo);
+          window.lastDebugInfo = JSON.stringify(debugInfo);
+        }
+      }, 10000); // A cada 10 segundos
+
+      console.log(
+        "✅ Dashboard totalmente carregado e funcional com busca automática"
+      );
+    </script>
+  </body>
+</html>

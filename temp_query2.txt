@@ -1,0 +1,11 @@
+            cursor.execute(
+                '''
+                SELECT o.id FROM operacoes o
+                JOIN containers c ON o.container_id = c.id
+                WHERE c.numero = ? 
+                AND o.tipo = ? 
+                AND o.data_operacao > ?
+                AND c.unidade = ?
+                ''', 
+                (container_numero, tipo_operacao, cinco_minutos_atras, unidade_usuario)
+            )

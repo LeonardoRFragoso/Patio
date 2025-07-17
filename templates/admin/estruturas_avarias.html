@@ -1,0 +1,770 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciamento de Estruturas e Avarias - Sistema de Pátio{% endblock %}
+
+{% block extra_css %}
+<!-- CSS do tema admin -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin-theme.css') }}">
+<!-- Bootstrap 5 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- FontAwesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<!-- SweetAlert2 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.0/dist/sweetalert2.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid admin-page">
+    <div class="row">
+        <!-- Sidebar moderna -->
+        <div class="col-md-3 col-lg-2 d-md-block sidebar">
+            <div class="position-sticky">
+                <ul class="nav flex-column mt-3">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.admin_dashboard') }}">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.listar_usuarios') }}">
+                            <i class="fas fa-users"></i> Usuários
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.listar_solicitacoes') }}">
+                            <i class="fas fa-user-plus"></i> Solicitações
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('admin.gerenciar_estruturas_avarias') }}">
+                            <i class="fas fa-tools"></i> Estruturas & Avarias
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.dashboard') }}">
+                            <i class="fas fa-user"></i> Meu Perfil
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Conteúdo principal -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 main-content">
+            <!-- Header da página -->
+            <div class="page-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h1>
+                        <i class="fas fa-tools me-2"></i>
+                        Gerenciamento de Estruturas e Avarias
+                    </h1>
+                    <div class="btn-toolbar">
+                        <div class="btn-group">
+                            <button class="btn btn-outline-primary" onclick="exportarDados()">
+                                <i class="fas fa-file-export me-1"></i> Exportar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card principal com tabs -->
+            <div class="admin-card fade-in-up">
+                <div class="card-header">
+                    <ul class="nav nav-tabs" id="myTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="estruturas-tab" data-bs-toggle="tab" data-bs-target="#estruturas" type="button" role="tab" aria-controls="estruturas" aria-selected="true">
+                                <i class="fas fa-cube me-2"></i>Estruturas
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="avarias-tab" data-bs-toggle="tab" data-bs-target="#avarias" type="button" role="tab" aria-controls="avarias" aria-selected="false">
+                                <i class="fas fa-exclamation-triangle me-2"></i>Avarias
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="card-body">
+                    <div class="tab-content" id="myTabContent">
+                        <!-- Tab Estruturas -->
+                        <div class="tab-pane fade show active" id="estruturas" role="tabpanel" aria-labelledby="estruturas-tab">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-cube text-itracker-blue me-2"></i>
+                                    Estruturas de Container
+                                </h5>
+                                <button class="btn btn-primary" onclick="abrirModalNovaEstrutura()">
+                                    <i class="fas fa-plus-circle me-2"></i>Nova Estrutura
+                                </button>
+                            </div>
+                            
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Código</th>
+                                            <th>Nome</th>
+                                            <th>Criado por</th>
+                                            <th>Data Criação</th>
+                                            <th class="text-center">Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for estrutura in estruturas %}
+                                        <tr class="container-item">
+                                            <td>
+                                                <span class="badge estrutura-badge">{{ estrutura.codigo }}</span>
+                                            </td>
+                                            <td class="fw-semibold">{{ estrutura.nome }}</td>
+                                            <td>
+                                                <i class="fas fa-user me-1 text-muted"></i>
+                                                {{ estrutura.criado_por }}
+                                            </td>
+                                            <td>
+                                                <i class="fas fa-calendar me-1 text-muted"></i>
+                                                {{ estrutura.data_criacao }}
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="action-buttons">
+                                                    <button class="btn btn-outline-primary btn-sm" 
+                                                            onclick="editarEstrutura('{{ estrutura.codigo }}', '{{ estrutura.nome }}')"
+                                                            title="Editar">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-outline-danger btn-sm" 
+                                                            onclick="excluirEstrutura('{{ estrutura.codigo }}')"
+                                                            title="Excluir">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% else %}
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted py-4">
+                                                <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
+                                                Nenhuma estrutura cadastrada
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- Tab Avarias -->
+                        <div class="tab-pane fade" id="avarias" role="tabpanel" aria-labelledby="avarias-tab">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-exclamation-triangle text-itracker-orange me-2"></i>
+                                    Tipos de Avaria
+                                </h5>
+                                <button class="btn btn-danger" onclick="abrirModalNovaAvaria()">
+                                    <i class="fas fa-plus-circle me-2"></i>Nova Avaria
+                                </button>
+                            </div>
+                            
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Código</th>
+                                            <th>Nome</th>
+                                            <th>Criado por</th>
+                                            <th>Data Criação</th>
+                                            <th class="text-center">Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for avaria in avarias %}
+                                        <tr class="container-item">
+                                            <td>
+                                                <span class="badge avaria-badge">{{ avaria.codigo }}</span>
+                                            </td>
+                                            <td class="fw-semibold">{{ avaria.nome }}</td>
+                                            <td>
+                                                <i class="fas fa-user me-1 text-muted"></i>
+                                                {{ avaria.criado_por }}
+                                            </td>
+                                            <td>
+                                                <i class="fas fa-calendar me-1 text-muted"></i>
+                                                {{ avaria.data_criacao }}
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="action-buttons">
+                                                    <button class="btn btn-outline-primary btn-sm" 
+                                                            onclick="editarAvaria('{{ avaria.codigo }}', '{{ avaria.nome }}')"
+                                                            title="Editar">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-outline-danger btn-sm" 
+                                                            onclick="excluirAvaria('{{ avaria.codigo }}')"
+                                                            title="Excluir">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% else %}
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted py-4">
+                                                <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
+                                                Nenhuma avaria cadastrada
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Modal para Nova Estrutura -->
+<div class="modal fade" id="modalNovaEstrutura" tabindex="-1" aria-labelledby="modalNovaEstruturaLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalNovaEstruturaLabel">
+                    <i class="fas fa-plus-circle me-2"></i>Nova Estrutura
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formNovaEstrutura">
+                    <div class="mb-3">
+                        <label for="nomeNovaEstrutura" class="form-label">Nome da Estrutura:</label>
+                        <input type="text" class="form-control" id="nomeNovaEstrutura" name="nome" required 
+                                placeholder="Ex: PORTA LATERAL">
+                        <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Formato sugerido: "DESCRIÇÃO" (ex: "Porta Lateral"). O código será gerado automaticamente.
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Cancelar
+                </button>
+                <button type="button" class="btn btn-primary" id="btnSalvarEstrutura">
+                    <i class="fas fa-save me-2"></i>Salvar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Nova Avaria -->
+<div class="modal fade" id="modalNovaAvaria" tabindex="-1" aria-labelledby="modalNovaAvariaLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalNovaAvariaLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Nova Avaria
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formNovaAvaria">
+                    <div class="mb-3">
+                        <label for="nomeNovaAvaria" class="form-label">Nome da Avaria:</label>
+                        <input type="text" class="form-control" id="nomeNovaAvaria" name="nome" required 
+                                placeholder="Ex: RACHADO">
+                        <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Formato sugerido: "DESCRIÇÃO" (ex: "Rachado"). O código será gerado automaticamente.
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Cancelar
+                </button>
+                <button type="button" class="btn btn-danger" id="btnSalvarAvaria">
+                    <i class="fas fa-save me-2"></i>Salvar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<!-- Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.0/dist/sweetalert2.all.min.js"></script>
+
+<script>
+    // Variáveis globais para os modais
+    let modalEstrutura = null;
+    let modalAvaria = null;
+    
+    // Função para obter token CSRF - CORRIGIDA
+    function getCsrfToken() {
+        // Tentar obter de um meta tag primeiro
+        const metaToken = document.querySelector('meta[name="csrf-token"]');
+        if (metaToken) {
+            return metaToken.getAttribute('content');
+        }
+        
+        // Fallback para o template
+        try {
+            const token = "{{ csrf_token() }}";
+            console.log('Token CSRF obtido:', token ? 'OK' : 'FALHA');
+            return token;
+        } catch (e) {
+            console.error('Erro ao obter CSRF token:', e);
+            return '';
+        }
+    }
+
+    // Inicialização quando o DOM estiver carregado
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🚀 Inicializando página de estruturas e avarias...');
+        
+        // Verificar se Bootstrap está carregado
+        if (typeof bootstrap === 'undefined') {
+            console.error('❌ Bootstrap não está carregado!');
+            Swal.fire({
+                icon: 'error',
+                title: 'Erro de Carregamento',
+                text: 'Bootstrap não foi carregado corretamente. Recarregue a página.',
+                confirmButtonText: 'Recarregar',
+                allowOutsideClick: false
+            }).then(() => {
+                window.location.reload();
+            });
+            return;
+        }
+
+        // Verificar se jQuery está carregado
+        if (typeof $ === 'undefined') {
+            console.error('❌ jQuery não está carregado!');
+            return;
+        }
+
+        // Verificar se SweetAlert está carregado
+        if (typeof Swal === 'undefined') {
+            console.error('❌ SweetAlert2 não está carregado!');
+            return;
+        }
+        
+        console.log('✅ Todas as dependências carregadas');
+        
+        // Inicializar modais do Bootstrap 5
+        try {
+            const modalEstruturaElement = document.getElementById('modalNovaEstrutura');
+            const modalAvariaElement = document.getElementById('modalNovaAvaria');
+            
+            if (modalEstruturaElement) {
+                modalEstrutura = new bootstrap.Modal(modalEstruturaElement, {
+                    backdrop: 'static',
+                    keyboard: true,
+                    focus: true
+                });
+                console.log('✅ Modal de estrutura inicializado');
+            } else {
+                console.error('❌ Elemento modalNovaEstrutura não encontrado');
+            }
+            
+            if (modalAvariaElement) {
+                modalAvaria = new bootstrap.Modal(modalAvariaElement, {
+                    backdrop: 'static',
+                    keyboard: true,
+                    focus: true
+                });
+                console.log('✅ Modal de avaria inicializado');
+            } else {
+                console.error('❌ Elemento modalNovaAvaria não encontrado');
+            }
+            
+        } catch (error) {
+            console.error('❌ Erro ao inicializar modais:', error);
+        }
+        
+        // Configurar eventos dos botões
+        const btnSalvarEstrutura = document.getElementById('btnSalvarEstrutura');
+        const btnSalvarAvaria = document.getElementById('btnSalvarAvaria');
+        
+        if (btnSalvarEstrutura) {
+            btnSalvarEstrutura.addEventListener('click', salvarNovaEstrutura);
+            console.log('✅ Event listener do botão estrutura configurado');
+        }
+        
+        if (btnSalvarAvaria) {
+            btnSalvarAvaria.addEventListener('click', salvarNovaAvaria);
+            console.log('✅ Event listener do botão avaria configurado');
+        }
+
+        // Configurar tabs do Bootstrap
+        const triggerTabList = [].slice.call(document.querySelectorAll('#myTab button[data-bs-toggle="tab"]'));
+        triggerTabList.forEach(function (triggerEl) {
+            const tabTrigger = new bootstrap.Tab(triggerEl);
+            triggerEl.addEventListener('click', function (event) {
+                event.preventDefault();
+                tabTrigger.show();
+            });
+        });
+        
+        console.log('🎉 Inicialização completa!');
+    });
+
+    // Função para abrir o modal de nova estrutura - MELHORADA
+    function abrirModalNovaEstrutura() {
+        console.log('🔵 Tentando abrir modal de estrutura...');
+        
+        try {
+            // Verificar se o modal foi inicializado
+            if (!modalEstrutura) {
+                console.error('❌ Modal de estrutura não foi inicializado');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro',
+                    text: 'Modal não foi inicializado corretamente. Recarregue a página.',
+                    confirmButtonText: 'Recarregar'
+                }).then(() => {
+                    window.location.reload();
+                });
+                return;
+            }
+            
+            // Limpar o campo de entrada
+            const inputEstrutura = document.getElementById('nomeNovaEstrutura');
+            if (inputEstrutura) {
+                inputEstrutura.value = '';
+                inputEstrutura.classList.remove('is-invalid');
+            }
+            
+            // Resetar o botão de salvar
+            const btnSalvar = document.getElementById('btnSalvarEstrutura');
+            if (btnSalvar) {
+                btnSalvar.disabled = false;
+                btnSalvar.classList.remove('loading');
+            }
+            
+            // Abrir o modal
+            modalEstrutura.show();
+            console.log('✅ Modal de estrutura aberto');
+            
+            // Focar no campo após um pequeno delay
+            setTimeout(() => {
+                if (inputEstrutura) {
+                    inputEstrutura.focus();
+                }
+            }, 300);
+            
+        } catch (error) {
+            console.error('❌ Erro ao abrir modal de estrutura:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Erro',
+                text: 'Não foi possível abrir o modal. Erro: ' + error.message,
+                confirmButtonColor: '#ef4444'
+            });
+        }
+    }
+
+    // Função para abrir o modal de nova avaria - MELHORADA
+    function abrirModalNovaAvaria() {
+        console.log('🟠 Tentando abrir modal de avaria...');
+        
+        try {
+            // Verificar se o modal foi inicializado
+            if (!modalAvaria) {
+                console.error('❌ Modal de avaria não foi inicializado');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro',
+                    text: 'Modal não foi inicializado corretamente. Recarregue a página.',
+                    confirmButtonText: 'Recarregar'
+                }).then(() => {
+                    window.location.reload();
+                });
+                return;
+            }
+            
+            // Limpar o campo de entrada
+            const inputAvaria = document.getElementById('nomeNovaAvaria');
+            if (inputAvaria) {
+                inputAvaria.value = '';
+                inputAvaria.classList.remove('is-invalid');
+            }
+            
+            // Resetar o botão de salvar
+            const btnSalvar = document.getElementById('btnSalvarAvaria');
+            if (btnSalvar) {
+                btnSalvar.disabled = false;
+                btnSalvar.classList.remove('loading');
+            }
+            
+            // Abrir o modal
+            modalAvaria.show();
+            console.log('✅ Modal de avaria aberto');
+            
+            // Focar no campo após um pequeno delay
+            setTimeout(() => {
+                if (inputAvaria) {
+                    inputAvaria.focus();
+                }
+            }, 300);
+            
+        } catch (error) {
+            console.error('❌ Erro ao abrir modal de avaria:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Erro',
+                text: 'Não foi possível abrir o modal. Erro: ' + error.message,
+                confirmButtonColor: '#ef4444'
+            });
+        }
+    }
+
+    // Função para salvar nova estrutura - MELHORADA
+    function salvarNovaEstrutura() {
+        console.log('💾 Iniciando salvamento de estrutura...');
+        
+        const btn = document.getElementById('btnSalvarEstrutura');
+        const inputEstrutura = document.getElementById('nomeNovaEstrutura');
+        const nome = inputEstrutura ? inputEstrutura.value.trim() : '';
+        
+        // Validação
+        if (!nome) {
+            inputEstrutura.classList.add('is-invalid');
+            Swal.fire({
+                icon: 'error',
+                title: 'Erro!',
+                text: 'Por favor, preencha o nome da estrutura.',
+                confirmButtonColor: '#0066b3'
+            });
+            inputEstrutura.focus();
+            return;
+        }
+        
+        inputEstrutura.classList.remove('is-invalid');
+        
+        // Estado de loading
+        btn.disabled = true;
+        btn.classList.add('loading');
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Salvando...';
+        
+        const csrfToken = getCsrfToken();
+        console.log('🔑 Token CSRF:', csrfToken ? 'OK' : 'VAZIO');
+        
+        // Mostrar loading
+        Swal.fire({
+            title: 'Salvando...',
+            text: 'Adicionando nova estrutura',
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+        
+        // Requisição AJAX
+        $.ajax({
+            url: '/admin/adicionar-estrutura',
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json'
+            },
+            data: JSON.stringify({ nome: nome }),
+            timeout: 10000, // 10 segundos
+            success: function(data) {
+                console.log('✅ Estrutura adicionada:', data);
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Sucesso!',
+                    text: 'Estrutura adicionada com sucesso!',
+                    confirmButtonColor: '#0066b3',
+                    timer: 2000
+                }).then(() => {
+                    modalEstrutura.hide();
+                    window.location.reload();
+                });
+            },
+            error: function(xhr, status, error) {
+                console.error('❌ Erro ao adicionar estrutura:', error);
+                console.error('Status:', status);
+                console.error('Response:', xhr.responseText);
+                
+                let mensagem = 'Erro ao adicionar estrutura.';
+                try {
+                    const resposta = JSON.parse(xhr.responseText);
+                    if (resposta && resposta.error) {
+                        mensagem = resposta.error;
+                    }
+                } catch (e) {
+                    mensagem = `Erro ${xhr.status}: ${error}`;
+                }
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro!',
+                    text: mensagem,
+                    confirmButtonColor: '#ef4444'
+                });
+            },
+            complete: function() {
+                // Resetar botão
+                btn.disabled = false;
+                btn.classList.remove('loading');
+                btn.innerHTML = '<i class="fas fa-save me-2"></i>Salvar';
+            }
+        });
+    }
+
+    // Função para salvar nova avaria - MELHORADA
+    function salvarNovaAvaria() {
+        console.log('💾 Iniciando salvamento de avaria...');
+        
+        const btn = document.getElementById('btnSalvarAvaria');
+        const inputAvaria = document.getElementById('nomeNovaAvaria');
+        const nome = inputAvaria ? inputAvaria.value.trim() : '';
+        
+        // Validação
+        if (!nome) {
+            inputAvaria.classList.add('is-invalid');
+            Swal.fire({
+                icon: 'error',
+                title: 'Erro!',
+                text: 'Por favor, preencha o nome da avaria.',
+                confirmButtonColor: '#ff6600'
+            });
+            inputAvaria.focus();
+            return;
+        }
+        
+        inputAvaria.classList.remove('is-invalid');
+        
+        // Estado de loading
+        btn.disabled = true;
+        btn.classList.add('loading');
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Salvando...';
+        
+        const csrfToken = getCsrfToken();
+        console.log('🔑 Token CSRF:', csrfToken ? 'OK' : 'VAZIO');
+        
+        // Mostrar loading
+        Swal.fire({
+            title: 'Salvando...',
+            text: 'Adicionando nova avaria',
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+        
+        // Requisição AJAX
+        $.ajax({
+            url: '/admin/adicionar-avaria',
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json'
+            },
+            data: JSON.stringify({ nome: nome }),
+            timeout: 10000, // 10 segundos
+            success: function(data) {
+                console.log('✅ Avaria adicionada:', data);
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Sucesso!',
+                    text: 'Avaria adicionada com sucesso!',
+                    confirmButtonColor: '#ff6600',
+                    timer: 2000
+                }).then(() => {
+                    modalAvaria.hide();
+                    window.location.reload();
+                });
+            },
+            error: function(xhr, status, error) {
+                console.error('❌ Erro ao adicionar avaria:', error);
+                console.error('Status:', status);
+                console.error('Response:', xhr.responseText);
+                
+                let mensagem = 'Erro ao adicionar avaria.';
+                try {
+                    const resposta = JSON.parse(xhr.responseText);
+                    if (resposta && resposta.error) {
+                        mensagem = resposta.error;
+                    }
+                } catch (e) {
+                    mensagem = `Erro ${xhr.status}: ${error}`;
+                }
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro!',
+                    text: mensagem,
+                    confirmButtonColor: '#ef4444'
+                });
+            },
+            complete: function() {
+                // Resetar botão
+                btn.disabled = false;
+                btn.classList.remove('loading');
+                btn.innerHTML = '<i class="fas fa-save me-2"></i>Salvar';
+            }
+        });
+    }
+
+    // Funções placeholder (mantidas como estavam)
+    function editarEstrutura(codigo, nome) {
+        Swal.fire({
+            title: 'Funcionalidade em desenvolvimento',
+            text: 'A edição de estruturas será implementada em breve.',
+            icon: 'info',
+            confirmButtonColor: '#0066b3'
+        });
+    }
+
+    function excluirEstrutura(codigo) {
+        Swal.fire({
+            title: 'Funcionalidade em desenvolvimento',
+            text: 'A exclusão de estruturas será implementada em breve.',
+            icon: 'info',
+            confirmButtonColor: '#0066b3'
+        });
+    }
+
+    function editarAvaria(codigo, nome) {
+        Swal.fire({
+            title: 'Funcionalidade em desenvolvimento',
+            text: 'A edição de avarias será implementada em breve.',
+            icon: 'info',
+            confirmButtonColor: '#ff6600'
+        });
+    }
+
+    function excluirAvaria(codigo) {
+        Swal.fire({
+            title: 'Funcionalidade em desenvolvimento',
+            text: 'A exclusão de avarias será implementada em breve.',
+            icon: 'info',
+            confirmButtonColor: '#ff6600'
+        });
+    }
+
+    function exportarDados() {
+        Swal.fire({
+            title: 'Funcionalidade em desenvolvimento',
+            text: 'A exportação de dados será implementada em breve.',
+            icon: 'info',
+            confirmButtonColor: '#0066b3'
+        });
+    }
+</script>
+{% endblock %}

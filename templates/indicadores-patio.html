@@ -1,0 +1,286 @@
+{% extends 'base.html' %}
+
+{% block title %}Indicadores de Pátio | Suzano{% endblock %}
+
+{% block content %}
+<div class="container-fluid" id="indicadores-patio-container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="mb-0">
+                    <i class="fas fa-chart-bar text-primary me-2"></i>
+                    Indicadores de Pátio
+                </h2>
+                <button id="btn-atualizar-indicadores" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-sync-alt me-1"></i>
+                    Atualizar
+                </button>
+            </div>
+            <p class="text-muted">Visualize o status atual do pátio e consulte containers entre pilhas</p>
+        </div>
+    </div>
+
+    <!-- Cards de Indicadores -->
+    <div class="row mb-4">
+        <!-- Ocupação Total -->
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-muted mb-1">Ocupação do Pátio</h6>
+                            <h3 class="mb-0">
+                                <span id="ocupacao-total-patio" class="badge bg-success">0%</span>
+                            </h3>
+                        </div>
+                        <div class="icon-shape bg-light text-primary rounded-3 p-3">
+                            <i class="fas fa-warehouse"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <div class="progress" style="height: 6px;">
+                            <div id="ocupacao-progress-bar" class="progress-bar bg-success" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <div class="d-flex justify-content-between mt-2">
+                            <small class="text-muted">Posições ocupadas</small>
+                            <small id="posicoes-ocupadas" class="text-muted">0/0</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Posições 20 TEU -->
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-muted mb-1">Posições 20 TEU</h6>
+                            <h3 class="mb-0">
+                                <span id="posicoes-20-disponiveis" class="text-success">0</span>
+                            </h3>
+                        </div>
+                        <div class="icon-shape bg-light text-success rounded-3 p-3">
+                            <i class="fas fa-box"></i>
+                        </div>
+                    </div>
+                    <p class="text-muted mt-3 mb-0">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Posições ímpares disponíveis
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Posições 40 TEU -->
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="text-muted mb-1">Posições 40 TEU</h6>
+                            <h3 class="mb-0">
+                                <span id="posicoes-40-disponiveis" class="text-primary">0</span>
+                            </h3>
+                        </div>
+                        <div class="icon-shape bg-light text-primary rounded-3 p-3">
+                            <i class="fas fa-truck-container"></i>
+                        </div>
+                    </div>
+                    <p class="text-muted mt-3 mb-0">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Posições pares disponíveis
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mapa de Calor -->
+        <div class="col-md-6 col-lg-3 mb-3">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <h6 class="text-muted mb-3">Visualização do Pátio</h6>
+                    <a href="/patio/visualizacao" class="btn btn-primary">
+                        <i class="fas fa-map me-2"></i>
+                        Abrir Mapa de Calor
+                    </a>
+                    <p class="text-muted mt-3 mb-0">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Visualização 3D do pátio
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros e Consulta -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-search text-primary me-2"></i>
+                        Consulta de Containers no Pátio
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="form-filtros-patio">
+                        <div class="row g-3">
+                            <!-- Filtro por Baia -->
+                            <div class="col-md-2">
+                                <label for="filtro-baia" class="form-label">Baia</label>
+                                <select id="filtro-baia" class="form-select">
+                                    <option value="">Todas</option>
+                                    <option value="A">A</option>
+                                    <option value="B">B</option>
+                                    <option value="C">C</option>
+                                    <option value="D">D</option>
+                                    <option value="E">E</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Filtro por Posição -->
+                            <div class="col-md-2">
+                                <label for="filtro-posicao" class="form-label">Posição</label>
+                                <input type="text" id="filtro-posicao" class="form-control" placeholder="01, 02, etc">
+                            </div>
+                            
+                            <!-- Filtro por Altura -->
+                            <div class="col-md-2">
+                                <label for="filtro-altura" class="form-label">Altura</label>
+                                <select id="filtro-altura" class="form-select">
+                                    <option value="">Todas</option>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Filtro por Tamanho TEU -->
+                            <div class="col-md-2">
+                                <label for="filtro-tamanho-teu" class="form-label">Tamanho</label>
+                                <select id="filtro-tamanho-teu" class="form-select">
+                                    <option value="">Todos</option>
+                                    <option value="20">20 TEU</option>
+                                    <option value="40">40 TEU</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Filtro por Status -->
+                            <div class="col-md-2">
+                                <label for="filtro-status" class="form-label">Status</label>
+                                <select id="filtro-status" class="form-select">
+                                    <option value="">Todos</option>
+                                    <option value="CHEIO">CHEIO</option>
+                                    <option value="VAZIO">VAZIO</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Botões -->
+                            <div class="col-md-2 d-flex align-items-end">
+                                <div class="d-grid gap-2 w-100">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-search me-1"></i>
+                                        Consultar
+                                    </button>
+                                    <button type="button" id="btn-limpar-filtros" class="btn btn-outline-secondary">
+                                        <i class="fas fa-eraser me-1"></i>
+                                        Limpar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resultados da Consulta -->
+    <div id="resultados-consulta" class="mt-4">
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            Use os filtros acima para consultar containers no pátio.
+        </div>
+    </div>
+
+    <!-- Legenda -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle text-primary me-2"></i>
+                        Legenda
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Tamanho de Container</h6>
+                            <div class="d-flex flex-wrap gap-3">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-success me-2">20 TEU</span>
+                                    <span class="text-muted">Container de 20 pés (posições ímpares)</span>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-primary me-2">40 TEU</span>
+                                    <span class="text-muted">Container de 40 pés (posições pares)</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Status do Container</h6>
+                            <div class="d-flex flex-wrap gap-3">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-box text-danger me-2"></i>
+                                    <span class="text-muted">Container CHEIO</span>
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-box-open text-success me-2"></i>
+                                    <span class="text-muted">Container VAZIO</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Incluir script de indicadores de pátio -->
+<script src="{{ url_for('static', filename='js/patio-indicadores.js') }}"></script>
+
+<script>
+    // Configurar botão de atualização manual
+    document.addEventListener('DOMContentLoaded', function() {
+        const btnAtualizar = document.getElementById('btn-atualizar-indicadores');
+        if (btnAtualizar) {
+            btnAtualizar.addEventListener('click', function() {
+                // Adicionar classe de rotação ao ícone
+                const iconElement = btnAtualizar.querySelector('i');
+                iconElement.classList.add('fa-spin');
+                
+                // Desabilitar botão durante atualização
+                btnAtualizar.disabled = true;
+                
+                // Chamar função de atualização
+                carregarIndicadoresPatio()
+                    .finally(() => {
+                        // Remover classe de rotação e reabilitar botão
+                        setTimeout(() => {
+                            iconElement.classList.remove('fa-spin');
+                            btnAtualizar.disabled = false;
+                        }, 500);
+                    });
+            });
+        }
+    });
+</script>
+{% endblock %}

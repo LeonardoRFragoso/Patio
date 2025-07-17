@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Solicitar Registro - Sistema Base{% endblock %}
+
+{% block head %}
+<style>
+    /* Estilos otimizados para tablets */
+    .form-control, .form-select {
+        min-height: 60px;
+        padding: 18px;
+        font-size: 1.2rem;
+        margin-bottom: 20px;
+    }
+    
+    .form-label {
+        font-size: 1.3rem;
+        font-weight: 500;
+        margin-bottom: 8px;
+    }
+    
+    .btn {
+        padding: 18px 40px;
+        font-size: 1.2rem;
+        min-height: 60px;
+    }
+    
+    .card-title {
+        font-size: 1.8rem;
+    }
+    
+    .login-container h2 {
+        font-size: 2.8rem;
+    }
+    
+    /* Touch-friendly */
+    .form-control, .form-select, .btn {
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: rgba(0,0,0,0);
+        transition: all 0.3s ease;
+    }
+    
+    /* Espaçamento */
+    .mb-3 {
+        margin-bottom: 25px !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <h2 class="text-center mb-4">Solicitar Cadastro</h2>
+    
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Preencha o formulário para solicitar acesso</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('auth.registro') }}">
+                <div class="mb-3">
+                    <label for="nome" class="form-label">Nome Completo:</label>
+                    <input type="text" class="form-control" id="nome" name="nome" required>
+                </div>
+                <div class="mb-3">
+                    <label for="username" class="form-label">Nome de Usuário Desejado:</label>
+                    <input type="text" class="form-control" id="username" name="username" required>
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email:</label>
+                    <input type="email" class="form-control" id="email" name="email" required>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Senha:</label>
+                    <input type="password" class="form-control" id="password" name="password" required>
+                    <!-- O indicador de força da senha será inserido aqui via JS -->
+                </div>
+                <div class="mb-3">
+                    <label for="confirmar_senha" class="form-label">Confirmar senha:</label>
+                    <input type="password" class="form-control" id="confirmar_senha" name="confirmar_senha" required>
+                </div>
+                <!-- Requisitos de senha forte -->
+                <div class="mb-3">
+                    {% include "shared/password_requirements.html" %}
+                </div>
+                <div class="mb-3">
+                    <label for="setor" class="form-label">Setor/Departamento:</label>
+                    <input type="text" class="form-control" id="setor" name="setor" required>
+                </div>
+                <div class="mb-3">
+                    <label for="unidade" class="form-label">Unidade:</label>
+                    <select class="form-select form-control" id="unidade" name="unidade" required style="min-height: 60px; padding: 18px; font-size: 1.2rem;">
+                        <option value="" selected disabled>Selecione sua unidade</option>
+                        {% for unidade in unidades %}
+                            <option value="{{ unidade }}">{{ unidade }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="justificativa" class="form-label">Justificativa para acesso:</label>
+                    <textarea class="form-control" id="justificativa" name="justificativa" rows="3" required></textarea>
+                </div>
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary">Enviar Solicitação</button>
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-secondary">Voltar para Login</a>
+                </div>
+            </form>
+        </div>
+        <div class="card-footer text-muted">
+            <small>A solicitação será analisada por um administrador. Você receberá uma confirmação por email quando sua conta for aprovada.</small>
+        </div>
+    </div>
+</div>
+{% endblock %}

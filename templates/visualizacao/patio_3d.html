@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Visualização 3D Premium - Pátio de Containers Suzano</title>
+
+    <!-- Meta tags para SEO e Performance -->
+    <meta
+      name="description"
+      content="Sistema de visualização 3D em tempo real do pátio de containers do Porto de Suzano"
+    />
+    <meta
+      name="keywords"
+      content="containers, 3D, visualização, porto, suzano, logística"
+    />
+    <meta name="author" content="Sistema Portuário Suzano" />
+
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      crossorigin="anonymous"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+      crossorigin="anonymous"
+    />
+
+    <!-- THREE.js -->
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- CSS Customizado - CAMINHO CORRETO PARA FLASK -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/patio_3d_styles.css') }}"
+    />
+  </head>
+  <body>
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Header Premium -->
+    <header class="main-header">
+      <div class="container-fluid">
+        <div class="row align-items-center">
+          <div class="col-lg-8">
+            <h1 class="header-title">
+              <i class="fas fa-cube me-3"></i>
+              Visualização 3D Premium
+            </h1>
+            <p class="header-subtitle">
+              <i class="fas fa-map-marker-alt me-2"></i>
+              Pátio de Containers - Sistema Integrado
+              <span
+                class="status-indicator loading ms-3"
+                id="system-status-indicator"
+              >
+                <span class="status-dot"></span>
+                Carregando...
+              </span>
+            </p>
+          </div>
+          <div class="col-lg-4 text-end">
+            <div class="d-flex gap-2 justify-content-end flex-wrap">
+              <button class="btn btn-outline-light" id="btn-refresh">
+                <i class="fas fa-sync-alt me-2"></i>Atualizar
+              </button>
+              <button class="btn btn-outline-light" id="btn-debug">
+                <i class="fas fa-bug me-2"></i>Debug
+              </button>
+              <button class="btn btn-outline-light" id="btn-fullscreen">
+                <i class="fas fa-expand me-2"></i>Tela Cheia
+              </button>
+              <button class="btn btn-outline-light" id="btn-help">
+                <i class="fas fa-question-circle me-2"></i>Ajuda
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="container-fluid px-4">
+      <div class="row">
+        <!-- Painel de Controles Premium -->
+        <div class="col-xl-3 col-lg-4 col-md-12">
+          <!-- Status do Sistema -->
+          <div class="control-panel fade-in">
+            <div class="control-section">
+              <h6>
+                <i class="fas fa-heartbeat"></i>
+                Status do Sistema
+              </h6>
+              <div class="system-status">
+                <div class="system-status-item">
+                  <span>API Backend:</span>
+                  <span id="api-status" class="status-badge loading"
+                    >⚡ Conectando</span
+                  >
+                </div>
+                <div class="system-status-item">
+                  <span>THREE.js:</span>
+                  <span id="threejs-status" class="status-badge loading"
+                    >⚡ Carregando</span
+                  >
+                </div>
+                <div class="system-status-item">
+                  <span>Dados Pátio:</span>
+                  <span id="data-status" class="status-badge loading"
+                    >⚡ Sincronizando</span
+                  >
+                </div>
+                <div class="system-status-item">
+                  <span>Visualização:</span>
+                  <span id="render-status" class="status-badge loading"
+                    >⚡ Renderizando</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ações Rápidas -->
+          <div class="control-panel">
+            <div class="control-section">
+              <h6>
+                <i class="fas fa-bolt"></i>
+                Ações Rápidas
+              </h6>
+              <div class="d-grid gap-3">
+                <button class="btn btn-action" id="btn-refresh-data">
+                  <i class="fas fa-database me-2"></i>
+                  Atualizar Dados
+                </button>
+                <button
+                  class="btn btn-infrastructure"
+                  id="btn-toggle-infraestrutura"
+                >
+                  <i class="fas fa-building me-2"></i>
+                  Infraestrutura
+                </button>
+                <button
+                  class="btn btn-infrastructure"
+                  id="btn-highlight-flutuantes"
+                >
+                  <i class="fas fa-exclamation-triangle me-2"></i>
+                  Destacar Flutuantes
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Controles de Vista Premium -->
+          <div class="control-panel">
+            <div class="control-section">
+              <h6>
+                <i class="fas fa-video"></i>
+                Controles de Vista
+              </h6>
+              <div class="d-grid gap-2">
+                <button class="btn btn-premium active" id="btn-vista-geral">
+                  <i class="fas fa-eye me-2"></i>Vista Geral
+                </button>
+                <button class="btn btn-premium" id="btn-vista-topo">
+                  <i class="fas fa-plane me-2"></i>Vista Aérea
+                </button>
+                <button class="btn btn-premium" id="btn-vista-lateral">
+                  <i class="fas fa-car me-2"></i>Vista Lateral
+                </button>
+                <button class="btn btn-premium" id="btn-vista-containers">
+                  <i class="fas fa-cubes me-2"></i>Foco Containers
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filtros Avançados -->
+          <div class="control-panel">
+            <div class="control-section">
+              <h6>
+                <i class="fas fa-sliders-h"></i>
+                Filtros Avançados
+              </h6>
+
+              <div class="mb-3">
+                <label class="form-label text-light">
+                  <i class="fas fa-filter me-2"></i>Row:
+                </label>
+                <select class="form-control-premium" id="filtro-row">
+                  <option value="">Todos os Rows</option>
+                  <option value="A">Row A</option>
+                  <option value="B">Row B</option>
+                  <option value="C">Row C</option>
+                  <option value="D">Row D</option>
+                  <option value="E">Row E</option>
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label text-light">
+                  <i class="fas fa-layer-group me-2"></i>Altura:
+                </label>
+                <select class="form-control-premium" id="filtro-altura">
+                  <option value="">Todas as Alturas</option>
+                  <option value="1">Nível 1</option>
+                  <option value="2">Nível 2</option>
+                  <option value="3">Nível 3</option>
+                  <option value="4">Nível 4</option>
+                  <option value="5">Nível 5</option>
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label text-light">
+                  <i class="fas fa-search me-2"></i>Buscar Container:
+                </label>
+                <input
+                  type="text"
+                  class="form-control-premium"
+                  placeholder="Digite o número do container..."
+                  id="busca-container-input"
+                />
+              </div>
+
+              <div class="d-grid gap-2">
+                <button class="btn btn-premium active" id="btn-toggle-labels">
+                  <i class="fas fa-tags me-2"></i>
+                  <span>Ocultar Labels</span>
+                </button>
+                <button
+                  class="btn btn-premium active"
+                  id="btn-toggle-posicoes-vazias"
+                >
+                  <i class="fas fa-eye me-2"></i>
+                  <span>Ocultar Posições Vazias</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Estatísticas Premium -->
+          <div class="control-panel">
+            <div class="control-section">
+              <h6>
+                <i class="fas fa-chart-bar"></i>
+                Estatísticas do Pátio
+              </h6>
+
+              <div class="row g-2">
+                <div class="col-6">
+                  <div class="stat-card">
+                    <div class="stat-number" id="total-containers">0</div>
+                    <div class="stat-label">Total</div>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="stat-card">
+                    <div
+                      class="stat-number success"
+                      id="containers-vistoriados"
+                    >
+                      0
+                    </div>
+                    <div class="stat-label">Vistoriados</div>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="stat-card">
+                    <div class="stat-number warning" id="containers-flutuantes">
+                      0
+                    </div>
+                    <div class="stat-label">Flutuantes</div>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="stat-card">
+                    <div class="stat-number" id="containers-40teu">0</div>
+                    <div class="stat-label">40 TEU</div>
+                  </div>
+                </div>
+              </div>
+
+              <hr
+                style="border-color: rgba(255, 255, 255, 0.2); margin: 1.5rem 0"
+              />
+
+              <div class="row text-center">
+                <div class="col-6">
+                  <h6 class="text-light mb-3">
+                    <i class="fas fa-layer-group me-1"></i>Por Row
+                  </h6>
+                  <small class="text-light d-block mb-2"
+                    >A: <span id="row-A" class="badge-premium">0</span></small
+                  >
+                  <small class="text-light d-block mb-2"
+                    >B: <span id="row-B" class="badge-premium">0</span></small
+                  >
+                  <small class="text-light d-block mb-2"
+                    >C: <span id="row-C" class="badge-premium">0</span></small
+                  >
+                  <small class="text-light d-block mb-2"
+                    >D: <span id="row-D" class="badge-premium">0</span></small
+                  >
+                  <small class="text-light d-block"
+                    >E: <span id="row-E" class="badge-premium">0</span></small
+                  >
+                </div>
+                <div class="col-6">
+                  <h6 class="text-light mb-3">
+                    <i class="fas fa-sort-amount-up me-1"></i>Por Altura
+                  </h6>
+                  <small class="text-light d-block mb-2"
+                    >Nv1:
+                    <span id="altura-1" class="badge-premium">0</span></small
+                  >
+                  <small class="text-light d-block mb-2"
+                    >Nv2:
+                    <span id="altura-2" class="badge-premium">0</span></small
+                  >
+                  <small class="text-light d-block mb-2"
+                    >Nv3:
+                    <span id="altura-3" class="badge-premium">0</span></small
+                  >
+                  <small class="text-light d-block mb-2"
+                    >Nv4:
+                    <span id="altura-4" class="badge-premium">0</span></small
+                  >
+                  <small class="text-light d-block"
+                    >Nv5:
+                    <span id="altura-5" class="badge-premium">0</span></small
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Legenda Premium -->
+          <div class="control-panel">
+            <div class="control-section">
+              <h6>
+                <i class="fas fa-palette"></i>
+                Armadores & Status
+              </h6>
+
+              <div class="legend-item" data-armador="EVERGREEN">
+                <div
+                  class="legend-color"
+                  style="background: linear-gradient(45deg, #4caf50, #45a049)"
+                ></div>
+                <span class="legend-text">EVERGREEN</span>
+              </div>
+              <div class="legend-item" data-armador="MAERSK">
+                <div
+                  class="legend-color"
+                  style="background: linear-gradient(45deg, #2196f3, #1976d2)"
+                ></div>
+                <span class="legend-text">MAERSK</span>
+              </div>
+              <div class="legend-item" data-armador="MSC">
+                <div
+                  class="legend-color"
+                  style="background: linear-gradient(45deg, #ff9800, #f57c00)"
+                ></div>
+                <span class="legend-text">MSC</span>
+              </div>
+              <div class="legend-item" data-armador="COSCO">
+                <div
+                  class="legend-color"
+                  style="background: linear-gradient(45deg, #f44336, #d32f2f)"
+                ></div>
+                <span class="legend-text">COSCO</span>
+              </div>
+              <div class="legend-item" data-armador="CMA CGM">
+                <div
+                  class="legend-color"
+                  style="background: linear-gradient(45deg, #9c27b0, #7b1fa2)"
+                ></div>
+                <span class="legend-text">CMA CGM</span>
+              </div>
+              <div class="legend-item" data-armador="HAPAG-LLOYD">
+                <div
+                  class="legend-color"
+                  style="background: linear-gradient(45deg, #ff5722, #e64a19)"
+                ></div>
+                <span class="legend-text">HAPAG-LLOYD</span>
+              </div>
+
+              <hr
+                style="border-color: rgba(255, 255, 255, 0.2); margin: 1.5rem 0"
+              />
+
+              <div class="legend-item">
+                <div
+                  class="legend-color"
+                  style="
+                    background: linear-gradient(45deg, #ff4444, #cc0000);
+                    animation: pulse 2s infinite;
+                  "
+                ></div>
+                <span class="legend-text">Containers Flutuantes</span>
+              </div>
+              <div class="legend-item">
+                <div
+                  class="legend-color"
+                  style="background: linear-gradient(45deg, #888888, #666666)"
+                ></div>
+                <span class="legend-text">Posições Vazias</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Área de Visualização 3D Premium -->
+        <div class="col-xl-9 col-lg-8 col-md-12">
+          <!-- Alerta de Containers Flutuantes -->
+          <div class="alert-flutuantes d-none" id="alerta-flutuantes">
+            <div class="d-flex align-items-center">
+              <i class="fas fa-exclamation-triangle fa-2x me-3"></i>
+              <div>
+                <h5 class="mb-1">
+                  ⚠️ Atenção: Containers Flutuantes Detectados!
+                </h5>
+                <p class="mb-0">
+                  Foram encontrados
+                  <span id="count-flutuantes">0</span> containers em posições
+                  instáveis.
+                  <strong>Verificação urgente necessária.</strong>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="glass-card">
+            <div class="glass-header p-4">
+              <div class="row align-items-center">
+                <div class="col-lg-8">
+                  <h4 class="mb-0 text-white">
+                    <i class="fas fa-cube me-3"></i>
+                    Visualização 3D Interativa - Dados Reais
+                  </h4>
+                  <p class="mb-0 text-light opacity-75 mt-2">
+                    <i class="fas fa-mouse me-2"></i>Use mouse para navegar
+                    <i class="fas fa-hand-pointer ms-3 me-2"></i>Clique nos
+                    containers para detalhes
+                    <i class="fas fa-database ms-3 me-2"></i>Conectado ao banco
+                    de dados
+                  </p>
+                </div>
+                <div class="col-lg-4 text-end">
+                  <div class="badge-premium">
+                    <i class="fas fa-clock me-1"></i>
+                    <span id="ultima-atualizacao">--:--:--</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="p-0">
+              <!-- Container da visualização 3D -->
+              <div id="three-container" class="w-100">
+                <!-- Overlay de carregamento premium -->
+                <div id="loading-overlay" class="loading-overlay">
+                  <div class="loading-spinner"></div>
+                  <h3 class="loading-text">Conectando ao Sistema 3D Premium</h3>
+                  <p class="loading-subtitle">
+                    Carregando dados reais do pátio de containers...
+                  </p>
+                  <div class="progress-container">
+                    <div
+                      class="progress-bar"
+                      id="progress-bar"
+                      style="width: 0%"
+                    ></div>
+                  </div>
+                  <p class="loading-message" id="loading-message">
+                    Inicializando sistema...
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Console de Debug Premium -->
+      <div class="row mt-4 d-none" id="debug-panel">
+        <div class="col-12">
+          <div class="glass-card">
+            <div class="glass-header p-3">
+              <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-white">
+                  <i class="fas fa-terminal me-2"></i>
+                  Console de Debug Avançado
+                </h5>
+                <button
+                  class="btn btn-outline-light btn-sm"
+                  onclick="document.getElementById('debug-panel').classList.add('d-none')"
+                >
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+            <div class="p-4">
+              <div id="console-output" class="debug-console mb-3"></div>
+              <div class="d-flex gap-2 flex-wrap">
+                <button
+                  class="btn btn-premium btn-sm"
+                  onclick="window.patio3dManager?.debugAPIs()"
+                >
+                  <i class="fas fa-server me-1"></i>Testar APIs
+                </button>
+                <button
+                  class="btn btn-premium btn-sm"
+                  onclick="window.patio3dManager?.debugCena()"
+                >
+                  <i class="fas fa-list me-1"></i>Listar Objetos
+                </button>
+                <button
+                  class="btn btn-premium btn-sm"
+                  onclick="window.patio3dManager?.resetarCamera()"
+                >
+                  <i class="fas fa-camera me-1"></i>Reset Câmera
+                </button>
+                <button
+                  class="btn btn-premium btn-sm"
+                  onclick="window.patio3dManager?.exportarImagem()"
+                >
+                  <i class="fas fa-download me-1"></i>Exportar PNG
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Sistema 3D Modular -->
+    <script type="module" src="{{ url_for('static', filename='js/patio3d/main.js') }}"></script>
+
+  </body>
+</html>

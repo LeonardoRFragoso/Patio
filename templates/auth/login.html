@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Sistema Base{% endblock %}
+
+{% block extra_css %}
+<style>
+    body {
+        background-image: url("{{ url_for('static', filename='assets/fundo.png') }}");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        min-height: 100vh;
+        margin: 0;
+        padding: 0;
+    }
+    
+    /* Otimização para tablets */
+    .form-control {
+        min-height: 60px;
+        padding: 18px;
+        font-size: 1.2rem;
+    }
+
+    .login-card {
+        background-color: white;
+        border-radius: 10px;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        overflow: hidden;
+        max-width: 480px; /* Ligeiramente mais largo para acomodar 3 abas */
+        width: 100%;
+    }
+
+    .login-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+    }
+
+    .logo-container {
+        text-align: center;
+        padding: 20px 0;
+    }
+    
+    .logo-container h5 {
+        font-size: 1.8rem;
+    }
+
+    .logo-img {
+        max-width: 150px;
+        height: auto;
+    }
+
+    .tab-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .nav-tabs .nav-link.active {
+        font-weight: 600;
+        border-bottom: 3px solid #0055a4;
+    }
+    
+    /* Ajustes para tablets */ 
+    .nav-link {
+        padding: 15px 10px;
+        font-size: 1.1rem;
+        touch-action: manipulation;
+    }
+    
+    .form-label {
+        font-size: 1.3rem;
+        margin-bottom: 10px;
+    }
+
+    .tab-content {
+        padding: 20px;
+    }
+
+    .btn-login {
+        background-color: #0055a4;
+        border-color: #0055a4;
+        padding: 18px 40px;
+        font-weight: 600;
+        min-height: 60px;
+        font-size: 1.2rem;
+    }
+
+    .forgot-password {
+        text-align: center;
+        margin-top: 15px;
+        font-size: 0.9rem;
+    }
+
+    .badge-tab {
+        font-size: 0.7rem;
+        padding: 3px 6px;
+        margin-left: 5px;
+        vertical-align: middle;
+    }
+</style>
+{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-card">
+        <div class="logo-container">
+            <img src="{{ url_for('static', filename='assets/itracker_logo.png') }}" alt="Logo" class="logo-img">
+            <h5 class="mt-2">Sistema de Pátio</h5>
+        </div>
+
+        <div class="tab-header">
+            <ul class="nav nav-tabs nav-fill" id="loginTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="user-tab" data-bs-toggle="tab" data-bs-target="#user-pane" type="button" role="tab" aria-controls="user-pane" aria-selected="true">
+                        <i class="fas fa-user me-1"></i> Operador
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="inspector-tab" data-bs-toggle="tab" data-bs-target="#inspector-pane" type="button" role="tab" aria-controls="inspector-pane" aria-selected="false">
+                        <i class="fas fa-clipboard-check me-1"></i> Vistoriador
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="admin-tab" data-bs-toggle="tab" data-bs-target="#admin-pane" type="button" role="tab" aria-controls="admin-pane" aria-selected="false">
+                        <i class="fas fa-user-shield me-1"></i> Admin
+                    </button>
+                </li>
+            </ul>
+        </div>
+
+        <div class="tab-content" id="loginTabsContent">
+            <!-- Formulário de Login para Usuário -->
+            <div class="tab-pane fade show active" id="user-pane" role="tabpanel" aria-labelledby="user-tab">
+                <div class="p-4">
+                    <h6 class="mb-3" style="font-size: 1.4rem;">Acesso para usuários operacionais</h6>
+                    <form method="POST" action="{{ url_for('auth.login') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="role" value="user">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Usuário:</label>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Senha:</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-login">Fazer Login</button>
+                        </div>
+                    </form>
+                    <div class="d-flex justify-content-between mt-3">
+                        <a href="{{ url_for('auth.esqueci_senha') }}" class="text-muted small">Esqueceu sua senha?</a>
+                        <a href="{{ url_for('auth.registro') }}" class="text-muted small">Solicitar novo usuário</a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Formulário de Login para Vistoriador -->
+            <div class="tab-pane fade" id="inspector-pane" role="tabpanel" aria-labelledby="inspector-tab">
+                <div class="p-4">
+                    <h6 class="mb-3" style="font-size: 1.4rem;">Acesso para vistoriadores</h6>
+                    <form method="POST" action="{{ url_for('auth.login') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="role" value="inspector">
+                        <div class="mb-3">
+                            <label for="username-inspector" class="form-label">Usuário:</label>
+                            <input type="text" class="form-control" id="username-inspector" name="username" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password-inspector" class="form-label">Senha:</label>
+                            <input type="password" class="form-control" id="password-inspector" name="password" required>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-warning btn-login">Login Vistoriador</button>
+                        </div>
+                    </form>
+                    <div class="d-flex justify-content-between mt-3">
+                        <a href="{{ url_for('auth.esqueci_senha') }}" class="text-muted small">Esqueceu sua senha?</a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Formulário de Login para Administrador -->
+            <div class="tab-pane fade" id="admin-pane" role="tabpanel" aria-labelledby="admin-tab">
+                <div class="p-4">
+                    <h6 class="mb-3" style="font-size: 1.4rem;">Acesso para administradores</h6>
+                    <form method="POST" action="{{ url_for('auth.login') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="role" value="admin">
+                        <div class="mb-3">
+                            <label for="username-admin" class="form-label">Admin:</label>
+                            <input type="text" class="form-control" id="username-admin" name="username" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password-admin" class="form-label">Senha:</label>
+                            <input type="password" class="form-control" id="password-admin" name="password" required>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-danger btn-login">Login Administrativo</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}{% endblock %}

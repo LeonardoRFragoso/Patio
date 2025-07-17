@@ -1,0 +1,18 @@
+/* Fix para garantir a visibilidade dos elementos do dashboard */
+.operacoes-container {
+  opacity: 1 !important; /* Forçar visibilidade */
+  transform: translateY(0) !important; /* Remover deslocamento */
+}
+
+.operacoes-grid {
+  display: grid !important; /* Garantir exibição dos cards */
+}
+
+#selecione-operacao {
+  display: block !important; /* Garantir exibição do indicador */
+}
+
+/* Solução temporária para garantir que conteúdos dinâmicos apareçam */
+.operacao-content {
+  opacity: 1;
+}

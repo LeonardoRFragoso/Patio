@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
+    <title>Sistema de Pátio</title>
+
+    <!-- Bootstrap 5 -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+
+    <!-- SweetAlert2 -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
+    />
+    <!-- Carregamento prioritário do SweetAlert2 para garantir disponibilidade -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Choices.js (combobox melhorado) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+
+    <!-- CSS Personalizado - Ordem otimizada para evitar conflitos -->
+    <link rel="stylesheet" href="/static/css/dashboard.css" />
+    <link rel="stylesheet" href="/static/css/combobox-vistoriados.css" />
+    <link rel="stylesheet" href="/static/css/fix-visibility.css" />
+    
+    <style>
+      /* Estilos adicionais para o histórico de container */
+      #container-info {
+        margin-top: 2rem;
+        animation: fadeIn 0.5s ease-in-out;
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      
+      /* Estilos para o dropdown de sugestões */
+      .sugestoes-dropdown {
+        position: absolute;
+        width: 100%;
+        max-height: 200px;
+        overflow-y: auto;
+        background-color: white;
+        border: 1px solid #ced4da;
+        border-radius: 0 0 4px 4px;
+        z-index: 1050;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        display: none;
+      }
+      .sugestao-item {
+        padding: 8px 12px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+      .sugestao-item:hover {
+        background-color: #f8f9fa;
+      }
+      /* Aumentar área de toque para combobox Choices */
+      .choices__inner.big-input {
+        font-size: 1.2rem;
+        padding: 0.8rem 1rem;
+      }
+      .choices__list--dropdown .choices__item {
+        padding: 1rem;
+        font-size: 1.1rem;
+      }
+
+      .form-group {
+        position: relative;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- CSRF Token para uso em JavaScript -->
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" id="csrf-token-input" />
+    
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-12">
+          <div class="card main-card">
+            <!-- Header otimizado -->
+            <div class="card-header">
+              <div class="d-flex justify-content-between align-items-center">
+                <h5 class="card-title">
+                  <img src="/static/assets/itracker_logo.png" alt="iTracker" class="header-logo me-2">
+                  Sistema de Pátio
+                </h5>
+                <div class="user-actions">
+                  <span class="user-info me-3">
+                    <i class="fas fa-user-circle me-1"></i>
+                    Operador
+                  </span>
+                  <button class="btn btn-logout" onclick="confirmarLogout()">
+                    <i class="fas fa-sign-out-alt me-1"></i>
+                    Sair
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-body">
+              <!-- Seção de Boas-vindas -->
+              <div class="welcome-section">
+                <h4 class="welcome-title">Bem-vindo(a), Operador!</h4>
+                <p class="access-level">
+                  Nível de acesso:
+                  <span class="badge bg-secondary">Operador</span>
+                </p>
+              </div>
+
+              <!-- Seção de Operações -->
+              <div class="operador-section">
+                <div class="operacoes-container">
+                  <!-- Header das Operações -->
+                  <div class="operacoes-header">
+                    <h3><img src="/static/assets/itracker_logo.png" alt="iTracker" class="itracker-logo"> Operações de Container</h3>
+                    <p class="operacoes-subtitle">
+                      Selecione uma operação abaixo para começar
+                    </p>
+                  </div>
+
+                  <!-- Grid dos Botões Principais -->
+                  <div class="operacoes-grid">
+                    <div
+                      class="operacao-btn"
+                      data-operacao="descarga"
+                      onclick="mostrarOperacao('descarga')"
+                    >
+                      <span class="operacao-icon">⬇️</span>
+                      <h4 class="operacao-title">Descarga</h4>
+                      <p class="operacao-desc">
+                        Descarregar container do transporte
+                      </p>
+                    </div>
+
+                    <div
+                      class="operacao-btn"
+                      data-operacao="carregamento"
+                      onclick="mostrarOperacao('carregamento')"
+                    >
+                      <span class="operacao-icon">⬆️</span>
+                      <h4 class="operacao-title">Carregamento</h4>
+                      <p class="operacao-desc">
+                        Carregar container no transporte
+                      </p>
+                    </div>
+
+                    <div
+                      class="operacao-btn"
+                      data-operacao="movimentacao"
+                      onclick="mostrarOperacao('movimentacao')"
+                    >
+                      <span class="operacao-icon">🔄</span>
+                      <h4 class="operacao-title">Movimentação</h4>
+                      <p class="operacao-desc">Movimentar container no pátio</p>
+                    </div>                  
+                    <div
+                      class="operacao-btn"
+                      data-operacao="consultar"
+                      onclick="mostrarOperacao('consultar')"
+                    >
+                      <span class="operacao-icon">🔍</span>
+                      <h4 class="operacao-title">Consultar Status</h4>
+                      <p class="operacao-desc">Consultar status do container</p>
+                    </div>
+
+                    <div
+                      class="operacao-btn"
+                      onclick="window.location.href='/visualizacao_patio'"
+                    >
+                      <span class="operacao-icon">🏗️</span>
+                      <h4 class="operacao-title">Visualização 3D</h4>
+                      <p class="operacao-desc">Visualizar pátio em 3D</p>
+                    </div>
+                  </div>
+
+                  <!-- Indicador de "Selecione uma operação" -->
+                  <div id="selecione-operacao" class="text-center">
+                    <i class="fas fa-hand-pointer"></i>
+                    <p>Selecione uma operação acima para começar</p>
+                  </div>
+                </div>
+
+                <!-- CONSULTA DE CONTAINER DUPLICATE REMOVED -->                
+                <div id="operacao-consultar" class="operacao-content">
+                  <div class="operacao-breadcrumb">
+                    <nav>
+                      <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                          <a href="#" onclick="voltarInicio()">Início</a>
+                        </li>
+                        <li class="breadcrumb-item active">Consulta de Container</li>
+                      </ol>
+                    </nav>
+                  </div>
+
+                  <button class="btn-voltar" onclick="voltarInicio()">
+                    <i class="fas fa-arrow-left"></i> Voltar
+                  </button>
+
+                  <div class="text-center mb-4">
+                    <h4>
+                      <i class="fas fa-search text-primary"></i> Consulta de Container
+                    </h4>
+                    <p class="text-muted">
+                      Digite o número do container para consultar seu status e histórico
+                    </p>
+                  </div>
+                  
+                  <div class="card mb-4">
+                    <div class="card-header bg-light">
+                      <h5 class="mb-0"><i class="fas fa-search me-2"></i>Buscar Container</h5>
+                    </div>
+                    <div class="card-body">
+                      <form id="formConsulta" class="mb-3">
+                        <div class="form-group mb-3 position-relative">
+                          <label for="container_consulta" class="form-label">Número do Container:</label>
+                          <div class="combobox-wrapper position-relative">
+                            <div class="input-group">
+                              <input
+                                type="text"
+                                class="form-control combobox-input"
+                                id="container_consulta"
+                                name="container_consulta"
+                                placeholder="Digite ou selecione o número do container"
+                                autocomplete="off"
+                                required
+                              />
+                              <button type="button" class="btn btn-outline-secondary btn-refresh" onclick="atualizarContainers('consulta')" title="Atualizar lista">
+                                <i class="fas fa-sync-alt"></i>
+                              </button>
+                              <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search me-1"></i>Buscar
+                              </button>
+                            </div>
+                            <!-- Dropdown de sugestões será inserido aqui dinamicamente -->
+                          </div>
+                          <div class="form-text">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Digite parte do número do container para ver sugestões
+                          </div>
+                        </div>
+                      </form>
+                      
+                      <div id="resultado-consulta" class="mt-4">
+                        <div id="info-container"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- DESCARGA - Estrutura otimizada -->
+                <div id="operacao-descarga" class="operacao-content">
+                  <div class="operacao-breadcrumb">
+                    <nav>
+                      <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                          <a href="#" onclick="voltarInicio()">Início</a>
+                        </li>
+                        <li class="breadcrumb-item active">Descarga de Container</li>
+                      </ol>
+                    </nav>
+                  </div>
+
+                  <button class="btn-voltar" onclick="voltarInicio()">
+                    <i class="fas fa-arrow-left"></i> Voltar
+                  </button>
+
+                  <div class="text-center mb-4">
+                    <h4>
+                      <i class="fas fa-truck-loading text-primary"></i> Descarga de Container
+                    </h4>
+                    <p class="text-muted">
+                      Selecione um container vistoriado para descarga
+                    </p>
+                  </div>
+
+                  <!-- Container principal para formulário dinâmico -->
+                  <div id="descarga-formulario-container" class="formulario-dinamico">
+                    <!-- Conteúdo será carregado dinamicamente pelo JavaScript -->
+                    <div class="text-center p-4">
+                      <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Carregando...</span>
+                      </div>
+                      <p class="mt-2">Carregando containers vistoriados...</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- CORREÇÃO DE DESCARGA REMOVIDA PARA PERFIL ADMIN -->
+                <div id="operacao-correcao-descarga" class="operacao-content d-none">
+                  <div class="operacao-breadcrumb">
+                    <nav>
+                      <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="#" onclick="voltarInicio()">Início</a></li>
+                        <li class="breadcrumb-item active">Correção de Descarga</li>
+                      </ol>
+                    </nav>
+                  </div>
+
+                  <button class="btn-voltar" onclick="voltarInicio()">
+                    <i class="fas fa-arrow-left"></i> Voltar
+                  </button>
+
+                  <div class="text-center mb-4">
+                    <h4><i class="fas fa-tools text-danger"></i> Correção de Descarga</h4>
+                    <p class="text-muted">Selecione uma descarga para corrigir a posição</p>
+                  </div>
+
+                  <div id="correcao-descarga-container" class="formulario-dinamico">
+                    <div class="text-center p-4">
+                      <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Carregando...</span>
+                      </div>
+                      <p class="mt-2">Carregando descargas corrigíveis...</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- CARREGAMENTO -->
+                <div id="operacao-carregamento" class="operacao-content">
+                  <div class="operacao-breadcrumb">
+                    <nav>
+                      <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                          <a href="#" onclick="voltarInicio()">Início</a>
+                        </li>
+                        <li class="breadcrumb-item active">Carregamento</li>
+                      </ol>
+                    </nav>
+                  </div>
+
+                  <button class="btn-voltar" onclick="voltarInicio()">
+                    <i class="fas fa-arrow-left"></i> Voltar
+                  </button>
+
+                  <div class="text-center mb-4">
+                    <h4>
+                      <i class="fas fa-upload text-warning"></i> Carregamento de Container
+                    </h4>
+                    <p class="text-muted">
+                      Escolha o modo de transporte para continuar
+                    </p>
+                  </div>
+
+                  <div class="sub-opcoes">
+                    <div
+                      class="sub-opcao-btn"
+                      onclick="mostrarSubOpcao('carregamento', 'rodoviaria')"
+                    >
+                      <span class="sub-opcao-icon">🚛</span>
+                      <h5 class="sub-opcao-title">Rodoviária</h5>
+                      <p class="sub-opcao-desc">Carregamento em caminhão</p>
+                    </div>
+
+                    <div
+                      class="sub-opcao-btn"
+                      onclick="mostrarSubOpcao('carregamento', 'ferroviaria')"
+                    >
+                      <span class="sub-opcao-icon">🚂</span>
+                      <h5 class="sub-opcao-title">Ferroviária</h5>
+                      <p class="sub-opcao-desc">Carregamento em trem</p>
+                    </div>
+                  </div>
+
+                  <!-- Formulário Carregamento Rodoviário -->
+                  <div id="form-carregamento-rodoviario" class="operacao-form">
+                    <h5>
+                      <i class="fas fa-truck text-primary"></i> Carregamento Rodoviário
+                    </h5>
+                    <form id="formCarregamentoRodoviario">
+                      <div class="form-group">
+                        <label class="form-label" for="container_carregamento_rod">Número do Container:</label>
+                        <div class="combobox-wrapper">
+                          <input
+                            type="text"
+                            class="form-control"
+                            id="container_carregamento_rod"
+                            name="container_id"
+                            required
+                            placeholder="Digite ou selecione um container"
+                          />
+                          <button
+                            type="button"
+                            class="btn-refresh"
+                            onclick="atualizarContainers('carregamento')"
+                            title="Atualizar lista de containers"
+                          >
+                            <i class="fas fa-sync-alt"></i>
+                          </button>
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label" for="placa_carregamento_rod">Placa do Caminhão:</label>
+                        <div class="combobox-wrapper">
+                          <input
+                            type="text"
+                            class="form-control"
+                            id="placa_carregamento_rod"
+                            name="placa"
+                            required
+                            placeholder="Digite ou selecione uma placa"
+                          />
+                          <button
+                            type="button"
+                            class="btn-refresh"
+                            onclick="atualizarPlacas()"
+                            title="Atualizar lista de placas"
+                          >
+                            <i class="fas fa-sync-alt"></i>
+                          </button>
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label" for="observacoes_carregamento_rod">Observações:</label>
+                        <textarea
+                          class="form-control"
+                          id="observacoes_carregamento_rod"
+                          name="observacoes"
+                          rows="3"
+                          placeholder="Observações opcionais..."
+                        ></textarea>
+                      </div>
+                      <div class="action-buttons">
+                        <button type="submit" class="btn-action btn-primary-action">
+                          <i class="fas fa-save"></i> Registrar Carregamento
+                        </button>
+                        <button
+                          type="button"
+                          class="btn-action btn-secondary-action"
+                          onclick="voltarInicio()"
+                        >
+                          <i class="fas fa-times"></i> Cancelar
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+
+                  <!-- Formulário Carregamento Ferroviário -->
+                  <div id="form-carregamento-ferroviario" class="operacao-form">
+                    <h5>
+                      <i class="fas fa-train text-primary"></i> Carregamento Ferroviário
+                    </h5>
+                    <form id="formCarregamentoFerroviario">
+                      <div class="form-group">
+                        <label class="form-label" for="container_carregamento_fer">Número do Container:</label>
+                        <div class="combobox-wrapper">
+                          <input
+                            type="text"
+                            class="form-control"
+                            id="container_carregamento_fer"
+                            name="container_id"
+                            required
+                            placeholder="Digite ou selecione um container"
+                          />
+                          <button
+                            type="button"
+                            class="btn-refresh"
+                            onclick="atualizarContainers('carregamento')"
+                            title="Atualizar lista de containers"
+                          >
+                            <i class="fas fa-sync-alt"></i>
+                          </button>
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label" for="vagao_carregamento_fer">Número do Vagão:</label>
+                        <div class="combobox-wrapper">
+                          <input
+                            type="text"
+                            class="form-control"
+                            id="vagao_carregamento_fer"
+                            name="vagao"
+                            required
+                            placeholder="Digite o número do vagão"
+                          />
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label" for="observacoes_carregamento_fer">Observações:</label>
+                        <textarea
+                          class="form-control"
+                          id="observacoes_carregamento_fer"
+                          name="observacoes"
+                          rows="3"
+                          placeholder="Observações opcionais..."
+                        ></textarea>
+                      </div>
+                      <div class="action-buttons">
+                        <button type="submit" class="btn-action btn-primary-action">
+                          <i class="fas fa-save"></i> Registrar Carregamento
+                        </button>
+                        <button
+                          type="button"
+                          class="btn-action btn-secondary-action"
+                          onclick="voltarInicio()"
+                        >
+                          <i class="fas fa-times"></i> Cancelar
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+
+                <!-- MOVIMENTAÇÃO -->
+                <div id="operacao-movimentacao" class="operacao-content">
+                  <div class="operacao-breadcrumb">
+                    <nav>
+                      <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                          <a href="#" onclick="voltarInicio()">Início</a>
+                        </li>
+                        <li class="breadcrumb-item active">Movimentação</li>
+                      </ol>
+                    </nav>
+                  </div>
+
+                  <button class="btn-voltar" onclick="voltarInicio()">
+                    <i class="fas fa-arrow-left"></i> Voltar
+                  </button>
+
+                  <div class="text-center mb-4">
+                    <h4>
+                      <i class="fas fa-exchange-alt text-info"></i> Movimentação de Container
+                    </h4>
+                    <p class="text-muted">
+                      Movimentar container dentro do pátio
+                    </p>
+                  </div>
+
+                  <!-- ✅ ALERTA DE FORMATO A01-1 -->
+                  <div class="alert alert-info mb-4" role="alert">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Formato de Posições:</strong> 
+                    Use sempre o formato <code>A01-1</code> (Baia + Número + Altura). 
+                    Exemplo: <code>A01-1</code>, <code>B15-3</code>, <code>E20-5</code>
+                  </div>
+
+                  <!-- Formulário Movimentação -->
+                  <div id="form-movimentacao" class="operacao-form">
+                    <h5>
+                      <i class="fas fa-arrows-alt text-primary"></i> Movimentação Interna
+                    </h5>
+                    <form id="formMovimentacao">
+                      <div class="form-group">
+                        <label class="form-label" for="container_movimentacao">Número do Container:</label>
+                        <div class="combobox-wrapper">
+                          <input
+                            type="text"
+                            class="form-control"
+                            id="container_movimentacao"
+                            name="container_id"
+                            required
+                            placeholder="Digite ou selecione um container"
+                          />
+                          <button
+                            type="button"
+                            class="btn-refresh"
+                            onclick="atualizarContainers('geral')"
+                            title="Atualizar lista de containers"
+                          >
+                            <i class="fas fa-sync-alt"></i>
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <div class="form-group">
+                        <label class="form-label" for="posicao_original">Posição Atual:</label>
+                        <div class="combobox-wrapper">
+                          <input
+                            type="text"
+                            class="form-control"
+                            id="posicao_original"
+                            name="posicao_original"
+                            required
+                            placeholder="Posição será carregada automaticamente"
+                            readonly
+                          />
+                          <div
+                            class="status-indicator"
+                            id="posicao_status"
+                            style="display: none"
+                          ></div>
+                        </div>
+                        <small class="form-text text-muted">
+                          A posição atual será preenchida automaticamente ao selecionar o container
+                        </small>
+                      </div>
+                      
+                      <div class="form-group">
+                        <label class="form-label" for="posicao_nova">Nova Posição:</label>
+                        <div class="combobox-wrapper">
+                          <select
+                            class="form-select formato-posicao"
+                            id="posicao_nova"
+                            name="posicao"
+                            required
+                            disabled
+                          >
+                            <option value="">Selecione a posição</option>
+                          </select>
+                          <button
+                            type="button"
+                            class="btn-refresh"
+                            onclick="carregarPosicoesMovimentacao()"
+                            title="Atualizar posições"
+                          >
+                            <i class="fas fa-sync-alt"></i>
+                          </button>
+                        </div>
+                        <small class="form-text text-muted">
+                          <i class="fas fa-lightbulb me-1"></i>
+                          Formato: <strong>Baia</strong> (A-E) + <strong>Posição</strong> (01-20) + <strong>-</strong> + <strong>Altura</strong> (1-5)
+                        </small>
+                      </div>
+                      
+                      <div class="form-group">
+                        <label class="form-label" for="observacoes_movimentacao">Observações:</label>
+                        <textarea
+                          class="form-control"
+                          id="observacoes_movimentacao"
+                          name="observacoes"
+                          rows="3"
+                          placeholder="Observações opcionais..."
+                        ></textarea>
+                      </div>
+                      
+                      <div class="action-buttons">
+                        <button type="submit" class="btn-action btn-primary-action">
+                          <i class="fas fa-save"></i> Registrar Movimentação
+                        </button>
+                        <button
+                          type="button"
+                          class="btn-action btn-secondary-action"
+                          onclick="voltarInicio()"
+                        >
+                          <i class="fas fa-times"></i> Cancelar
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+
+                <!-- CONSULTAR STATUS -->
+                <div id="operacao-consultar" class="operacao-content">
+                  <div class="operacao-breadcrumb">
+                    <nav>
+                      <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                          <a href="#" onclick="voltarInicio()">Início</a>
+                        </li>
+                        <li class="breadcrumb-item active">Consultar Status</li>
+                      </ol>
+                    </nav>
+                  </div>
+
+                  <button class="btn-voltar" onclick="voltarInicio()">
+                    <i class="fas fa-arrow-left"></i> Voltar
+                  </button>
+
+                  <div class="text-center mb-4">
+                    <h4>
+                      <i class="fas fa-search text-primary"></i> Consultar Status do Container
+                    </h4>
+                    <p class="text-muted">
+                      Digite o número do container para consultar
+                    </p>
+                  </div>
+
+                  <!-- Formulário Consulta -->
+                  <div id="form-consulta" class="operacao-form">
+                    <h5>
+                      <i class="fas fa-info-circle text-primary"></i> Buscar Container
+                    </h5>
+                    <form id="formConsulta">
+                      <div class="form-group">
+                        <label class="form-label" for="container_consulta">Número do Container:</label>
+                        <div class="combobox-wrapper">
+                          <input
+                            type="text"
+                            class="form-control"
+                            id="container_consulta"
+                            name="numero_container"
+                            required
+                            placeholder="Digite ou selecione um container"
+                          />
+                          <button
+                            type="button"
+                            class="btn-refresh"
+                            onclick="atualizarContainers('consulta')"
+                            title="Atualizar lista de containers"
+                          >
+                            <i class="fas fa-sync-alt"></i>
+                          </button>
+                        </div>
+                      </div>
+                      <div class="action-buttons">
+                        <button type="submit" id="btn-buscar-container" class="btn-action btn-primary-action">
+                          <i class="fas fa-search"></i> Buscar Container
+                        </button>
+                      </div>
+                    </form>
+
+                    <!-- Resultado da Consulta -->
+                    <div
+                      id="resultado-consulta"
+                      class="status-container"
+                      style="display: none"
+                    >
+                      <h6>
+                        <i class="fas fa-info-circle"></i> Informações do Container
+                      </h6>
+                      <div id="info-container"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts otimizados - ordem correta para evitar conflitos -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Scripts personalizados - ordem otimizada -->
+    <script src="/static/js/container-query.js"></script>
+
+    <script src="/static/js/container-history.js"></script>
+    <script src="/static/js/search-container.js"></script>
+    <!-- Scripts restaurados -->
+    <script src="/static/js/debug_movimentacao.js"></script>
+    <script src="/static/js/dropdown-fix.js"></script>
+    <script src="/static/js/form-reset.js"></script>
+    <!-- Script de consulta de status -->
+    <script src="/static/js/modules/consulta.js"></script>
+    
+    <script>
+      // ✅ SCRIPT ATUALIZADO PARA VALIDAÇÃO DO FORMATO A01-1
+      document.addEventListener('DOMContentLoaded', function() {
+        console.log('🔧 Dashboard carregado - versão A01-1');
+        
+        // Verificar se todas as funções necessárias estão disponíveis
+        if (typeof mostrarOperacao === 'function') {
+          console.log('✅ Funções principais carregadas');
+        } else {
+          console.error('❌ Erro: Funções principais não carregadas');
+        }
+
+        // ✅ VALIDAÇÃO EM TEMPO REAL PARA FORMATO A01-1
+        function validarFormatoPosicaoA01_1(valor) {
+          // Padrão: A01-1 (Baia A-E, Posição 01-20, Altura 1-5)
+          const padrao = /^[A-E](0[1-9]|1[0-9]|20)-[1-5]$/;
+          return padrao.test(valor);
+        }
+
+        // Aplicar validação no campo de nova posição
+        const campoNovaPosicao = document.getElementById('posicao_nova');
+        if (campoNovaPosicao) {
+          campoNovaPosicao.addEventListener('input', function() {
+            const valor = this.value.trim().toUpperCase();
+            this.value = valor; // Converter para maiúsculas automaticamente
+            
+            if (valor.length > 0) {
+              if (validarFormatoPosicaoA01_1(valor)) {
+                // Formato válido
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+                
+                // Remover mensagem de erro se existir
+                const feedbackElement = this.parentNode.querySelector('.invalid-feedback');
+                if (feedbackElement) {
+                  feedbackElement.remove();
+                }
+              } else {
+                // Formato inválido
+                this.classList.remove('is-valid');
+                this.classList.add('is-invalid');
+                
+                // Adicionar ou atualizar mensagem de erro
+                let feedbackElement = this.parentNode.querySelector('.invalid-feedback');
+                if (!feedbackElement) {
+                  feedbackElement = document.createElement('div');
+                  feedbackElement.className = 'invalid-feedback';
+                  this.parentNode.appendChild(feedbackElement);
+                }
+                feedbackElement.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i>Formato inválido! Use: A01-1 (ex: A01-1, B15-3, E20-5)';
+              }
+            } else {
+              // Campo vazio
+              this.classList.remove('is-valid', 'is-invalid');
+              const feedbackElement = this.parentNode.querySelector('.invalid-feedback');
+              if (feedbackElement) {
+                feedbackElement.remove();
+              }
+            }
+          });
+
+          // Validação ao sair do campo
+          campoNovaPosicao.addEventListener('blur', function() {
+            const valor = this.value.trim();
+            if (valor.length > 0 && !validarFormatoPosicaoA01_1(valor)) {
+              Swal.fire({
+                icon: 'warning',
+                title: 'Formato de Posição Inválido',
+                html: `
+                  <p>Use o formato <strong>A01-1</strong>:</p>
+                  <ul style="text-align: left; display: inline-block;">
+                    <li><strong>Baia:</strong> A, B, C, D ou E</li>
+                    <li><strong>Posição:</strong> 01 a 20</li>
+                    <li><strong>Altura:</strong> 1 a 5</li>
+                  </ul>
+                  <p><strong>Exemplos válidos:</strong> A01-1, B15-3, E20-5</p>
+                `,
+                confirmButtonText: 'Entendi',
+                confirmButtonColor: '#3085d6'
+              });
+              this.focus();
+            }
+          });
+        }
+
+        // ✅ VALIDAÇÃO ADICIONAL PARA CAMPOS DE POSIÇÃO EM DESCARGA
+        function aplicarValidacaoDescarga() {
+          const camposPosicaoDescarga = document.querySelectorAll('input[name="posicao"]');
+          camposPosicaoDescarga.forEach(campo => {
+            if (campo.id !== 'posicao_nova') { // Evitar duplicação
+              campo.addEventListener('input', function() {
+                const valor = this.value.trim().toUpperCase();
+                this.value = valor;
+                
+                if (valor.length > 0 && !validarFormatoPosicaoA01_1(valor)) {
+                  this.classList.add('is-invalid');
+                  this.classList.remove('is-valid');
+                } else if (valor.length > 0) {
+                  this.classList.add('is-valid');
+                  this.classList.remove('is-invalid');
+                } else {
+                  this.classList.remove('is-valid', 'is-invalid');
+                }
+              });
+            }
+          });
+        }
+
+        // Aplicar validação quando o formulário de descarga for carregado
+        const observer = new MutationObserver(function(mutations) {
+          mutations.forEach(function(mutation) {
+            if (mutation.type === 'childList') {
+              aplicarValidacaoDescarga();
+            }
+          });
+        });
+
+        // Observar mudanças no container de descarga
+        const descargaContainer = document.getElementById('descarga-formulario-container');
+        if (descargaContainer) {
+          observer.observe(descargaContainer, { childList: true, subtree: true });
+        }
+
+        // ✅ HELPER PARA MOSTRAR EXEMPLOS DE POSIÇÕES VÁLIDAS
+        function mostrarExemplosPosicoes() {
+          const exemplos = [
+            'A01-1', 'A02-1', 'A03-1', 'A04-1', 'A05-1',
+            'B01-1', 'B10-2', 'B15-3', 'B20-4',
+            'C05-1', 'C12-2', 'C18-3',
+            'D03-1', 'D14-2', 'D19-5',
+            'E01-1', 'E08-2', 'E20-5'
+          ];
+          
+          return exemplos;
+        }
+
+        // ✅ ADICIONAR TOOLTIP COM EXEMPLOS NOS CAMPOS DE POSIÇÃO
+        function adicionarTooltipExemplos() {
+          const campos = document.querySelectorAll('.formato-posicao, input[name="posicao"]');
+          campos.forEach(campo => {
+            if (!campo.hasAttribute('data-bs-toggle')) {
+              campo.setAttribute('data-bs-toggle', 'tooltip');
+              campo.setAttribute('data-bs-placement', 'top');
+              campo.setAttribute('data-bs-title', 'Exemplos: A01-1, B15-3, E20-5');
+              
+              // Inicializar tooltip do Bootstrap
+              new bootstrap.Tooltip(campo);
+            }
+          });
+        }
+
+        // Aplicar tooltips após carregamento
+        setTimeout(adicionarTooltipExemplos, 1000);
+
+        // ✅ FUNÇÃO PARA NORMALIZAR ENTRADA DE POSIÇÃO
+        function normalizarEntradaPosicao(input) {
+          let valor = input.value.trim().toUpperCase();
+          
+          // Remover espaços extras
+          valor = valor.replace(/\s+/g, '');
+          
+          // Tentar corrigir formatos comuns incorretos
+          // A1-1 -> A01-1
+          valor = valor.replace(/^([A-E])([1-9])-([1-5])$/, '$1 0$2-$3');
+          valor = valor.replace(/\s/g, '');
+          
+          // A011 -> A01-1
+          if (/^[A-E][0-9]{3}$/.test(valor)) {
+            valor = valor.substring(0, 3) + '-' + valor.substring(3);
+          }
+          
+          input.value = valor;
+          return valor;
+        }
+
+        // Aplicar normalização a todos os campos de posição
+        document.addEventListener('input', function(e) {
+          if (e.target.matches('.formato-posicao, input[name="posicao"]')) {
+            normalizarEntradaPosicao(e.target);
+          }
+        });
+
+        // ✅ VALIDAÇÃO NO ENVIO DO FORMULÁRIO DE MOVIMENTAÇÃO
+        const formMovimentacao = document.getElementById('formMovimentacao');
+        if (formMovimentacao) {
+          formMovimentacao.addEventListener('submit', function(e) {
+            const novaPosicao = document.getElementById('posicao_nova').value.trim();
+            const posicaoOriginal = document.getElementById('posicao_original').value.trim();
+            
+            // Validar formato da nova posição
+            if (!validarFormatoPosicaoA01_1(novaPosicao)) {
+              e.preventDefault();
+              Swal.fire({
+                icon: 'error',
+                title: 'Posição Inválida',
+                text: 'A nova posição deve estar no formato A01-1',
+                confirmButtonText: 'Corrigir'
+              });
+              document.getElementById('posicao_nova').focus();
+              return false;
+            }
+            
+            // Validar se as posições são diferentes
+            if (novaPosicao === posicaoOriginal) {
+              e.preventDefault();
+              Swal.fire({
+                icon: 'warning',
+                title: 'Posições Iguais',
+                text: 'A nova posição deve ser diferente da posição atual',
+                confirmButtonText: 'Corrigir'
+              });
+              document.getElementById('posicao_nova').focus();
+              return false;
+            }
+            
+            console.log('✅ Formulário de movimentação validado - formato A01-1');
+          });
+        }
+
+        // ✅ MELHORAR EXIBIÇÃO DE POSIÇÕES NO RESULTADO DE CONSULTAS
+        function formatarPosicaoExibicao(posicao) {
+          if (!posicao) return 'N/A';
+          
+          // Se já está no formato A01-1, retornar como está
+          if (/^[A-E][0-9]{2}-[1-5]$/.test(posicao)) {
+            return posicao;
+          }
+          
+          // Se está no formato A011, converter para A01-1
+          if (/^[A-E][0-9]{3}$/.test(posicao)) {
+            return posicao.substring(0, 3) + '-' + posicao.substring(3);
+          }
+          
+          return posicao; // Retornar como está se não conseguir converter
+        }
+
+        // ✅ INTERCEPTAR EXIBIÇÃO DE RESULTADOS PARA GARANTIR FORMATO A01-1
+        // Verificar se já existe uma implementação de fetch interceptado
+        if (!window._fetchIntercepted) {
+          window._fetchIntercepted = true;
+          const _originalFetch = window.fetch;
+          
+          window.fetch = function(...args) {
+            return _originalFetch.apply(this, args).then(response => {
+              const clonedResponse = response.clone();
+              
+              // Se é uma resposta JSON de busca de container
+              if (args[0] && args[0].includes('/buscar_container')) {
+                return clonedResponse.json().then(data => {
+                  // Garantir que posições estão no formato A01-1
+                  if (data.success && data.container) {
+                    if (data.container.posicao_atual) {
+                      data.container.posicao_atual = formatarPosicaoExibicao(data.container.posicao_atual);
+                    }
+                    
+                    if (data.container.operacoes) {
+                      data.container.operacoes.forEach(op => {
+                        if (op.posicao) {
+                          op.posicao = formatarPosicaoExibicao(op.posicao);
+                        }
+                      });
+                    }
+                  }
+                  
+                  // Exibir o histórico humanizado após processar os dados
+                  setTimeout(() => {
+                    if (typeof exibirHistoricoHumanizado === 'function') {
+                      exibirHistoricoHumanizado(data.container);
+                    }
+                  }, 100);
+                  
+                  // Retornar uma nova Response com os dados modificados
+                  return new Response(JSON.stringify(data), {
+                    status: response.status,
+                    statusText: response.statusText,
+                    headers: response.headers
+                  });
+                }).catch(() => response); // Se não for JSON, retornar response original
+              }
+              
+              return response;
+            });
+          };
+          
+          console.log('✅ Interceptor de fetch configurado no dashboard para normalizar posições');
+        }
+
+        // ✅ FEEDBACK VISUAL PARA POSIÇÕES VÁLIDAS
+        function adicionarFeedbackVisual() {
+          const campos = document.querySelectorAll('.formato-posicao, input[name="posicao"]');
+          campos.forEach(campo => {
+            campo.addEventListener('input', function() {
+              const valor = this.value.trim();
+              const parent = this.closest('.form-group') || this.parentNode;
+              
+              // Remover feedback anterior
+              const feedback = parent.querySelector('.formato-feedback');
+              if (feedback) feedback.remove();
+              
+              if (valor.length > 0) {
+                const isValid = validarFormatoPosicaoA01_1(valor);
+                const feedbackDiv = document.createElement('div');
+                feedbackDiv.className = `formato-feedback mt-1 ${isValid ? 'text-success' : 'text-danger'}`;
+                feedbackDiv.innerHTML = isValid 
+                  ? '<i class="fas fa-check-circle me-1"></i>Formato correto!'
+                  : '<i class="fas fa-times-circle me-1"></i>Use o formato A01-1';
+                
+                parent.appendChild(feedbackDiv);
+              }
+            });
+          });
+        }
+
+        // Aplicar feedback visual
+        setTimeout(adicionarFeedbackVisual, 500);
+
+        // ✅ AUTOCOMPLETAR POSIÇÕES BASEADO NO PÁTIO DE SUZANO
+        function configurarAutocompletePosicoes() {
+          const campos = document.querySelectorAll('.formato-posicao, input[name="posicao"]');
+          
+          campos.forEach(campo => {
+            campo.addEventListener('keydown', function(e) {
+              // Se Tab ou Enter e o campo tem valor parcial válido
+              if ((e.key === 'Tab' || e.key === 'Enter') && this.value.length >= 2) {
+                const valor = this.value.toUpperCase();
+                
+                // Autocompletar A1 -> A01-1, B5 -> B05-1, etc.
+                if (/^[A-E][1-9]$/.test(valor)) {
+                  e.preventDefault();
+                  this.value = valor[0] + '0' + valor[1] + '-1';
+                  this.dispatchEvent(new Event('input'));
+                }
+                // Autocompletar A01 -> A01-1, etc.
+                else if (/^[A-E][0-9]{2}$/.test(valor)) {
+                  e.preventDefault();
+                  this.value = valor + '-1';
+                  this.dispatchEvent(new Event('input'));
+                }
+              }
+            });
+          });
+        }
+
+        // Configurar autocompletar
+        setTimeout(configurarAutocompletePosicoes, 500);
+
+        console.log(' Sistema configurado para padrão A01-1 com validações e helpers');
+      });
+    </script>
+    
+    <!-- SweetAlert2 JS já foi carregado no head do documento -->
+
+    <!-- Choices.js -->
+    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+    
+    <!-- Core Dashboard JS (orquestra navegação e módulos) -->
+    <script type="module" defer src="/static/js/dashboard.js"></script>
+    <!-- Scripts para funcionalidades específicas - Ordem importante para dependências -->
+    <script src="/static/js/container-history.js"></script>
+    <script src="/static/js/fix_movimentacao.js"></script>
+    <!-- Módulo Correção de Descarga -->
+    <script type="module" defer src="/static/js/corrigir-descarga.js"></script>
+    
+    <!-- Garantir que as dependências estejam carregadas antes de carregar o search-container.js -->
+    <script>
+      // Verificar se as dependências estão carregadas
+      function verificarDependenciasCarregadas() {
+        if (typeof Swal === 'undefined' || 
+            typeof humanizeContainerHistory === 'undefined' || 
+            typeof getContainerHistoryStyles === 'undefined') {
+          console.warn('Dependências ainda não carregadas, tentando novamente em 100ms...');
+          setTimeout(verificarDependenciasCarregadas, 100);
+        } else {
+          console.log('✅ Todas as dependências carregadas, carregando search-container.js');
+          const script = document.createElement('script');
+          script.src = '/static/js/search-container.js';
+          document.body.appendChild(script);
+        }
+      }
+      
+      // Iniciar verificação após um pequeno delay para garantir que os scripts anteriores foram carregados
+      setTimeout(verificarDependenciasCarregadas, 200);
+    </script>
+  </body>
+</html>
