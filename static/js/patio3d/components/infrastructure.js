@@ -530,18 +530,27 @@ export class Infrastructure {
       envMapIntensity: 1.0,
     });
 
-    // Dois trilhos paralelos
-    for (let lado of [-2.0, 2.0]) {
+    // Dois trilhos paralelos - CORRIGIDO: posicionamento sobre a base da ferrovia
+    const trilhoSeparacao = 1.435; // Distância padrão entre trilhos (bitola padrão em metros)
+    
+    for (let lado of [-trilhoSeparacao/2, trilhoSeparacao/2]) {
       const trilho = new THREE.Mesh(
-        new THREE.BoxGeometry(ferroviaWidth, 0.2, 0.15),
+        new THREE.BoxGeometry(ferroviaWidth * 0.95, 0.15, 0.2), // Trilho ao longo do eixo X, sobre a base
         trilhoMaterial.clone()
       );
-      trilho.position.set(0, 0.18, patioDepth / 2 + ferroviaDistance + lado);
+      // POSICIONAMENTO CORRIGIDO: trilhos centralizados sobre a base da ferrovia
+      trilho.position.set(
+        lado, // Separação lateral dos trilhos
+        0.25, // Altura sobre a base da ferrovia (0.01 da base + 0.15 dos dormentes + 0.09 de elevação)
+        patioDepth / 2 + ferroviaDistance // Mesma posição Z da base da ferrovia
+      );
       trilho.castShadow = true;
       trilho.receiveShadow = true;
-      trilho.name = `Trilho_${lado}`;
+      trilho.name = `Trilho_${lado > 0 ? 'Direito' : 'Esquerdo'}`;
       this.infraestruturaGroup.add(trilho);
     }
+    
+    console.log("✅ Trilhos posicionados corretamente sobre a base da ferrovia");
   }
 
   // ===== CRIAR DORMENTES =====
@@ -553,19 +562,32 @@ export class Infrastructure {
       map: this.criarTexturaMadeira()
     });
 
-    const numDormentes = Math.floor(ferroviaWidth / 2.0);
+    // CORRIGIDO: Dormentes perpendiculares aos trilhos, com espaçamento adequado
+    const espacamentoDormentes = 0.6; // Espaçamento padrão entre dormentes (60cm)
+    const numDormentes = Math.floor(ferroviaWidth * 0.9 / espacamentoDormentes);
+    const inicioX = -(ferroviaWidth * 0.9) / 2;
+    
     for (let i = 0; i < numDormentes; i++) {
       const dormente = new THREE.Mesh(
-        new THREE.BoxGeometry(0.5, 0.3, ferroviaLength * 0.9),
+        new THREE.BoxGeometry(0.2, 0.15, 2.5), // CORRIGIDO: dormentes perpendiculares aos trilhos (Z maior que X)
         dormenteMaterial.clone()
       );
-      const posX = -ferroviaWidth / 2 + (i * ferroviaWidth) / numDormentes;
-      dormente.position.set(posX, 0.08, patioDepth / 2 + ferroviaDistance);
+      
+      // POSICIONAMENTO CORRIGIDO: dormentes centralizados e perpendiculares aos trilhos
+      const posX = inicioX + (i * espacamentoDormentes);
+      dormente.position.set(
+        posX, // Posição ao longo da ferrovia
+        0.15, // Altura sobre a base da ferrovia (0.01 da base + 0.14 de elevação)
+        patioDepth / 2 + ferroviaDistance // Mesma posição Z da base da ferrovia
+      );
+      
       dormente.castShadow = true;
       dormente.receiveShadow = true;
       dormente.name = `Dormente_${i}`;
       this.infraestruturaGroup.add(dormente);
     }
+    
+    console.log(`✅ ${numDormentes} dormentes posicionados corretamente sob os trilhos`);
   }
 
   // ===== COMPOSIÇÃO FERROVIÁRIA =====
@@ -573,7 +595,7 @@ export class Infrastructure {
     console.log("🚂 Criando composição ferroviária...");
 
     const espacamentoMuro = 25; // Espaço do pátio até o muro
-    const espacoExterno = 60; // Espaço do muro até a ferrovia (mesmo valor usado em criarFerroviaRealistica)
+    const espacoExterno = 15; // CORRIGIDO: Reduzido de 60 para 15 - ferrovia mais próxima do muro (mesmo valor usado em criarFerroviaRealistica)
     const ferroviaDistance = espacamentoMuro + espacoExterno; // Distância total EXTERNA
     const posicaoTrem = patioDepth / 2 + ferroviaDistance; // Posição Z da ferrovia
 
@@ -596,8 +618,8 @@ export class Infrastructure {
     locomotiva.name = "Locomotiva";
 
     // Posicionar a locomotiva exatamente sobre os trilhos
-    // Usando o mesmo valor de deslocamento lateral que os trilhos (-2.0, 2.0)
-    const deslocamentoLateral = 0; // Centro entre os dois trilhos
+    // Alinhando com o centro da ferrovia
+    const deslocamentoLateral = 0; // Centro da ferrovia
 
     // Corpo principal da locomotiva
     const corpoLocomotiva = new THREE.Mesh(
@@ -608,7 +630,7 @@ export class Infrastructure {
         roughness: 0.3,
       })
     );
-    corpoLocomotiva.position.set(-patioWidth / 3, 2.5, posicaoTrem + deslocamentoLateral);
+    corpoLocomotiva.position.set(0, 1.5, posicaoTrem + deslocamentoLateral); // Alinhado com os trilhos no X=0
     corpoLocomotiva.castShadow = true;
     locomotiva.add(corpoLocomotiva);
 
@@ -621,7 +643,7 @@ export class Infrastructure {
         roughness: 0.2,
       })
     );
-    cabine.position.set(-patioWidth / 3 + 6, 4.2, posicaoTrem + deslocamentoLateral);
+    cabine.position.set(6, 3.2, posicaoTrem + deslocamentoLateral); // Alinhado com os trilhos no X=0
     cabine.castShadow = true;
     locomotiva.add(cabine);
 
@@ -632,9 +654,9 @@ export class Infrastructure {
       roughness: 0.4,
     });
 
-    // Usar exatamente os mesmos valores de deslocamento lateral que os trilhos
+    // Posicionar as rodas alinhadas com os trilhos
     for (let i = 0; i < 6; i++) {
-      for (let lado of [-2.0, 2.0]) { // Mesmo valor usado nos trilhos
+      for (let lado of [-1.5, 1.5]) { // Ajustado para alinhar com os trilhos
         const roda = new THREE.Mesh(
           new THREE.CylinderGeometry(0.6, 0.6, 0.3),
           rodaMaterial.clone()
@@ -668,12 +690,12 @@ export class Infrastructure {
     vagaoGroup.name = `Vagao_${vagaoIndex}`;
     
     // Posicionar o vagão exatamente sobre os trilhos
-    // Usando o mesmo valor de deslocamento lateral que os trilhos (-2.0, 2.0)
-    const deslocamentoLateral = 0; // Centro entre os dois trilhos
+    // Alinhando com o centro da ferrovia
+    const deslocamentoLateral = 0; // Centro da ferrovia
     
     // Calcular posição X base para todos os vagões
-    // Usar a mesma escala que a locomotiva para manter proporção
-    const posicaoXBase = -patioWidth / 3 + 25 + vagaoIndex * 25;
+    // Alinhado com os trilhos no X=0
+    const posicaoXBase = 25 + vagaoIndex * 25;
 
     // Plataforma do vagão
     const plataforma = new THREE.Mesh(
@@ -684,7 +706,7 @@ export class Infrastructure {
         roughness: 0.5,
       })
     );
-    plataforma.position.set(posicaoXBase, 1.0, posicaoTrem + deslocamentoLateral);
+    plataforma.position.set(posicaoXBase, 0.8, posicaoTrem + deslocamentoLateral);
     plataforma.castShadow = true;
     vagaoGroup.add(plataforma);
 
