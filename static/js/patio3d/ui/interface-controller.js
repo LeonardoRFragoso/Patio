@@ -78,6 +78,9 @@ export class InterfaceController {
       this.configurarBotao("btn-exportar-png", () => this.exportarImagem("png"));
       this.configurarBotao("btn-exportar-jpg", () => this.exportarImagem("jpeg"));
   
+      // 🔧 CORREÇÃO: Configurar filtros avançados
+      this.configurarFiltros();
+  
       // 🔧 CORREÇÃO: Definir vista lateral como ativa na interface
       this.definirVistaPadraoLateral();
   
@@ -116,7 +119,99 @@ export class InterfaceController {
         });
       }
     }
-  
+
+    // 🔧 CORREÇÃO: Configurar filtros avançados
+    configurarFiltros() {
+      this.debug("🔍 Configurando filtros avançados...");
+      
+      // Filtro por Row
+      const filtroRow = document.getElementById("filtro-row");
+      if (filtroRow) {
+        filtroRow.addEventListener("change", (e) => {
+          this.aplicarFiltroRow(e.target.value);
+        });
+      }
+      
+      // Filtro por Altura
+      const filtroAltura = document.getElementById("filtro-altura");
+      if (filtroAltura) {
+        filtroAltura.addEventListener("change", (e) => {
+          this.aplicarFiltroAltura(e.target.value);
+        });
+      }
+      
+      // Filtro por Status
+      const filtroStatus = document.getElementById("filtro-status");
+      if (filtroStatus) {
+        filtroStatus.addEventListener("change", (e) => {
+          this.aplicarFiltroStatus(e.target.value);
+        });
+      }
+      
+      this.debug("✅ Filtros configurados com sucesso!");
+    }
+
+    // Aplicar filtro por Row
+    aplicarFiltroRow(row) {
+      if (this.containerGroup) {
+        this.containerGroup.children.forEach(container => {
+          if (container.userData && container.userData.posicao) {
+            const containerRow = container.userData.posicao.charAt(0); // Primeira letra da posição
+            container.visible = !row || containerRow === row;
+          }
+        });
+        
+        this.debug(`Filtro Row aplicado: ${row || 'Todos'}`);
+        this.emitirEvento('showToast', {
+          message: `Filtro Row: ${row || 'Todos os Rows'}`,
+          type: "info"
+        });
+      }
+    }
+
+    // Aplicar filtro por Altura
+    aplicarFiltroAltura(altura) {
+      if (this.containerGroup) {
+        this.containerGroup.children.forEach(container => {
+          if (container.userData && container.userData.tipo) {
+            const isHighCube = container.userData.tipo.includes('HC');
+            let mostrar = true;
+            
+            if (altura === 'standard') {
+              mostrar = !isHighCube;
+            } else if (altura === 'high-cube') {
+              mostrar = isHighCube;
+            }
+            
+            container.visible = mostrar;
+          }
+        });
+        
+        this.debug(`Filtro Altura aplicado: ${altura || 'Todos'}`);
+        this.emitirEvento('showToast', {
+          message: `Filtro Altura: ${altura || 'Todas as Alturas'}`,
+          type: "info"
+        });
+      }
+    }
+
+    // Aplicar filtro por Status
+    aplicarFiltroStatus(status) {
+      if (this.containerGroup) {
+        this.containerGroup.children.forEach(container => {
+          if (container.userData && container.userData.status) {
+            container.visible = !status || container.userData.status === status;
+          }
+        });
+        
+        this.debug(`Filtro Status aplicado: ${status || 'Todos'}`);
+        this.emitirEvento('showToast', {
+          message: `Filtro Status: ${status || 'Todos os Status'}`,
+          type: "info"
+        });
+      }
+    }
+
     configurarBotao(id, acao) {
       const btn = document.getElementById(id);
       if (btn) {
@@ -152,28 +247,73 @@ export class InterfaceController {
     }
   
     toggleTelaCheia() {
-      try {
-        const container = document.getElementById("three-container");
+    try {
+      const container = document.getElementById("three-container");
   
-        if (!document.fullscreenElement) {
-          container.requestFullscreen().then(() => {
-            this.aoRedimensionar();
-            this.debug("Modo tela cheia ativado");
-            this.emitirEvento('showToast', {
-              message: "Modo tela cheia ativado",
-              type: "info"
-            });
-          });
-        } else {
-          document.exitFullscreen().then(() => {
-            this.aoRedimensionar();
-            this.debug("Modo tela cheia desativado");
+      if (!document.fullscreenElement) {
+        // Entrar em tela cheia
+        const fullscreenPromise = container.requestFullscreen() || 
+                                 container.webkitRequestFullscreen() || 
+                                 container.mozRequestFullScreen() || 
+                                 container.msRequestFullscreen();
+        
+        if (fullscreenPromise) {
+          fullscreenPromise.then(() => {
+            // Aguardar um pouco para garantir que o fullscreen foi aplicado
+            setTimeout(() => {
+              this.aoRedimensionar();
+              // Ajustar controles para tela cheia - velocidade mais lenta
+              if (this.controls) {
+                this.controls.enableDamping = true;
+                this.controls.dampingFactor = 0.1;
+                this.controls.rotateSpeed = 0.3;
+                this.controls.panSpeed = 0.5;
+                this.controls.zoomSpeed = 0.5;
+              }
+              this.debug("Modo tela cheia ativado");
+              this.emitirEvento('showToast', {
+                message: "Modo tela cheia ativado - Controles ajustados",
+                type: "success"
+              });
+            }, 100);
+          }).catch(error => {
+            this.debug(`Erro ao ativar tela cheia: ${error.message}`, "error");
           });
         }
-      } catch (error) {
-        this.debug(`Erro no modo tela cheia: ${error.message}`, "error");
+      } else {
+        // Sair da tela cheia
+        const exitPromise = document.exitFullscreen() || 
+                           document.webkitExitFullscreen() || 
+                           document.mozCancelFullScreen() || 
+                           document.msExitFullscreen();
+        
+        if (exitPromise) {
+          exitPromise.then(() => {
+            setTimeout(() => {
+              this.aoRedimensionar();
+              // Restaurar controles normais
+              if (this.controls) {
+                this.controls.enableDamping = true;
+                this.controls.dampingFactor = 0.05;
+                this.controls.rotateSpeed = 0.5;
+                this.controls.panSpeed = 0.8;
+                this.controls.zoomSpeed = 0.8;
+              }
+              this.debug("Modo tela cheia desativado");
+              this.emitirEvento('showToast', {
+                message: "Modo normal restaurado",
+                type: "info"
+              });
+            }, 100);
+          }).catch(error => {
+            this.debug(`Erro ao sair da tela cheia: ${error.message}`, "error");
+          });
+        }
       }
+    } catch (error) {
+      this.debug(`Erro no modo tela cheia: ${error.message}`, "error");
     }
+  }
   
     toggleInfraestrutura() {
       if (this.infraestruturaGroup) {

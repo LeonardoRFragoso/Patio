@@ -108,8 +108,12 @@ export class ContainerRenderer {
       // 🔧 ORIENTAÇÃO HORIZONTAL: Rotacionar container 90 graus no eixo X para ficar deitado
       containerMesh.rotation.x = Math.PI / 2;
 
+      // 🔧 CORREÇÃO: Posicionamento correto para containers 40ft
+      // Container 40ft deve ocupar exatamente 2 espaços de baia (2 x 7 = 14 unidades)
       if (eh40TEU) {
-        containerMesh.position.z += CONFIG.ESPACAMENTO_ROW / 2;
+        // Ajustar posição X para centralizar o container 40ft em 2 baias
+        // O container deve se estender meio espaço para cada lado
+        containerMesh.position.x += CONFIG.ESPACAMENTO_BAIA / 2;
       }
 
       // Sombras

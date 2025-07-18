@@ -212,12 +212,14 @@ export class CameraControls {
       this.controls.rotateSpeed = 0.8;
       this.controls.zoomSpeed = 1.2;
   
-      // Limitações para manter a câmera em área relevante
-      this.controls.target.set(0, 5, 0);
+      // 🔧 CORREÇÃO: Melhor foco no centro do pátio
+      const patioCenterX = (this.CONFIG.BAIAS_MAX * this.CONFIG.ESPACAMENTO_BAIA) / 2;
+      const patioCenterZ = (this.CONFIG.ROWS.length * this.CONFIG.ESPACAMENTO_ROW) / 2;
+      this.controls.target.set(patioCenterX * 0.3, 5, patioCenterZ * 0.3);
   
       this.debug("🎮 Controles avançados configurados");
     }
-  
+
     // ===== REDIMENSIONAMENTO =====
     aoRedimensionar(renderer) {
       try {

@@ -410,6 +410,94 @@ body {
 }
 
 /* ========================================
+   FULLSCREEN SUPPORT
+   ======================================== */
+
+/* Fullscreen container styling */
+#three-container:fullscreen {
+  width: 100vw !important;
+  height: 100vh !important;
+  border-radius: 0 !important;
+  border: none !important;
+  background: #000 !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  z-index: 9999 !important;
+  box-shadow: none !important;
+}
+
+#three-container:fullscreen canvas {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 0 !important;
+  object-fit: contain;
+}
+
+/* Webkit fullscreen support */
+#three-container:-webkit-full-screen {
+  width: 100vw !important;
+  height: 100vh !important;
+  border-radius: 0 !important;
+  border: none !important;
+  background: #000 !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  z-index: 9999 !important;
+  box-shadow: none !important;
+}
+
+#three-container:-webkit-full-screen canvas {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 0 !important;
+  object-fit: contain;
+}
+
+/* Mozilla fullscreen support */
+#three-container:-moz-full-screen {
+  width: 100vw !important;
+  height: 100vh !important;
+  border-radius: 0 !important;
+  border: none !important;
+  background: #000 !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  z-index: 9999 !important;
+  box-shadow: none !important;
+}
+
+#three-container:-moz-full-screen canvas {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 0 !important;
+  object-fit: contain;
+}
+
+/* MS fullscreen support */
+#three-container:-ms-fullscreen {
+  width: 100vw !important;
+  height: 100vh !important;
+  border-radius: 0 !important;
+  border: none !important;
+  background: #000 !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  z-index: 9999 !important;
+  box-shadow: none !important;
+}
+
+#three-container:-ms-fullscreen canvas {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 0 !important;
+  object-fit: contain;
+}
+
+/* ========================================
    LOADING PREMIUM
    ======================================== */
 

@@ -147,12 +147,12 @@ export class Infrastructure {
 
   // ===== FERROVIA (EXTERNA - FORA DO MURO SUL) =====
   async criarFerroviaRealistica(patioWidth, patioDepth) {
-    console.log("🚂 Criando ferrovia EXTERNA (fora do muro sul)...");
+    console.log(" Criando ferrovia EXTERNA (fora do muro sul)...");
 
     const ferroviaWidth = patioWidth + 100; // Largura um pouco menor para melhor visualização
     const ferroviaLength = 40; // Espessura da ferrovia
     const espacamentoMuro = 25; // Espaço do pátio até o muro
-    const espacoExterno = 60; // MUITO MAIS ESPAÇO FORA do muro até a ferrovia
+    const espacoExterno = 15; // CORREÇÃO: Reduzido de 60 para 15 - ferrovia mais próxima do muro
     const ferroviaDistance = espacamentoMuro + espacoExterno; // Distância total EXTERNA
 
     // Material de brita
@@ -184,9 +184,9 @@ export class Infrastructure {
 
   // ===== MUROS DA EMPRESA - CERCANDO APENAS O PÁTIO (COM ABERTURAS) =====
   async criarMurosCorrigidos(patioWidth, patioDepth) {
-    console.log("🧱 Criando muros da empresa COM ABERTURAS para entrada/saída...");
+    console.log(" Criando muros da empresa COM ABERTURAS para entrada/saída...");
 
-    const muroHeight = 12;
+    const muroHeight = 6; // 🔧 CORREÇÃO: Reduzido de 12 para 6 para melhor visibilidade dos containers
     const muroThickness = 2.0;
     const espacamentoMuro = 25; // Espaçamento do pátio até os muros
     const aberturaPortao = 25; // Largura da abertura para os portões

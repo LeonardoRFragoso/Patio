@@ -426,13 +426,13 @@ export class PatioVisualizacao3DManager {
       this.dataManager.detectarContainersProblematicos();
     }, 2000);
 
-    console.log("🎯 Configurações específicas para Suzano-SP aplicadas");
+    console.log(" Configurações específicas para Suzano-SP aplicadas");
   }
 
   // ===== MÉTODOS PÚBLICOS PRINCIPAIS =====
 
   async recarregarDados() {
-    console.log("🔄 Recarregando dados...");
+    console.log(" Recarregando dados...");
     this.statusDisplay.atualizarStatusSistema("data", "loading", "Recarregando");
 
     try {
@@ -458,7 +458,7 @@ export class PatioVisualizacao3DManager {
         this.toastManager.show("Erro ao atualizar dados", "error");
       }
     } catch (error) {
-      console.error("❌ Erro ao recarregar dados:", error);
+      console.error(" Erro ao recarregar dados:", error);
       this.toastManager.show("Erro ao recarregar dados", "error");
     }
   }
@@ -477,6 +477,154 @@ export class PatioVisualizacao3DManager {
 
   resetCompleto() {
     this.interfaceController.resetCompleto();
+  }
+
+  // ===== MÉTODOS ADICIONAIS DA VERSÃO BACKUP =====
+
+  // Método para aplicar filtros avançados
+  aplicarFiltros(filtros = {}) {
+    console.log(" Aplicando filtros:", filtros);
+    
+    if (filtros.armador) {
+      this.containerRenderer.filtrarContainersPorArmador(this.containerGroup, filtros.armador);
+    }
+    
+    if (filtros.status) {
+      this.containerRenderer.filtrarContainersPorStatus(this.containerGroup, filtros.status);
+    }
+    
+    if (filtros.teu) {
+      this.containerRenderer.filtrarContainersPorTEU(this.containerGroup, filtros.teu);
+    }
+    
+    // Atualizar labels baseado nos filtros
+    this.labelsManager.atualizarVisibilidadeLabels(this.labelGroup, filtros);
+    
+    this.toastManager.show("Filtros aplicados", "info");
+  }
+
+  // Método para limpar todos os filtros
+  limparFiltros() {
+    console.log(" Limpando filtros...");
+    
+    // Tornar todos os containers visíveis
+    this.containerGroup.children.forEach(child => {
+      if (child.userData?.container) {
+        child.visible = true;
+        child.material.transparent = false;
+        child.material.opacity = 1.0;
+      }
+    });
+    
+    // Tornar todos os labels visíveis
+    this.labelGroup.children.forEach(child => {
+      child.visible = true;
+    });
+    
+    this.toastManager.show("Filtros removidos", "info");
+  }
+
+  // Método para posicionar câmera em vista específica
+  posicionarCameraCompleta() {
+    this.cameraControls.posicionarCameraCompletaAnimada();
+  }
+
+  posicionarCameraTopo() {
+    this.cameraControls.posicionarCameraTopo();
+  }
+
+  posicionarCameraLateral() {
+    this.cameraControls.posicionarCameraLateral();
+  }
+
+  // Método para resetar câmera
+  resetarCamera() {
+    this.cameraControls.resetarCamera();
+  }
+
+  // Método para alternar visibilidade de elementos
+  toggleInfraestrutura() {
+    if (this.infraestruturaGroup) {
+      this.infraestruturaGroup.visible = !this.infraestruturaGroup.visible;
+      this.toastManager.show(
+        `Infraestrutura ${this.infraestruturaGroup.visible ? 'visível' : 'oculta'}`,
+        "info"
+      );
+    }
+  }
+
+  toggleLabels() {
+    if (this.labelGroup) {
+      this.labelGroup.visible = !this.labelGroup.visible;
+      this.toastManager.show(
+        `Labels ${this.labelGroup.visible ? 'visíveis' : 'ocultos'}`,
+        "info"
+      );
+    }
+  }
+
+  togglePosicoesVazias() {
+    if (this.posicoesVaziasGroup) {
+      this.posicoesVaziasGroup.visible = !this.posicoesVaziasGroup.visible;
+      this.toastManager.show(
+        `Posições vazias ${this.posicoesVaziasGroup.visible ? 'visíveis' : 'ocultas'}`,
+        "info"
+      );
+    }
+  }
+
+  // Método para debug completo
+  debug(mensagem, tipo = "info") {
+    console.log(`[DEBUG] ${mensagem}`);
+    if (tipo === "error") {
+      console.error(`[ERROR] ${mensagem}`);
+    }
+    this.toastManager.show(mensagem, tipo);
+  }
+
+  // Método para obter estatísticas do sistema
+  obterEstatisticas() {
+    const stats = {
+      containers: {
+        total: this.patioData?.containers?.length || 0,
+        renderizados: this.containerRenderer.getContainerInfo().containersRenderizados,
+        problematicos: this.dataManager.detectarContainersProblematicos().length
+      },
+      performance: this.performanceMonitor.getCurrentStats(),
+      memoria: {
+        texturas: this.sceneManager.getInfo().cache.texturas,
+        materiais: this.sceneManager.getInfo().cache.materiais,
+        objetos: this.scene ? this.scene.children.length : 0
+      },
+      sistema: {
+        threejs: THREE.REVISION,
+        webgl: this.renderer?.capabilities?.isWebGL2 ? "WebGL2" : "WebGL1",
+        dispositivo: navigator.userAgent.includes("Mobile") ? "Mobile" : "Desktop"
+      }
+    };
+    
+    console.log(" Estatísticas do sistema:", stats);
+    return stats;
+  }
+
+  // Método para validar integridade do sistema
+  validarIntegridade() {
+    const problemas = [];
+    
+    if (!this.scene) problemas.push("Cena não inicializada");
+    if (!this.camera) problemas.push("Câmera não inicializada");
+    if (!this.renderer) problemas.push("Renderer não inicializado");
+    if (!this.patioData) problemas.push("Dados do pátio não carregados");
+    
+    if (problemas.length > 0) {
+      console.error(" Problemas de integridade:", problemas);
+      this.toastManager.show(`${problemas.length} problemas detectados`, "error");
+      return false;
+    }
+    
+    console.log(" Sistema íntegro");
+    this.toastManager.show("Sistema funcionando corretamente", "success");
+    return true;
   }
 
   // ===== MÉTODOS PARA COMPATIBILIDADE =====
