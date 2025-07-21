@@ -1,0 +1,255 @@
+/* ========================================
+   CORREÇÃO DOS DROPDOWNS/COMBOBOXES
+   Arquivo específico para corrigir visibilidade
+   ======================================== */
+
+/* Estilos para select elements (dropdowns) */
+select.form-control-premium {
+  background: linear-gradient(135deg, rgba(45, 55, 72, 0.95) 0%, rgba(74, 85, 104, 0.95) 100%) !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: #ffffff !important;
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+select.form-control-premium:focus {
+  background: linear-gradient(135deg, rgba(45, 55, 72, 1) 0%, rgba(74, 85, 104, 1) 100%) !important;
+  border-color: rgba(102, 126, 234, 0.8) !important;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25) !important;
+  outline: none;
+}
+
+select.form-control-premium:hover {
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  background: linear-gradient(135deg, rgba(45, 55, 72, 1) 0%, rgba(74, 85, 104, 1) 100%) !important;
+}
+
+/* Estilos para as opções do dropdown */
+select.form-control-premium option {
+  background-color: #2d3748 !important;
+  color: #ffffff !important;
+  padding: 0.5rem;
+  border: none;
+  font-weight: 500;
+}
+
+select.form-control-premium option:hover,
+select.form-control-premium option:focus {
+  background-color: #4a5568 !important;
+  color: #ffffff !important;
+}
+
+select.form-control-premium option:checked,
+select.form-control-premium option:selected {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: #ffffff !important;
+}
+
+/* Placeholder para select */
+select.form-control-premium option[value=""] {
+  color: rgba(255, 255, 255, 0.7) !important;
+  font-style: italic;
+}
+
+/* Seta do dropdown customizada */
+select.form-control-premium {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 16px;
+  padding-right: 2.5rem;
+}
+
+/* Input de busca melhorado */
+input.form-control-premium {
+  background: linear-gradient(135deg, rgba(45, 55, 72, 0.95) 0%, rgba(74, 85, 104, 0.95) 100%) !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: #ffffff !important;
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+input.form-control-premium::placeholder {
+  color: rgba(255, 255, 255, 0.6) !important;
+  font-style: italic;
+}
+
+input.form-control-premium:focus {
+  background: linear-gradient(135deg, rgba(45, 55, 72, 1) 0%, rgba(74, 85, 104, 1) 100%) !important;
+  border-color: rgba(102, 126, 234, 0.8) !important;
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25) !important;
+  outline: none;
+}
+
+input.form-control-premium:hover {
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  background: linear-gradient(135deg, rgba(45, 55, 72, 1) 0%, rgba(74, 85, 104, 1) 100%) !important;
+}
+
+/* Responsividade para dropdowns */
+@media (max-width: 768px) {
+  select.form-control-premium,
+  input.form-control-premium {
+    font-size: 0.875rem;
+    padding: 0.4rem 0.6rem;
+  }
+  
+  select.form-control-premium {
+    padding-right: 2rem;
+    background-size: 14px;
+  }
+}
+
+/* ========================================
+   ESTATÍSTICAS MINI - CORREÇÃO DO LAYOUT
+   ======================================== */
+
+/* Mini estatísticas para Row e Altura */
+.stat-mini {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 0.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  min-height: 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.stat-mini:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.stat-mini-number {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  line-height: 1;
+}
+
+.stat-mini-label {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 0.25rem;
+}
+
+/* ========================================
+   ARMADORES - CONTADORES E BADGES
+   ======================================== */
+
+/* Melhorias na legenda de armadores */
+.legend-item {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.legend-item:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  margin-right: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+}
+
+.legend-text {
+  flex: 1;
+  color: #ffffff;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.legend-count {
+  background: linear-gradient(45deg, #667eea, #764ba2) !important;
+  color: white !important;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  min-width: 24px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.legend-count:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
+}
+
+/* Animação para contadores */
+@keyframes countUpdate {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+    background: linear-gradient(45deg, #4facfe, #00f2fe);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.legend-count.updating {
+  animation: countUpdate 0.6s ease-out;
+}
+
+.stat-mini-number.updating {
+  animation: countUpdate 0.6s ease-out;
+}
+
+/* Responsividade para mini stats */
+@media (max-width: 768px) {
+  .stat-mini {
+    min-height: 50px;
+    padding: 0.4rem;
+  }
+  
+  .stat-mini-number {
+    font-size: 1rem;
+  }
+  
+  .stat-mini-label {
+    font-size: 0.7rem;
+  }
+  
+  .legend-count {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.3rem;
+    min-width: 20px;
+  }
+}

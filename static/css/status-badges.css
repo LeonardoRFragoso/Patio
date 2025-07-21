@@ -1,0 +1,121 @@
+/* ========================================
+   STATUS BADGES - INDICADORES DE SISTEMA
+   ======================================== */
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+  min-width: 80px;
+  justify-content: center;
+}
+
+/* Status Success - Verde (Conectado) */
+.status-badge.success {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border-color: rgba(16, 185, 129, 0.3);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.status-badge.success::before {
+  content: "✓";
+  margin-right: 4px;
+  font-weight: bold;
+}
+
+/* Status Loading - Amarelo (Carregando) */
+.status-badge.loading {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  border-color: rgba(245, 158, 11, 0.3);
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+  animation: pulse-loading 2s infinite;
+}
+
+.status-badge.loading::before {
+  content: "⚡";
+  margin-right: 4px;
+  animation: spin 1s linear infinite;
+}
+
+/* Status Error - Vermelho (Erro) */
+.status-badge.error {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  border-color: rgba(239, 68, 68, 0.3);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+.status-badge.error::before {
+  content: "✕";
+  margin-right: 4px;
+  font-weight: bold;
+}
+
+/* Animações para status badges */
+@keyframes pulse-loading {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.02);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Hover effects */
+.status-badge:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* System status container styling */
+.system-status {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.system-status-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  font-size: 0.85rem;
+}
+
+.system-status-item span:first-child {
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .status-badge {
+    font-size: 0.7rem;
+    padding: 3px 6px;
+    min-width: 70px;
+  }
+  
+  .system-status-item {
+    font-size: 0.8rem;
+  }
+}

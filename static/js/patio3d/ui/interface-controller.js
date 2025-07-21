@@ -39,23 +39,27 @@ export class InterfaceController {
     configurarInterface() {
       this.debug("🎛️ Configurando interface integrada...");
   
-      // Botões de vista
-      this.configurarBotaoVista("btn-vista-geral", () =>
-        this.emitirEvento('posicionarCameraCompleta')
-      );
-      this.configurarBotaoVista("btn-vista-topo", () =>
-        this.emitirEvento('posicionarCameraTopo')
-      );
-      this.configurarBotaoVista("btn-vista-lateral", () =>
-        this.emitirEvento('posicionarCameraLateral')
-      );
-      this.configurarBotaoVista("btn-vista-containers", () =>
-        this.emitirEvento('focarContainers')
-      );
+      // Botões de vista - CORRIGIDO
+      this.configurarBotaoVista("btn-vista-geral", () => {
+        this.posicionarCameraCompleta();
+        this.atualizarStatusSistema('camera', 'success', '📹 Vista Geral');
+      });
+      this.configurarBotaoVista("btn-vista-topo", () => {
+        this.posicionarCameraTopo();
+        this.atualizarStatusSistema('camera', 'success', '📹 Vista Topo');
+      });
+      this.configurarBotaoVista("btn-vista-lateral", () => {
+        this.posicionarCameraLateral();
+        this.atualizarStatusSistema('camera', 'success', '📹 Vista Lateral');
+      });
+      this.configurarBotaoVista("btn-vista-containers", () => {
+        this.focarContainers();
+        this.atualizarStatusSistema('camera', 'success', '📹 Foco Containers');
+      });
   
-      // Botões de ação
-      this.configurarBotao("btn-refresh", () => this.emitirEvento('recarregarDados'));
-      this.configurarBotao("btn-refresh-data", () => this.emitirEvento('recarregarDados'));
+      // Botões de ação - CORRIGIDO
+      this.configurarBotao("btn-refresh", () => this.atualizarDados());
+      this.configurarBotao("btn-refresh-data", () => this.atualizarDados());
       this.configurarBotao("btn-debug", () => this.toggleDebugPanel());
       this.configurarBotao("btn-fullscreen", () => this.toggleTelaCheia());
       this.configurarBotao("btn-help", () => this.mostrarAjuda());
@@ -83,6 +87,9 @@ export class InterfaceController {
   
       // 🔧 CORREÇÃO: Definir vista lateral como ativa na interface
       this.definirVistaPadraoLateral();
+
+      // 🔧 NOVO: Inicializar status do sistema
+      this.inicializarStatusSistema();
   
       this.debug("✅ Interface configurada com sucesso!");
     }
@@ -122,33 +129,79 @@ export class InterfaceController {
 
     // 🔧 CORREÇÃO: Configurar filtros avançados
     configurarFiltros() {
+      const filtroRow = document.getElementById('filtro-row');
+      const filtroAltura = document.getElementById('filtro-altura');
+      const buscaContainer = document.getElementById('busca-container-input');
+      const btnBuscar = document.getElementById('btn-buscar-container');
+      
       this.debug("🔍 Configurando filtros avançados...");
       
-      // Filtro por Row
-      const filtroRow = document.getElementById("filtro-row");
+      // Configurar filtro por Row (usar HTML existente)
       if (filtroRow) {
-        filtroRow.addEventListener("change", (e) => {
+        filtroRow.addEventListener('change', (e) => {
           this.aplicarFiltroRow(e.target.value);
+          this.atualizarStatusSistema('filtros', 'success', `🔍 Filtro: Row ${e.target.value || 'Todos'}`);
+          this.debug(`Filtro Row aplicado: ${e.target.value || 'Todos'}`);
         });
+        this.debug("✅ Filtro Row configurado");
+      } else {
+        this.debug("❌ Elemento filtro-row não encontrado", "error");
       }
       
-      // Filtro por Altura
-      const filtroAltura = document.getElementById("filtro-altura");
+      // Configurar filtro por Altura (usar HTML existente)
       if (filtroAltura) {
-        filtroAltura.addEventListener("change", (e) => {
+        filtroAltura.addEventListener('change', (e) => {
           this.aplicarFiltroAltura(e.target.value);
+          this.atualizarStatusSistema('filtros', 'success', `🔍 Filtro: Altura ${e.target.value || 'Todas'}`);
+          this.debug(`Filtro Altura aplicado: ${e.target.value || 'Todas'}`);
         });
+        this.debug("✅ Filtro Altura configurado");
+      } else {
+        this.debug("❌ Elemento filtro-altura não encontrado", "error");
+      }
+
+      // Configurar busca de container
+      if (buscaContainer) {
+        // Enter key
+        buscaContainer.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            const termo = e.target.value.trim();
+            if (termo) {
+              this.buscarContainer(termo);
+            } else {
+              this.limparFiltros();
+            }
+          }
+        });
+        
+        // Input em tempo real (opcional)
+        buscaContainer.addEventListener('input', (e) => {
+          const termo = e.target.value.trim();
+          if (termo.length === 0) {
+            this.limparFiltros();
+          }
+        });
+        
+        this.debug("✅ Busca de container configurada");
+      } else {
+        this.debug("❌ Elemento busca-container-input não encontrado", "error");
+      }
+
+      // Botão de busca (se existir)
+      if (btnBuscar) {
+        btnBuscar.addEventListener('click', () => {
+          const termo = buscaContainer?.value.trim();
+          if (termo) {
+            this.buscarContainer(termo);
+          }
+        });
+        this.debug("✅ Botão de busca configurado");
       }
       
-      // Filtro por Status
-      const filtroStatus = document.getElementById("filtro-status");
-      if (filtroStatus) {
-        filtroStatus.addEventListener("change", (e) => {
-          this.aplicarFiltroStatus(e.target.value);
-        });
-      }
+      // Configurar botões de toggle
+      this.configurarBotoesToggle();
       
-      this.debug("✅ Filtros configurados com sucesso!");
+      this.debug("✅ Filtros avançados configurados com sucesso!");
     }
 
     // Aplicar filtro por Row
@@ -534,6 +587,377 @@ export class InterfaceController {
         btnPosicoes.innerHTML = `<i class="fas fa-eye me-2"></i>${
           this.posicoesVaziasVisiveis ? "Ocultar" : "Mostrar"
         } Posições Vazias`;
+      }
+    }
+  
+    // ===== NOVOS MÉTODOS PARA FUNCIONALIDADE COMPLETA =====
+    
+    // Inicializar status do sistema
+    inicializarStatusSistema() {
+      this.atualizarStatusSistema('api', 'success', '🌐 API Conectada');
+      this.atualizarStatusSistema('threejs', 'success', '🎮 THREE.js Ativo');
+      this.atualizarStatusSistema('camera', 'success', '📹 Câmera Pronta');
+      this.atualizarStatusSistema('render', 'success', '⚡ Renderizando');
+      this.atualizarStatusSistema('filtros', 'success', '🔍 Filtros Ativos');
+      
+      // Atualizar indicador principal do sistema
+      const indicador = document.getElementById('system-status-indicator');
+      if (indicador) {
+        indicador.className = 'status-indicator success';
+        indicador.innerHTML = '<span class="status-dot"></span>Sistema Operacional';
+      }
+      
+      this.debug('✅ Status do sistema inicializado');
+    }
+    
+    // Atualizar status individual
+    atualizarStatusSistema(tipo, status, texto) {
+      const elemento = document.getElementById(`${tipo}-status`);
+      if (elemento) {
+        elemento.className = `status-badge ${status}`;
+        elemento.textContent = texto;
+        this.debug(`Status ${tipo} atualizado: ${texto}`);
+      }
+    }
+    
+    // Atualizar dados do pátio
+    async atualizarDados() {
+      try {
+        // Atualizar status para carregando
+        this.atualizarStatusSistema('api', 'loading', '🔄 Atualizando API...');
+        this.atualizarStatusSistema('dados', 'loading', '🔄 SINCRONIZANDO');
+        
+        this.debug('🔄 Iniciando atualização de dados');
+        
+        // Usar o APIManager global para recarregar dados reais
+        if (window.APIManager) {
+          const novosDados = await window.APIManager.obterDadosPatio3DComRetry();
+          
+          // Atualizar estatísticas se StatusDisplay estiver disponível
+          if (window.StatusDisplay) {
+            window.StatusDisplay.atualizarEstatisticas(novosDados.data);
+            window.StatusDisplay.atualizarUltimaAtualizacao();
+          }
+          
+          // Atualizar status para sucesso
+          this.atualizarStatusSistema('api', 'success', '🌐 API Conectada');
+          this.atualizarStatusSistema('dados', 'success', '✅ SINCRONIZADO');
+          
+          // Mostrar toast de sucesso
+          this.emitirEvento('showToast', {
+            message: `Dados atualizados! ${novosDados.data?.containers?.length || 0} containers carregados.`,
+            type: 'success'
+          });
+          
+          this.debug(`✅ Dados atualizados com sucesso: ${novosDados.data?.containers?.length || 0} containers`);
+        } else {
+          throw new Error('APIManager não está disponível');
+        }
+      } catch (error) {
+        this.atualizarStatusSistema('api', 'error', '❌ Erro na API');
+        this.atualizarStatusSistema('dados', 'error', '❌ Erro nos Dados');
+        
+        this.emitirEvento('showToast', {
+          message: `Erro ao atualizar dados: ${error.message}`,
+          type: 'error'
+        });
+        
+        this.debug(`Erro ao atualizar dados: ${error.message}`, 'error');
+      }
+    }
+    
+    // Posicionamento de câmera
+    posicionarCameraCompleta() {
+      if (this.camera && this.controls) {
+        this.camera.position.set(50, 30, 50);
+        this.controls.target.set(0, 0, 0);
+        this.controls.update();
+        this.debug('📹 Câmera posicionada: Vista Geral');
+      }
+    }
+    
+    posicionarCameraTopo() {
+      if (this.camera && this.controls) {
+        this.camera.position.set(0, 80, 0);
+        this.controls.target.set(0, 0, 0);
+        this.controls.update();
+        this.debug('📹 Câmera posicionada: Vista Topo');
+      }
+    }
+    
+    posicionarCameraLateral() {
+      if (this.camera && this.controls) {
+        this.camera.position.set(80, 20, 0);
+        this.controls.target.set(0, 0, 0);
+        this.controls.update();
+        this.debug('📹 Câmera posicionada: Vista Lateral');
+      }
+    }
+    
+    focarContainers() {
+      if (this.camera && this.controls && this.containerGroup) {
+        // Calcular centro dos containers
+        const box = new THREE.Box3().setFromObject(this.containerGroup);
+        const center = box.getCenter(new THREE.Vector3());
+        const size = box.getSize(new THREE.Vector3());
+        
+        // Posicionar câmera para focar nos containers
+        const maxDim = Math.max(size.x, size.y, size.z);
+        const distance = maxDim * 2;
+        
+        this.camera.position.set(
+          center.x + distance,
+          center.y + distance * 0.5,
+          center.z + distance
+        );
+        this.controls.target.copy(center);
+        this.controls.update();
+        
+        this.debug('📹 Câmera focada nos containers');
+      }
+    }
+    
+    // Configurar botões de toggle
+    configurarBotoesToggle() {
+      const btnToggleLabels = document.getElementById('btn-toggle-labels');
+      const btnTogglePosicoesVazias = document.getElementById('btn-toggle-posicoes-vazias');
+      
+      // Toggle Labels
+      if (btnToggleLabels) {
+        btnToggleLabels.addEventListener('click', () => {
+          const isActive = btnToggleLabels.classList.contains('active');
+          
+          if (isActive) {
+            btnToggleLabels.classList.remove('active');
+            btnToggleLabels.innerHTML = '<i class="fas fa-tags me-1"></i><span>Labels</span>';
+            this.toggleLabels(false);
+            this.atualizarStatusSistema('filtros', 'info', '🏷️ Labels Ocultos');
+          } else {
+            btnToggleLabels.classList.add('active');
+            btnToggleLabels.innerHTML = '<i class="fas fa-tags me-1"></i><span>Labels</span>';
+            this.toggleLabels(true);
+            this.atualizarStatusSistema('filtros', 'success', '🏷️ Labels Visíveis');
+          }
+          
+          this.debug(`Labels ${isActive ? 'ocultados' : 'exibidos'}`);
+        });
+        
+        this.debug("✅ Botão Toggle Labels configurado");
+      } else {
+        this.debug("❌ Elemento btn-toggle-labels não encontrado", "error");
+      }
+      
+      // Toggle Posições Vazias
+      if (btnTogglePosicoesVazias) {
+        btnTogglePosicoesVazias.addEventListener('click', () => {
+          const isActive = btnTogglePosicoesVazias.classList.contains('active');
+          
+          if (isActive) {
+            btnTogglePosicoesVazias.classList.remove('active');
+            btnTogglePosicoesVazias.innerHTML = '<i class="fas fa-eye-slash me-1"></i><span>Posições Vazias</span>';
+            this.togglePosicoesVazias(false);
+            this.atualizarStatusSistema('filtros', 'info', '👁️ Posições Ocultas');
+          } else {
+            btnTogglePosicoesVazias.classList.add('active');
+            btnTogglePosicoesVazias.innerHTML = '<i class="fas fa-eye me-1"></i><span>Posições Vazias</span>';
+            this.togglePosicoesVazias(true);
+            this.atualizarStatusSistema('filtros', 'success', '👁️ Posições Visíveis');
+          }
+          
+          this.debug(`Posições vazias ${isActive ? 'ocultadas' : 'exibidas'}`);
+        });
+        
+        this.debug("✅ Botão Toggle Posições Vazias configurado");
+      } else {
+        this.debug("❌ Elemento btn-toggle-posicoes-vazias não encontrado", "error");
+      }
+    }
+    
+    // Toggle Labels
+    toggleLabels(mostrar) {
+      try {
+        // Emitir evento para controlar labels
+        this.emitirEvento('toggleLabels', { mostrar });
+        this.debug(`Labels ${mostrar ? 'exibidos' : 'ocultados'}`);
+      } catch (error) {
+        this.debug(`Erro ao toggle labels: ${error.message}`, 'error');
+      }
+    }
+    
+    // Toggle Posições Vazias
+    togglePosicoesVazias(mostrar) {
+      try {
+        // Emitir evento para controlar posições vazias
+        this.emitirEvento('togglePosicoesVazias', { mostrar });
+        this.debug(`Posições vazias ${mostrar ? 'exibidas' : 'ocultadas'}`);
+      } catch (error) {
+        this.debug(`Erro ao toggle posições vazias: ${error.message}`, 'error');
+      }
+    }
+    
+    // Aplicar filtro por Row
+    aplicarFiltroRow(row) {
+      try {
+        if (this.containerGroup) {
+          this.containerGroup.children.forEach((child) => {
+            if (child.userData?.container) {
+              const containerRow = child.userData.container.row || child.userData.container.linha;
+              
+              if (!row || containerRow === row) {
+                child.visible = true;
+                if (child.material) {
+                  child.material.transparent = false;
+                  child.material.opacity = 1.0;
+                }
+              } else {
+                if (child.material) {
+                  child.material.transparent = true;
+                  child.material.opacity = 0.3;
+                }
+              }
+            }
+          });
+          
+          this.debug(`Filtro Row aplicado: ${row || 'Todos'}`);
+        }
+      } catch (error) {
+        this.debug(`Erro ao aplicar filtro Row: ${error.message}`, 'error');
+      }
+    }
+    
+    // Aplicar filtro por Altura
+    aplicarFiltroAltura(altura) {
+      try {
+        if (this.containerGroup) {
+          const alturaNum = altura ? parseInt(altura) : null;
+          
+          this.containerGroup.children.forEach((child) => {
+            if (child.userData?.container) {
+              const containerAltura = parseInt(child.userData.container.altura);
+              
+              if (!alturaNum || containerAltura === alturaNum) {
+                child.visible = true;
+                if (child.material) {
+                  child.material.transparent = false;
+                  child.material.opacity = 1.0;
+                }
+              } else {
+                if (child.material) {
+                  child.material.transparent = true;
+                  child.material.opacity = 0.3;
+                }
+              }
+            }
+          });
+          
+          this.debug(`Filtro Altura aplicado: ${altura || 'Todas'}`);
+        }
+      } catch (error) {
+        this.debug(`Erro ao aplicar filtro Altura: ${error.message}`, 'error');
+      }
+    }
+    
+    // Limpar todos os filtros
+    limparFiltros() {
+      try {
+        if (this.containerGroup) {
+          this.containerGroup.children.forEach((child) => {
+            if (child.userData?.container) {
+              child.visible = true;
+              if (child.material) {
+                child.material.transparent = false;
+                child.material.opacity = 1.0;
+                // Remover destaque de busca se existir
+                if (child.material.emissive) {
+                  child.material.emissive.setHex(0x000000);
+                  child.material.emissiveIntensity = 0;
+                }
+              }
+            }
+          });
+          
+          // Resetar dropdowns
+          const filtroRow = document.getElementById('filtro-row');
+          const filtroAltura = document.getElementById('filtro-altura');
+          const buscaContainer = document.getElementById('busca-container-input');
+          
+          if (filtroRow) filtroRow.value = '';
+          if (filtroAltura) filtroAltura.value = '';
+          if (buscaContainer) buscaContainer.value = '';
+          
+          this.atualizarStatusSistema('filtros', 'success', '🔍 Filtros Limpos');
+          this.debug('Filtros limpos com sucesso');
+        }
+      } catch (error) {
+        this.debug(`Erro ao limpar filtros: ${error.message}`, 'error');
+      }
+    }
+    
+    // Buscar container
+    buscarContainer(termo) {
+      try {
+        this.atualizarStatusSistema('filtros', 'loading', '🔍 Buscando...');
+        
+        if (this.containerGroup && termo) {
+          let encontrados = 0;
+          
+          // Primeiro, resetar todos os containers
+          this.containerGroup.children.forEach((child) => {
+            if (child.userData?.container) {
+              child.visible = true;
+              if (child.material) {
+                child.material.transparent = true;
+                child.material.opacity = 0.2;
+                // Remover destaque anterior
+                if (child.material.emissive) {
+                  child.material.emissive.setHex(0x000000);
+                  child.material.emissiveIntensity = 0;
+                }
+              }
+            }
+          });
+          
+          // Buscar e destacar containers que correspondem ao termo
+          this.containerGroup.children.forEach((child) => {
+            if (child.userData?.container) {
+              const container = child.userData.container;
+              const numero = container.numero || container.container_numero || '';
+              const armador = container.armador || '';
+              
+              if (numero.toLowerCase().includes(termo.toLowerCase()) ||
+                  armador.toLowerCase().includes(termo.toLowerCase())) {
+                // Destacar container encontrado
+                if (child.material) {
+                  child.material.transparent = false;
+                  child.material.opacity = 1.0;
+                  child.material.emissive.setHex(0x00ff00);
+                  child.material.emissiveIntensity = 0.3;
+                }
+                encontrados++;
+              }
+            }
+          });
+          
+          // Mostrar resultado
+          if (encontrados > 0) {
+            this.atualizarStatusSistema('filtros', 'success', `🔍 Encontrados: ${encontrados}`);
+            this.emitirEvento('showToast', {
+              message: `${encontrados} container(s) encontrado(s) para "${termo}"`,
+              type: 'success'
+            });
+          } else {
+            this.atualizarStatusSistema('filtros', 'warning', '🔍 Nenhum resultado');
+            this.emitirEvento('showToast', {
+              message: `Nenhum container encontrado para "${termo}"`,
+              type: 'warning'
+            });
+          }
+          
+          this.debug(`🔍 Busca por "${termo}": ${encontrados} resultados`);
+        }
+      } catch (error) {
+        this.atualizarStatusSistema('filtros', 'error', '❌ Erro na busca');
+        this.debug(`Erro na busca: ${error.message}`, 'error');
       }
     }
   

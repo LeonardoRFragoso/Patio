@@ -26,6 +26,12 @@
   --status-loading: #f59e0b;
   --status-error: #ef4444;
 
+  /* Cores das estatísticas */
+  --stat-primary: #3b82f6;
+  --stat-success: #10b981;
+  --stat-info: #06b6d4;
+  --stat-warning: #f59e0b;
+
   /* Animações */
   --animation-normal: 0.3s;
   --cubic-bezier: cubic-bezier(0.4, 0, 0.2, 1);
@@ -431,6 +437,90 @@ body {
   transform: translateY(-3px);
   box-shadow: 0 15px 35px rgba(17, 153, 142, 0.4);
   color: white;
+}
+
+/* ========================================
+   STATISTICS CARDS - IMPROVED
+   ======================================== */
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 15px;
+  padding: 1rem;
+  text-align: center;
+  transition: all var(--animation-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.stat-card-primary {
+  border-left: 4px solid var(--stat-primary);
+}
+
+.stat-card-success {
+  border-left: 4px solid var(--stat-success);
+}
+
+.stat-card-info {
+  border-left: 4px solid var(--stat-info);
+}
+
+.stat-card-warning {
+  border-left: 4px solid var(--stat-warning);
+}
+
+.stat-number {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 0.25rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.8);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+/* Legacy support for existing stat cards */
+.stat-card-sm {
+  padding: 0.75rem;
+}
+
+.stat-card-sm .stat-number {
+  font-size: 1.4rem;
+}
+
+.stat-card-sm .stat-label {
+  font-size: 0.75rem;
+}
+
+/* Badge premium for row/height stats */
+.badge-premium {
+  background: linear-gradient(135deg, var(--stat-info), var(--stat-primary));
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  transition: all var(--animation-normal);
+}
+
+.badge-premium:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 /* ========================================

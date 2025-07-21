@@ -23,6 +23,8 @@ import { InterfaceController } from './ui/interface-controller.js';
 import { CameraControls } from './ui/camera-controls.js';
 import { ModalsDialogs } from './ui/modals-dialogs.js';
 import { InteractionHandler } from './ui/interaction-handler.js';
+import { StatusDisplay } from './ui/status-display.js';
+import { FiltersSearch } from './ui/filters-search.js';
 
 // ================ BOOTSTRAP PRINCIPAL ================
 
@@ -61,26 +63,78 @@ async function iniciarPatio3D() {
     
     // 3) Carregar dados reais do backend
     setMensagem('Carregando dados do pátio...');
+    
+    // Atualizar status para sincronizando
+    const statusElement = document.getElementById('dados-status');
+    if (statusElement) {
+      statusElement.className = 'status-badge loading';
+      statusElement.textContent = '🔄 SINCRONIZANDO';
+    }
+    
     const dadosPatio = await apiManager.obterDadosPatio3DComRetry();
+    
+    // Atualizar status para sincronizado após carregamento bem-sucedido
+    if (statusElement) {
+      statusElement.className = 'status-badge success';
+      statusElement.textContent = '✅ SINCRONIZADO';
+    }
     
     // 4) Inicializar componentes da interface APÓS carregar os dados
     setMensagem('Inicializando componentes da interface...');
     const modalsDialogs = new ModalsDialogs();
+    const statusDisplay = new StatusDisplay();
     
-    // Registrar ModalsDialogs globalmente após sua inicialização
-    console.log('📍 Registrando referência global ModalsDialogs');
+    // Registrar componentes globalmente após sua inicialização
+    console.log('📍 Registrando referências globais');
     window.ModalsDialogs = modalsDialogs;
+    window.StatusDisplay = statusDisplay;
     
-    // Inicializar interface UI após registrar todas as dependências globais
-    // Nota: Usamos InterfaceController que já está importado, não InterfaceUI
+    // Atualizar estatísticas com os dados carregados usando método direto
+    console.log('📊 Estrutura dos dados recebidos:', dadosPatio);
+    
+    // Verificar múltiplas estruturas possíveis dos dados
+    let containers = [];
+    if (dadosPatio?.data?.containers) {
+      containers = dadosPatio.data.containers;
+    } else if (dadosPatio?.containers) {
+      containers = dadosPatio.containers;
+    } else if (Array.isArray(dadosPatio?.data)) {
+      containers = dadosPatio.data;
+    } else if (Array.isArray(dadosPatio)) {
+      containers = dadosPatio;
+    }
+    
+    console.log(`📦 Containers encontrados: ${containers.length}`);
+    console.log('📦 Primeiro container (amostra):', containers[0]);
+    
+    // USAR MÉTODO DIRETO para garantir atualização
+    if (containers.length > 0) {
+      console.log('🚀 Usando método DIRETO para atualizar estatísticas com', containers.length, 'containers');
+      statusDisplay.forcarAtualizacaoEstatisticas(containers);
+      
+      // Também tentar o método original como backup
+      statusDisplay.atualizarEstatisticas(containers);
+    } else {
+      console.warn('⚠️ Nenhum container encontrado nos dados para atualizar estatísticas');
+      // Forçar valores zerados se não há containers
+      statusDisplay.forcarAtualizacaoEstatisticas([]);
+    }
+    console.log('Estrutura completa dos dados:', JSON.stringify(dadosPatio, null, 2));
+    
+    statusDisplay.atualizarUltimaAtualizacao();
+    
+    // Confirmar que os dados foram sincronizados com sucesso
+    console.log('📊 Dados do pátio sincronizados com sucesso!');
+    console.log(`📦 Total de containers carregados: ${dadosPatio.data?.containers?.length || 0}`);
     
     // Verificar se as referências foram registradas corretamente
-    if (window.ModalsDialogs && window.APIManager) {
+    if (window.ModalsDialogs && window.APIManager && window.StatusDisplay) {
       console.log('✅ Referências globais registradas com sucesso!');
     } else {
       console.error('❌ Falha ao registrar referências globais!');
       if (!window.ModalsDialogs) console.error('❌ ModalsDialogs não está disponível globalmente');
       if (!window.APIManager) console.error('❌ APIManager não está disponível globalmente');
+      if (!window.StatusDisplay) console.error('❌ StatusDisplay não está disponível globalmente');
     }
     setProgresso(35);
 
@@ -165,6 +219,11 @@ async function iniciarPatio3D() {
       CONFIG,
     );
     interfaceController.init(labelGroup, infraestruturaGroup, posicoesVaziasGroup);
+    
+    // 9) Sistema de filtros
+    const filtersSearch = new FiltersSearch(containerGroup, dadosPatio.data, CONFIG);
+    window.FiltersSearch = filtersSearch;
+    
     setProgresso(100);
 
     // Guardar referências globais úteis para debug no console
@@ -178,6 +237,52 @@ async function iniciarPatio3D() {
       containerRenderer,
       infrastructure,
       emptyPositions,
+      statusDisplay,
+      filtersSearch,
+      modalsDialogs,
+      // Métodos úteis para debug
+      recarregarDados: async () => {
+        console.log('🔄 Recarregando dados e forçando atualização das estatísticas...');
+        const novosDados = await apiManager.obterDadosPatio3DComRetry();
+        
+        // Extrair containers com múltiplas tentativas
+        let containers = [];
+        if (novosDados?.data?.containers) {
+          containers = novosDados.data.containers;
+        } else if (novosDados?.containers) {
+          containers = novosDados.containers;
+        } else if (Array.isArray(novosDados?.data)) {
+          containers = novosDados.data;
+        }
+        
+        console.log(`📦 Containers encontrados no reload: ${containers.length}`);
+        
+        // Usar método direto
+        statusDisplay.forcarAtualizacaoEstatisticas(containers);
+        statusDisplay.atualizarEstatisticas(containers);
+        statusDisplay.atualizarUltimaAtualizacao();
+        console.log('✅ Dados recarregados e estatísticas atualizadas!');
+      },
+      
+      // Método para forçar atualização manual das estatísticas
+      forcarEstatisticas: async () => {
+        console.log('🚀 Forçando atualização manual das estatísticas...');
+        try {
+          const dados = await apiManager.obterDadosPatio3DComRetry();
+          let containers = dados?.data?.containers || dados?.containers || dados?.data || [];
+          console.log(`📊 Forçando atualização com ${containers.length} containers`);
+          statusDisplay.forcarAtualizacaoEstatisticas(containers);
+          return containers.length;
+        } catch (error) {
+          console.error('❌ Erro ao forçar atualização:', error);
+          return 0;
+        }
+      }
+    };
+    
+    // Método global de emergência para atualização das estatísticas
+    window.forcarAtualizacaoEstatisticas = async () => {
+      return window.patio3dManager.forcarEstatisticas();
     };
 
     // Remover overlay de carregamento

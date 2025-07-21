@@ -130,6 +130,8 @@ export class PatioVisualizacao3DManager {
         throw new Error("Dependências THREE.js não encontradas");
       }
       
+      // Atualizar status THREE.js com função direta
+      this.atualizarStatusDireto("threejs", "success", "THREE.js " + THREE.REVISION);
       this.statusDisplay.atualizarStatusSistema("threejs", "success", "THREE.js " + THREE.REVISION);
       this.statusDisplay.atualizarProgresso(10, "Dependências validadas...");
 
@@ -182,8 +184,17 @@ export class PatioVisualizacao3DManager {
       this.statusDisplay.atualizarProgresso(100, "Sistema carregado!");
       this.statusDisplay.ocultarLoadingComFade();
       
-      this.statusDisplay.atualizarStatusSistema("render", "success", "Renderizando");
-      this.statusDisplay.atualizarIndicadorSistema("online", "Sistema Online");
+      // Aguardar um pouco para garantir que o DOM esteja pronto
+      setTimeout(() => {
+        // Usar função direta para render status
+        this.atualizarStatusDireto("render", "success", "Renderizando");
+        
+        // Tentar também método original
+        this.statusDisplay.atualizarStatusSistema("render", "success", "Renderizando");
+        this.statusDisplay.atualizarIndicadorSistema("online", "Sistema Online");
+        
+        console.log("🎯 Status final atualizado com delay (DIRETO + ORIGINAL)");
+      }, 500);
 
       console.log("✨ Sistema MODULARIZADO inicializado com sucesso!");
       this.toastManager.show("Sistema 3D Premium carregado com sucesso!", "success");
@@ -284,14 +295,38 @@ export class PatioVisualizacao3DManager {
     console.log("🎛️ Sistemas de UI configurados");
   }
 
+  // ===== ATUALIZAÇÃO DIRETA DE STATUS (BACKUP) =====
+  atualizarStatusDireto(tipo, status, texto) {
+    console.log(`🔄 [DIRETO] Atualizando status: ${tipo} -> ${status} (${texto})`);
+    const elemento = document.getElementById(`${tipo}-status`);
+    if (elemento) {
+      elemento.className = `status-badge ${status}`;
+      elemento.textContent = texto;
+      console.log(`✅ [DIRETO] Status ${tipo} atualizado com sucesso`);
+    } else {
+      console.error(`❌ [DIRETO] Elemento ${tipo}-status não encontrado`);
+    }
+  }
+
   // ===== CARREGAR DADOS INICIAIS =====
   async carregarDadosIniciais() {
     const result = await this.dataManager.carregarDadosReais();
     
     if (result.success) {
       this.patioData = result.data;
-      this.statusDisplay.atualizarStatusSistema("api", "success", "Conectado");
-      this.statusDisplay.atualizarStatusSistema("data", "success", `${this.patioData.containers?.length || 0} containers`);
+      
+      // Atualizar status com delay para garantir DOM ready
+      setTimeout(() => {
+        // Usar função direta como backup
+        this.atualizarStatusDireto("api", "success", "Conectado");
+        this.atualizarStatusDireto("data", "success", `${this.patioData.containers?.length || 0} containers`);
+        
+        // Tentar também o método original
+        this.statusDisplay.atualizarStatusSistema("api", "success", "Conectado");
+        this.statusDisplay.atualizarStatusSistema("data", "success", `${this.patioData.containers?.length || 0} containers`);
+        
+        console.log("🎯 Status API e dados atualizados com delay (DIRETO + ORIGINAL)");
+      }, 300);
 
       // Criar visualização
       await this.criarVisualizacaoCompleta();

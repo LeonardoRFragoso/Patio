@@ -39,6 +39,14 @@
       rel="stylesheet"
       href="{{ url_for('static', filename='css/patio_3d_styles.css') }}"
     />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/dropdown-fix.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/status-badges.css') }}"
+    />
   </head>
   <body>
     <!-- Toast Container -->
@@ -184,8 +192,8 @@
                 </div>
                 <div class="system-status-item">
                   <span>Dados Pátio:</span>
-                  <span id="data-status" class="status-badge loading"
-                    >⚡ Sincronizando</span
+                  <span id="dados-status" class="status-badge loading"
+                    >🔄 SINCRONIZANDO</span
                   >
                 </div>
                 <div class="system-status-item">
@@ -324,62 +332,116 @@
                 <i class="fas fa-chart-bar"></i>
                 Estatísticas do Pátio
               </h6>
-              <div class="row g-1">
-                <div class="col-3">
-                  <div class="stat-card stat-card-sm">
-                    <div class="stat-number small" id="total-containers">0</div>
-                    <div class="stat-label small">Total</div>
+              <div class="row g-2">
+                <div class="col-6">
+                  <div class="stat-card stat-card-primary">
+                    <div class="stat-number" id="total-containers">0</div>
+                    <div class="stat-label">Total</div>
                   </div>
                 </div>
-                <div class="col-3">
-                  <div class="stat-card stat-card-sm">
-                    <div
-                      class="stat-number small success"
-                      id="containers-vistoriados"
-                    >
-                      0
-                    </div>
-                    <div class="stat-label small">Vistoriados</div>
-                  </div>
-                </div>
-                <div class="col-3">
-                  <div class="stat-card stat-card-sm">
-                    <div class="stat-number small warning" id="containers-flutuantes">
-                      0
-                    </div>
-                    <div class="stat-label small">Flutuantes</div>
-                  </div>
-                </div>
-                <div class="col-3">
-                  <div class="stat-card stat-card-sm">
-                    <div class="stat-number small" id="containers-40teu">0</div>
-                    <div class="stat-label small">40 TEU</div>
+                <div class="col-6">
+                  <div class="stat-card stat-card-success">
+                    <div class="stat-number" id="containers-vistoriados">0</div>
+                    <div class="stat-label">Vistoriados</div>
                   </div>
                 </div>
               </div>
-              <div class="row g-1 mt-2">
-                <div class="col-6">
-                  <h6 class="text-light mb-2 small">
-                    <i class="fas fa-layer-group me-1"></i>Por Row
-                  </h6>
-                  <div class="d-flex justify-content-between">
-                    <small class="text-light">A: <span id="row-A" class="badge-premium">0</span></small>
-                    <small class="text-light">B: <span id="row-B" class="badge-premium">0</span></small>
-                    <small class="text-light">C: <span id="row-C" class="badge-premium">0</span></small>
-                    <small class="text-light">D: <span id="row-D" class="badge-premium">0</span></small>
-                    <small class="text-light">E: <span id="row-E" class="badge-premium">0</span></small>
+              <div class="row g-2 mt-2">
+                <div class="col-4">
+                  <div class="stat-card stat-card-info">
+                    <div class="stat-number" id="containers-20ft">0</div>
+                    <div class="stat-label">20 pés</div>
                   </div>
                 </div>
-                <div class="col-6">
+                <div class="col-4">
+                  <div class="stat-card stat-card-info">
+                    <div class="stat-number" id="containers-40ft">0</div>
+                    <div class="stat-label">40 pés</div>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="stat-card stat-card-warning">
+                    <div class="stat-number" id="containers-flutuantes">0</div>
+                    <div class="stat-label">Flutuantes</div>
+                  </div>
+                </div>
+              </div>
+              <!-- Distribuição detalhada -->
+              <div class="row g-2 mt-3">
+                <div class="col-12">
                   <h6 class="text-light mb-2 small">
-                    <i class="fas fa-sort-amount-up me-1"></i>Por Altura
+                    <i class="fas fa-layer-group me-1"></i>Distribuição por Row
                   </h6>
-                  <div class="d-flex justify-content-between">
-                    <small class="text-light">1: <span id="altura-1" class="badge-premium">0</span></small>
-                    <small class="text-light">2: <span id="altura-2" class="badge-premium">0</span></small>
-                    <small class="text-light">3: <span id="altura-3" class="badge-premium">0</span></small>
-                    <small class="text-light">4: <span id="altura-4" class="badge-premium">0</span></small>
-                    <small class="text-light">5: <span id="altura-5" class="badge-premium">0</span></small>
+                  <div class="row g-1">
+                    <div class="col text-center">
+                      <div class="stat-mini">
+                        <div class="stat-mini-number" id="row-A">0</div>
+                        <div class="stat-mini-label">A</div>
+                      </div>
+                    </div>
+                    <div class="col text-center">
+                      <div class="stat-mini">
+                        <div class="stat-mini-number" id="row-B">0</div>
+                        <div class="stat-mini-label">B</div>
+                      </div>
+                    </div>
+                    <div class="col text-center">
+                      <div class="stat-mini">
+                        <div class="stat-mini-number" id="row-C">0</div>
+                        <div class="stat-mini-label">C</div>
+                      </div>
+                    </div>
+                    <div class="col text-center">
+                      <div class="stat-mini">
+                        <div class="stat-mini-number" id="row-D">0</div>
+                        <div class="stat-mini-label">D</div>
+                      </div>
+                    </div>
+                    <div class="col text-center">
+                      <div class="stat-mini">
+                        <div class="stat-mini-number" id="row-E">0</div>
+                        <div class="stat-mini-label">E</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="row g-2 mt-2">
+                <div class="col-12">
+                  <h6 class="text-light mb-2 small">
+                    <i class="fas fa-sort-amount-up me-1"></i>Distribuição por Altura
+                  </h6>
+                  <div class="row g-1">
+                    <div class="col text-center">
+                      <div class="stat-mini">
+                        <div class="stat-mini-number" id="altura-1">0</div>
+                        <div class="stat-mini-label">1</div>
+                      </div>
+                    </div>
+                    <div class="col text-center">
+                      <div class="stat-mini">
+                        <div class="stat-mini-number" id="altura-2">0</div>
+                        <div class="stat-mini-label">2</div>
+                      </div>
+                    </div>
+                    <div class="col text-center">
+                      <div class="stat-mini">
+                        <div class="stat-mini-number" id="altura-3">0</div>
+                        <div class="stat-mini-label">3</div>
+                      </div>
+                    </div>
+                    <div class="col text-center">
+                      <div class="stat-mini">
+                        <div class="stat-mini-number" id="altura-4">0</div>
+                        <div class="stat-mini-label">4</div>
+                      </div>
+                    </div>
+                    <div class="col text-center">
+                      <div class="stat-mini">
+                        <div class="stat-mini-number" id="altura-5">0</div>
+                        <div class="stat-mini-label">5</div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -395,61 +457,94 @@
             <div class="control-section">
               <h6>
                 <i class="fas fa-palette"></i>
-                Armadores & Status
+                Armadores & Status Completo
               </h6>
               <div class="row g-2">
-                <div class="col-lg-2 col-md-3 col-sm-4 col-6">
+                <!-- Primeira linha - Principais armadores -->
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 col-12">
                   <div class="legend-item legend-item-horizontal" data-armador="EVERGREEN">
-                    <div
-                      class="legend-color legend-color-sm"
-                      style="background: linear-gradient(45deg, #4caf50, #45a049)"
-                    ></div>
+                    <div class="legend-color legend-color-sm" style="background: linear-gradient(45deg, #4caf50, #45a049)"></div>
                     <span class="legend-text small">EVERGREEN</span>
+                    <span class="legend-count badge badge-sm ms-1" id="count-EVERGREEN">0</span>
                   </div>
                 </div>
-                <div class="col-lg-2 col-md-3 col-sm-4 col-6">
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 col-12">
                   <div class="legend-item legend-item-horizontal" data-armador="MAERSK">
-                    <div
-                      class="legend-color legend-color-sm"
-                      style="background: linear-gradient(45deg, #2196f3, #1976d2)"
-                    ></div>
+                    <div class="legend-color legend-color-sm" style="background: linear-gradient(45deg, #2196f3, #1976d2)"></div>
                     <span class="legend-text small">MAERSK</span>
+                    <span class="legend-count badge badge-sm ms-1" id="count-MAERSK">0</span>
                   </div>
                 </div>
-                <div class="col-lg-2 col-md-3 col-sm-4 col-6">
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 col-12">
                   <div class="legend-item legend-item-horizontal" data-armador="MSC">
-                    <div
-                      class="legend-color legend-color-sm"
-                      style="background: linear-gradient(45deg, #ff9800, #f57c00)"
-                    ></div>
+                    <div class="legend-color legend-color-sm" style="background: linear-gradient(45deg, #ff9800, #f57c00)"></div>
                     <span class="legend-text small">MSC</span>
+                    <span class="legend-count badge badge-sm ms-1" id="count-MSC">0</span>
                   </div>
                 </div>
-                <div class="col-lg-2 col-md-3 col-sm-4 col-6">
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 col-12">
                   <div class="legend-item legend-item-horizontal" data-armador="COSCO">
-                    <div
-                      class="legend-color legend-color-sm"
-                      style="background: linear-gradient(45deg, #f44336, #d32f2f)"
-                    ></div>
+                    <div class="legend-color legend-color-sm" style="background: linear-gradient(45deg, #f44336, #d32f2f)"></div>
                     <span class="legend-text small">COSCO</span>
+                    <span class="legend-count badge badge-sm ms-1" id="count-COSCO">0</span>
                   </div>
                 </div>
-                <div class="col-lg-2 col-md-3 col-sm-4 col-6">
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 col-12">
                   <div class="legend-item legend-item-horizontal" data-armador="CMA CGM">
-                    <div
-                      class="legend-color legend-color-sm"
-                      style="background: linear-gradient(45deg, #9c27b0, #7b1fa2)"
-                    ></div>
+                    <div class="legend-color legend-color-sm" style="background: linear-gradient(45deg, #9c27b0, #7b1fa2)"></div>
                     <span class="legend-text small">CMA CGM</span>
+                    <span class="legend-count badge badge-sm ms-1" id="count-CMA-CGM">0</span>
                   </div>
                 </div>
-                <div class="col-lg-2 col-md-3 col-sm-4 col-6">
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 col-12">
                   <div class="legend-item legend-item-horizontal" data-armador="HAPAG-LLOYD">
-                    <div
-                      class="legend-color legend-color-sm"
-                      style="background: linear-gradient(45deg, #ff5722, #e64a19)"
-                    ></div>
+                    <div class="legend-color legend-color-sm" style="background: linear-gradient(45deg, #ff5722, #e64a19)"></div>
                     <span class="legend-text small">HAPAG-LLOYD</span>
+                    <span class="legend-count badge badge-sm ms-1" id="count-HAPAG-LLOYD">0</span>
+                  </div>
+                </div>
+                
+                <!-- Segunda linha - Armadores adicionais -->
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 col-12">
+                  <div class="legend-item legend-item-horizontal" data-armador="ONE">
+                    <div class="legend-color legend-color-sm" style="background: linear-gradient(45deg, #e91e63, #c2185b)"></div>
+                    <span class="legend-text small">ONE</span>
+                    <span class="legend-count badge badge-sm ms-1" id="count-ONE">0</span>
+                  </div>
+                </div>
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 col-12">
+                  <div class="legend-item legend-item-horizontal" data-armador="YANG MING">
+                    <div class="legend-color legend-color-sm" style="background: linear-gradient(45deg, #00bcd4, #0097a7)"></div>
+                    <span class="legend-text small">YANG MING</span>
+                    <span class="legend-count badge badge-sm ms-1" id="count-YANG-MING">0</span>
+                  </div>
+                </div>
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 col-12">
+                  <div class="legend-item legend-item-horizontal" data-armador="HMM">
+                    <div class="legend-color legend-color-sm" style="background: linear-gradient(45deg, #795548, #5d4037)"></div>
+                    <span class="legend-text small">HMM</span>
+                    <span class="legend-count badge badge-sm ms-1" id="count-HMM">0</span>
+                  </div>
+                </div>
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 col-12">
+                  <div class="legend-item legend-item-horizontal" data-armador="PIL">
+                    <div class="legend-color legend-color-sm" style="background: linear-gradient(45deg, #607d8b, #455a64)"></div>
+                    <span class="legend-text small">PIL</span>
+                    <span class="legend-count badge badge-sm ms-1" id="count-PIL">0</span>
+                  </div>
+                </div>
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 col-12">
+                  <div class="legend-item legend-item-horizontal" data-armador="ZIM">
+                    <div class="legend-color legend-color-sm" style="background: linear-gradient(45deg, #3f51b5, #303f9f)"></div>
+                    <span class="legend-text small">ZIM</span>
+                    <span class="legend-count badge badge-sm ms-1" id="count-ZIM">0</span>
+                  </div>
+                </div>
+                <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 col-12">
+                  <div class="legend-item legend-item-horizontal" data-armador="OUTROS">
+                    <div class="legend-color legend-color-sm" style="background: linear-gradient(45deg, #9e9e9e, #757575)"></div>
+                    <span class="legend-text small">OUTROS</span>
+                    <span class="legend-count badge badge-sm ms-1" id="count-OUTROS">0</span>
                   </div>
                 </div>
                 <div class="col-lg-2 col-md-3 col-sm-4 col-6">

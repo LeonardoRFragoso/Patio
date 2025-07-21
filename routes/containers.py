@@ -701,7 +701,8 @@ def obter_dados_patio_3d():
                         'booking': container_extra[0] if container_extra and container_extra[0] else None,
                         'capacidade': container_extra[1] if container_extra else (vistoria_data[8] if vistoria_data else None),
                         'tara': container_extra[2] if container_extra else (vistoria_data[9] if vistoria_data else None),
-                        'tipo_container': container_extra[3] if container_extra else (vistoria_data[10] if vistoria_data else 'Standard'),
+                        'tipo_container': 'real',  # 🔴 CORREÇÃO: Sempre 'real' para containers do banco de dados
+                        'tipo_fisico': container_extra[3] if container_extra else (vistoria_data[10] if vistoria_data else 'Standard'),  # Tipo físico do container
                         'unidade': unidade
                     }
                     
