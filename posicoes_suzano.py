@@ -269,7 +269,9 @@ class PatioSuzano:
     
     def sugerir_posicoes_40_teu_livres(self, status_container: str, db_connection, baia_preferida: str = None) -> List[str]:
         """
-        Sugere posições válidas para containers de 40 TEU, verificando se as posições adjacentes estão livres.
+        🔴 LÓGICA CORRIGIDA: Sugere posições válidas para containers de 40 TEU.
+        NOVA REGRA: Container 40ft ocupa 2 baias consecutivas (N e N+1)
+        REGRA PONTE: Container 40ft pode ser empilhado sobre dois containers 20ft adjacentes
         
         Args:
             status_container (str): Status do container (CHEIO, VAZIO, etc.)
@@ -289,41 +291,85 @@ class PatioSuzano:
             posicoes_candidatas = [p for p in posicoes_candidatas if p[0] == baia_preferida]
         
         for posicao in posicoes_candidatas:
-            baia, posicao_numero, altura = self.decompor_posicao(posicao)
+            row, baia_numero, altura = self.decompor_posicao(posicao)
             
-            # Verificar se a posição central está livre
-            if self.verificar_posicao_ocupada(posicao, db_connection):
+            # 🔴 NOVA LÓGICA: Container 40ft precisa de 2 baias consecutivas
+            # Verificar se pode iniciar nesta baia (precisa de baia+1 disponível)
+            if baia_numero > 19:  # Baia 20 não pode iniciar container 40ft
                 continue
+                
+            baia_inicial = posicao  # Posição atual
+            baia_final = f"{row}{baia_numero+1:02d}-{altura}"  # Próxima baia
             
-            # Verificar posições adjacentes
-            baia_anterior = f"{baia}{posicao_numero-1:02d}-{altura}" if posicao_numero > 1 else None
-            baia_posterior = f"{baia}{posicao_numero+1:02d}-{altura}" if posicao_numero < 20 else None
+            # Verificar se ambas as posições existem
+            if not self.validar_posicao_existe(baia_final):
+                continue
+                
+            # Verificar se ambas as posições estão livres
+            inicial_livre = not self.verificar_posicao_ocupada(baia_inicial, db_connection)
+            final_livre = not self.verificar_posicao_ocupada(baia_final, db_connection)
             
-            posicao_valida = True
-            
-            # Verificar se posição anterior está livre (se existir)
-            if baia_anterior and self.validar_posicao_existe(baia_anterior):
-                if self.verificar_posicao_ocupada(baia_anterior, db_connection):
-                    posicao_valida = False
-            
-            # Verificar se posição posterior está livre (se existir)
-            if baia_posterior and self.validar_posicao_existe(baia_posterior):
-                if self.verificar_posicao_ocupada(baia_posterior, db_connection):
-                    posicao_valida = False
-            
-            if posicao_valida:
-                posicoes_validas.append(posicao)
+            if inicial_livre and final_livre:
+                # 🔴 REGRA PONTE: Verificar se há suporte adequado para empilhamento
+                if altura > 1:
+                    # Para altura > 1, verificar se há suporte adequado
+                    if self._validar_suporte_40ft_ponte(row, baia_numero, altura, db_connection):
+                        posicoes_validas.append(posicao)
+                else:
+                    # Para altura 1, sempre válido se as posições estão livres
+                    posicoes_validas.append(posicao)
         
         # Priorizar por altura (mais baixo primeiro), depois por baia
         def prioridade_40_teu(posicao: str) -> Tuple[int, str, int]:
-            baia, numero, altura = self.decompor_posicao(posicao)
-            return (altura, baia, numero)
+            row, numero, altura = self.decompor_posicao(posicao)
+            return (altura, row, numero)
         
         return sorted(posicoes_validas, key=prioridade_40_teu)
+    
+    def _validar_suporte_40ft_ponte(self, row: str, baia_numero: int, altura: int, db_connection) -> bool:
+        """
+        Verifica se há suporte adequado para empilhamento de container 40ft sobre dois containers 20ft adjacentes.
+        
+        Args:
+            row (str): Letra da baia
+            baia_numero (int): Número da baia
+            altura (int): Altura da posição
+            db_connection: Conexão com o banco de dados
+            
+        Returns:
+            bool: True se há suporte adequado
+        """
+        # Verificar se há containers 20ft nas posições abaixo
+        posicao_abaixo_esquerda = f"{row}{baia_numero:02d}-{altura-1}"
+        posicao_abaixo_direita = f"{row}{baia_numero+1:02d}-{altura-1}"
+        
+        # Verificar se as posições abaixo existem e estão ocupadas
+        if not self.validar_posicao_existe(posicao_abaixo_esquerda) or not self.validar_posicao_existe(posicao_abaixo_direita):
+            return False
+        
+        # Verificar se as posições abaixo estão ocupadas por containers 20ft
+        cursor = db_connection.cursor()
+        cursor.execute('''
+            SELECT COUNT(*) FROM containers 
+            WHERE posicao_atual = ? AND tamanho = '20'
+        ''', (posicao_abaixo_esquerda,))
+        
+        count_esquerda = cursor.fetchone()[0]
+        
+        cursor.execute('''
+            SELECT COUNT(*) FROM containers 
+            WHERE posicao_atual = ? AND tamanho = '20'
+        ''', (posicao_abaixo_direita,))
+        
+        count_direita = cursor.fetchone()[0]
+        
+        return count_esquerda > 0 and count_direita > 0
     
     def verificar_posicao_ocupada(self, posicao: str, db_connection) -> bool:
         """
         Verifica se uma posição está ocupada por algum container no banco de dados.
+{{ ... }}
+{{ ... }}
         
         Args:
             posicao (str): Posição a verificar no formato A01-1
@@ -651,54 +697,60 @@ class PatioSuzano:
             # Validar tamanho do container (20 ou 40 TEUs) com a paridade da posição
             baia, posicao_numero, altura = self.decompor_posicao(posicao)
         
-            # Para containers de 40 TEUs, verificar se as posições adjacentes estão livres
+            # 🔴 LÓGICA CORRIGIDA: Para containers de 40 TEUs, verificar 2 baias consecutivas
             if tamanho_teu == 40:
-                # Container de 40 TEUs ocupa 3 posições: anterior, central e posterior
-                baia_anterior = f"{baia}{posicao_numero-1:02d}-{altura}" if posicao_numero > 1 else None
-                baia_posterior = f"{baia}{posicao_numero+1:02d}-{altura}" if posicao_numero < 20 else None
+                # NOVA REGRA: Container de 40 TEUs ocupa 2 baias consecutivas (N e N+1)
+                if posicao_numero > 19:  # Baia 20 não pode iniciar container 40ft
+                    resultado['valido'] = False
+                    resultado['mensagem'] = f"Container de 40 TEUs não pode ser posicionado na baia {posicao_numero}. Baias válidas para início: 1-19"
+                    resultado['sugestoes'] = self.sugerir_posicoes_40_teu_livres(status_container, db_connection)[:5]
+                    return resultado
                 
-                posicoes_bloqueadas = []
+                baia_inicial = posicao  # Posição atual
+                baia_final = f"{baia}{posicao_numero+1:02d}-{altura}"  # Próxima baia consecutiva
+                
+                # Verificar se a segunda baia existe
+                if not self.validar_posicao_existe(baia_final):
+                    resultado['valido'] = False
+                    resultado['mensagem'] = f"Container de 40 TEUs em {posicao} requer posição {baia_final} que não existe"
+                    resultado['sugestoes'] = self.sugerir_posicoes_40_teu_livres(status_container, db_connection)[:5]
+                    return resultado
+                
                 posicoes_ocupadas_conflito = []
                 
                 if db_connection:
-                    # Verificar posição anterior
-                    if baia_anterior and self.validar_posicao_existe(baia_anterior):
-                        if self.verificar_posicao_ocupada(baia_anterior, db_connection):
-                            posicoes_ocupadas_conflito.append(baia_anterior)
-                        else:
-                            posicoes_bloqueadas.append(baia_anterior)
+                    # Verificar se a posição inicial está livre
+                    if self.verificar_posicao_ocupada(baia_inicial, db_connection):
+                        posicoes_ocupadas_conflito.append(baia_inicial)
                     
-                    # Verificar posição posterior
-                    if baia_posterior and self.validar_posicao_existe(baia_posterior):
-                        if self.verificar_posicao_ocupada(baia_posterior, db_connection):
-                            posicoes_ocupadas_conflito.append(baia_posterior)
-                        else:
-                            posicoes_bloqueadas.append(baia_posterior)
+                    # Verificar se a posição final está livre
+                    if self.verificar_posicao_ocupada(baia_final, db_connection):
+                        posicoes_ocupadas_conflito.append(baia_final)
                     
                     # Se há conflitos, rejeitar operação
                     if posicoes_ocupadas_conflito:
                         resultado['valido'] = False
                         conflitos_str = ', '.join(posicoes_ocupadas_conflito)
-                        resultado['mensagem'] = f"Container de 40 TEUs em {posicao} não pode ser posicionado. Posições ocupadas que seriam bloqueadas: {conflitos_str}"
+                        resultado['mensagem'] = f"Container de 40 TEUs não pode ser posicionado. Posições ocupadas: {conflitos_str}"
                         
                         # Sugerir apenas posições onde container 40 TEU pode ser colocado
                         resultado['sugestoes'] = self.sugerir_posicoes_40_teu_livres(status_container, db_connection)[:5]
                         return resultado
                     
-                    # Registrar posições que serão bloqueadas
-                    resultado['detalhes']['posicoes_bloqueadas'] = posicoes_bloqueadas
+                    # Registrar posições que serão ocupadas
+                    resultado['detalhes']['posicoes_ocupadas'] = [baia_inicial, baia_final]
             
-            # Para containers de 20 TEUs, verificar se a posição não está bloqueada por container 40 TEU
+            # 🔴 LÓGICA CORRIGIDA: Para containers de 20 TEUs, verificar se a posição não está ocupada por container 40 TEU
             if tamanho_teu == 20:
                 if db_connection:
                     cursor = db_connection.cursor()
                     
-                    # Verificar se há containers de 40 TEU que possam estar bloqueando esta posição
-                    # Um container 40 TEU bloqueia as posições anterior e posterior à sua posição central
+                    # NOVA REGRA: Container 40ft ocupa 2 baias consecutivas (N e N+1)
+                    # Verificar se esta posição está sendo ocupada por algum container 40ft
                     
                     posicoes_40_teu_que_bloqueiam = []
                     
-                    # Verificar se há um container 40 TEU na posição anterior que bloquearia esta posição
+                    # Verificar se há um container 40 TEU que inicia na posição anterior (ocuparia esta posição)
                     if posicao_numero > 1:
                         pos_anterior = f"{baia}{posicao_numero-1:02d}-{altura}"
                         cursor.execute(
@@ -707,24 +759,23 @@ class PatioSuzano:
                         )
                         container_40_anterior = cursor.fetchone()
                         if container_40_anterior:
+                            # Container 40ft em posição anterior ocupa esta posição também
                             posicoes_40_teu_que_bloqueiam.append(pos_anterior)
                     
-                    # Verificar se há um container 40 TEU na posição posterior que bloquearia esta posição
-                    if posicao_numero < 20:
-                        pos_posterior = f"{baia}{posicao_numero+1:02d}-{altura}"
-                        cursor.execute(
-                            'SELECT numero, tamanho FROM containers WHERE posicao_atual = ? AND tamanho = 40',
-                            (pos_posterior,)
-                        )
-                        container_40_posterior = cursor.fetchone()
-                        if container_40_posterior:
-                            posicoes_40_teu_que_bloqueiam.append(pos_posterior)
+                    # Verificar se esta posição já está ocupada diretamente
+                    cursor.execute(
+                        'SELECT numero, tamanho FROM containers WHERE posicao_atual = ? AND tamanho = 40',
+                        (posicao,)
+                    )
+                    container_40_atual = cursor.fetchone()
+                    if container_40_atual:
+                        posicoes_40_teu_que_bloqueiam.append(posicao)
                     
-                    # Se há containers 40 TEU bloqueando, rejeitar
+                    # Se há containers 40 TEU ocupando esta posição, rejeitar
                     if posicoes_40_teu_que_bloqueiam:
                         resultado['valido'] = False
                         bloqueios_str = ', '.join(posicoes_40_teu_que_bloqueiam)
-                        resultado['mensagem'] = f"Posição {posicao} está bloqueada por container(s) de 40 TEU em: {bloqueios_str}"
+                        resultado['mensagem'] = f"Posição {posicao} está ocupada por container(s) de 40 TEU iniciado(s) em: {bloqueios_str}"
                         resultado['sugestoes'] = self.sugerir_posicoes_para_container(status_container)[:5]
                         return resultado
             

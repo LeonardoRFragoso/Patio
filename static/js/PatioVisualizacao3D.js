@@ -19,7 +19,11 @@ import {
   API_ENDPOINTS,
   validateDependencies,
   PerformanceMonitor,
-  HelperUtils
+  HelperUtils,
+  validarPosicionamentoContainer,
+  isContainer40TEU,
+  podeColocar20ft,
+  podeColocar40ft
 } from './patio3d/utils/index.js';
 
 // Core
@@ -33,11 +37,13 @@ import {
 // Components
 import {
   ContainerRenderer,
-  EmptyPositions,
   LabelsManager,
   Infrastructure,
   GridSystem
 } from './patio3d/components/index.js';
+
+// 🔴 COMPONENTE CORRIGIDO: Posições vazias com lógica de baias ímpares/pares
+import { EmptyPositionsCorrected } from './patio3d/components/empty-positions-corrected.js';
 
 // UI
 import {
@@ -63,7 +69,8 @@ export class PatioVisualizacao3DManager {
     
     // ===== COMPONENTES 3D =====
     this.containerRenderer = new ContainerRenderer();
-    this.emptyPositions = new EmptyPositions();
+    // 🔴 NOVO: Posições vazias com lógica corrigida
+    this.emptyPositionsCorrected = new EmptyPositionsCorrected();
     this.labelsManager = new LabelsManager();
     this.infrastructure = new Infrastructure();
     this.gridSystem = new GridSystem();

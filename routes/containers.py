@@ -625,23 +625,84 @@ def obter_dados_patio_3d():
                     # Usar tamanho real do container ou padrão 20
                     tamanho_container = tamanho_real if tamanho_real else 20
                     
+                    # 🔧 BUSCAR DADOS COMPLETOS DE VISTORIAS
+                    cursor.execute('''
+                        SELECT data_vistoria, status, lacre, condicao, observacoes_gerais, 
+                               tipo_operacao, placa, vagao, capacidade, tara, tipo_container
+                        FROM vistorias 
+                        WHERE container_numero = ? 
+                        ORDER BY data_vistoria DESC 
+                        LIMIT 1
+                    ''', (numero,))
+                    vistoria_data = cursor.fetchone()
+                    
+                    # 🔧 BUSCAR DADOS COMPLETOS DE OPERAÇÕES
+                    cursor.execute('''
+                        SELECT tipo, modo, placa, vagao, data_operacao, observacoes
+                        FROM operacoes 
+                        WHERE container_id = ? 
+                        ORDER BY data_operacao DESC 
+                        LIMIT 1
+                    ''', (container_id,))
+                    operacao_data = cursor.fetchone()
+                    
+                    # 🔧 BUSCAR BOOKING DA TABELA CONTAINERS
+                    cursor.execute('''
+                        SELECT booking, capacidade, tara, tipo_container
+                        FROM containers 
+                        WHERE id = ?
+                    ''', (container_id,))
+                    container_extra = cursor.fetchone()
+                    
                     container_data = {
                         'id': container_id,
                         'numero': numero,
                         'status': status,
                         'posicao': posicao_formatada,
+                        'posicao_atual': posicao_formatada,  # Para compatibilidade
                         'baia': baia,  # Agora é numérico (01-20)
                         'linha': row,  # Agora é o row (A-E) - mantendo nome 'linha' para compatibilidade
+                        'row': row,  # Nome alternativo
+                        'bay': baia,  # Nome alternativo
                         'altura': altura,
                         'tamanho': tamanho_container,
                         'tamanho_teu': tamanho_container,  # Nome alternativo
-                        'peso': 25000 if tamanho_container == 40 else 15000,      # Valor estimado baseado no tamanho
+                        'peso': 25000 if tamanho_container == 40 else 15000,
                         'iso_code': '40DC' if tamanho_container == 40 else '20DC',
                         'data_criacao': data_criacao,
                         'ultima_atualizacao': ultima_atualizacao,
-                        'armador': armador if armador else 'N/A',  # Campo armador incluído
+                        'armador': armador if armador else 'N/A',
                         'flutuante': False,
-                        'tipo_container': 'real'  # Indica que é container REAL
+                        'tipo_container': 'real',
+                        
+                        # 🔧 DADOS DE VISTORIA (se existir)
+                        'vistorias': [{
+                            'data_vistoria': vistoria_data[0] if vistoria_data else None,
+                            'status': vistoria_data[1] if vistoria_data else None,
+                            'lacre': vistoria_data[2] if vistoria_data else None,
+                            'condicao': vistoria_data[3] if vistoria_data else None,
+                            'observacoes_gerais': vistoria_data[4] if vistoria_data else None,
+                            'tipo_operacao': vistoria_data[5] if vistoria_data else None,
+                            'placa': vistoria_data[6] if vistoria_data else None,
+                            'vagao': vistoria_data[7] if vistoria_data else None
+                        }] if vistoria_data else [],
+                        
+                        # 🔧 DADOS DE OPERAÇÃO (se existir)
+                        'operacoes': [{
+                            'tipo': operacao_data[0] if operacao_data else None,
+                            'modo': operacao_data[1] if operacao_data else None,
+                            'placa': operacao_data[2] if operacao_data else None,
+                            'vagao': operacao_data[3] if operacao_data else None,
+                            'data_operacao': operacao_data[4] if operacao_data else None,
+                            'observacoes': operacao_data[5] if operacao_data else None
+                        }] if operacao_data else [],
+                        
+                        # 🔧 DADOS EXTRAS DO CONTAINER
+                        'booking': container_extra[0] if container_extra and container_extra[0] else None,
+                        'capacidade': container_extra[1] if container_extra else (vistoria_data[8] if vistoria_data else None),
+                        'tara': container_extra[2] if container_extra else (vistoria_data[9] if vistoria_data else None),
+                        'tipo_container': container_extra[3] if container_extra else (vistoria_data[10] if vistoria_data else 'Standard'),
+                        'unidade': unidade
                     }
                     
                     containers.append(container_data)
@@ -652,55 +713,31 @@ def obter_dados_patio_3d():
                         posicoes_ocupadas[chave_posicao] = {}
                     posicoes_ocupadas[chave_posicao][altura] = container_data
                     
-                    # Se é um container de 40 TEU, criar posições bloqueadas adjacentes
+                    # 🔴 LÓGICA CORRIGIDA: Container de 40 TEU ocupa 2 baias consecutivas (N e N+1)
                     if tamanho_container == 40:
-                        # Posição anterior (baia anterior)
-                        if baia > 1:
-                            pos_anterior = f"{row}{baia-1:02d}-{altura}"
-                            container_bloqueado_anterior = {
-                                'id': f"{container_id}_anterior",
-                                'numero': f"{numero}_BLOQUEIA",
-                                'status': 'bloqueado',
-                                'posicao': pos_anterior,
-                                'baia': baia - 1,  # Baia anterior
+                        # Container 40ft ocupa a posição atual + próxima baia
+                        if baia < 20:  # Verificar se há espaço para a segunda baia
+                            pos_ocupada_adicional = f"{row}{baia+1:02d}-{altura}"
+                            container_ocupado_adicional = {
+                                'id': f"{container_id}_ocupado",
+                                'numero': f"{numero}_OCUPA",
+                                'status': 'ocupado_40ft',
+                                'posicao': pos_ocupada_adicional,
+                                'baia': baia + 1,  # Segunda baia ocupada
                                 'linha': row,  # Mesmo row
                                 'altura': altura,
                                 'tamanho': 40,
                                 'tamanho_teu': 40,
-                                'peso': 0,
+                                'peso': 0,  # Peso já contabilizado no container principal
                                 'iso_code': '40DC',
                                 'data_criacao': data_criacao,
                                 'ultima_atualizacao': ultima_atualizacao,
                                 'armador': armador,
                                 'flutuante': False,
-                                'tipo_container': 'bloqueado',
+                                'tipo_container': 'ocupado_40ft',
                                 'container_principal': numero
                             }
-                            containers.append(container_bloqueado_anterior)
-                        
-                        # Posição posterior (baia posterior)
-                        if baia < 20:
-                            pos_posterior = f"{row}{baia+1:02d}-{altura}"
-                            container_bloqueado_posterior = {
-                                'id': f"{container_id}_posterior",
-                                'numero': f"{numero}_BLOQUEIA",
-                                'status': 'bloqueado',
-                                'posicao': pos_posterior,
-                                'baia': baia + 1,  # Baia posterior
-                                'linha': row,  # Mesmo row
-                                'altura': altura,
-                                'tamanho': 40,
-                                'tamanho_teu': 40,
-                                'peso': 0,
-                                'iso_code': '40DC',
-                                'data_criacao': data_criacao,
-                                'ultima_atualizacao': ultima_atualizacao,
-                                'armador': armador,
-                                'flutuante': False,
-                                'tipo_container': 'bloqueado',
-                                'container_principal': numero
-                            }
-                            containers.append(container_bloqueado_posterior)
+                            containers.append(container_ocupado_adicional)
                     
             except Exception as e:
                 logger.warning(f"Erro ao processar posição {posicao_formatada}: {e}")

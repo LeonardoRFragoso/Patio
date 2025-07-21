@@ -4,6 +4,13 @@
  */
 
 import { CONFIG, CORES, CORES_ARMADORES } from '../utils/constants.js';
+import { 
+  validarPosicionamentoContainer, 
+  isContainer40TEU, 
+  podeColocar20ft, 
+  podeColocar40ft,
+  baiaBloqueadaPor40ft 
+} from '../utils/validation.js';
 
 export class ContainerRenderer {
   constructor(helperUtils = null) {
@@ -102,19 +109,25 @@ export class ContainerRenderer {
       }
 
       // Criar container 3D
-      const containerMesh = new THREE.Mesh(geometry, material);
-      containerMesh.position.copy(posicao);
-      
-      // 🔧 ORIENTAÇÃO HORIZONTAL: Rotacionar container 90 graus no eixo X para ficar deitado
-      containerMesh.rotation.x = Math.PI / 2;
+    const containerMesh = new THREE.Mesh(geometry, material);
+    
+    // 🔧 CORREÇÃO DE BUG: Calcular posição final antes de aplicar ao mesh
+    // Evita inconsistências durante re-renderização
+    const posicaoFinal = posicao.clone();
+    
+    // 🔧 ORIENTAÇÃO HORIZONTAL: Rotacionar container 90 graus no eixo X para ficar deitado
+    containerMesh.rotation.x = Math.PI / 2;
 
-      // 🔧 CORREÇÃO: Posicionamento correto para containers 40ft
-      // Container 40ft deve ocupar exatamente 2 espaços de baia (2 x 7 = 14 unidades)
-      if (eh40TEU) {
-        // Ajustar posição X para centralizar o container 40ft em 2 baias
-        // O container deve se estender meio espaço para cada lado
-        containerMesh.position.x += CONFIG.ESPACAMENTO_BAIA / 2;
-      }
+    // 🔧 CORREÇÃO: Posicionamento correto para containers 40ft
+    // Container 40ft deve ocupar exatamente 2 espaços de baia (2 x 7 = 14 unidades)
+    if (eh40TEU) {
+      // Ajustar posição X para centralizar o container 40ft em 2 baias
+      // O container deve se estender meio espaço para cada lado
+      posicaoFinal.x += CONFIG.ESPACAMENTO_BAIA / 2;
+    }
+    
+    // Aplicar posição final calculada
+    containerMesh.position.copy(posicaoFinal);
 
       // Sombras
       containerMesh.castShadow = true;
@@ -124,16 +137,16 @@ export class ContainerRenderer {
       this.adicionarDetalhesContainer(containerMesh, container, eh40TEU);
 
       // UserData
-      containerMesh.userData = {
-        container: container,
-        row: row,
-        bay: bay,
-        altura: altura,
-        eh40TEU: eh40TEU,
-        posicao: `${row}${String(bay).padStart(2, "0")}-${altura}`,
-        posicaoOriginal: posicao.clone(),
-        materialOriginal: material.clone(),
-      };
+    containerMesh.userData = {
+      container: container,
+      row: row,
+      bay: bay,
+      altura: altura,
+      eh40TEU: eh40TEU,
+      posicao: `${row}${String(bay).padStart(2, "0")}-${altura}`,
+      posicaoOriginal: posicaoFinal.clone(), // 🔧 CORREÇÃO: Salvar posição final, não base
+      materialOriginal: material.clone(),
+    };  
 
       return containerMesh;
     } catch (error) {
@@ -373,17 +386,46 @@ export class ContainerRenderer {
     return CORES_ARMADORES[armadorUpper] || CORES_ARMADORES.DEFAULT;
   }
 
+  // 🔴 FUNÇÃO CORRIGIDA: Validar empilhamento 40ft com lógica real
   validarEmpilhamento40TEU(container) {
-    return true; // Simplificado para o exemplo
+    try {
+      if (!this.patioData || !this.patioData.containers) return true;
+      
+      const containers = this.patioData.containers;
+      const row = container.row || container.linha;
+      const bay = parseInt(container.bay || container.baia);
+      const altura = parseInt(container.altura);
+      
+      const validacao = podeColocar40ft(containers, row, bay, altura);
+      
+      if (!validacao.valido) {
+        console.warn(`⚠️ Empilhamento 40ft inválido: ${validacao.erro}`);
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error(`Erro na validação 40ft: ${error.message}`);
+      return false;
+    }
   }
 
+  // 🔴 FUNÇÃO CORRIGIDA: Validar altura máxima com lógica completa
   validarAlturaMaximaPorRow(container) {
     try {
       const row = container.row || container.linha;
-      const altura = container.altura;
+      const altura = parseInt(container.altura);
       const alturaMaxima = CONFIG.ALTURAS_MAX_POR_ROW[row] || CONFIG.ALTURAS_MAX;
-      return altura <= alturaMaxima;
+      
+      const valido = altura <= alturaMaxima;
+      
+      if (!valido) {
+        console.warn(`⚠️ Altura ${altura} excede limite da fileira ${row} (máximo: ${alturaMaxima})`);
+      }
+      
+      return valido;
     } catch (error) {
+      console.error(`Erro na validação de altura: ${error.message}`);
       return true;
     }
   }

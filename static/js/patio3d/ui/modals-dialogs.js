@@ -329,38 +329,48 @@ export class ModalsDialogs {
 
         const modal = this.criarModal('modal-container-detalhes', `Container ${container.numero}`, 'shipping-fast');
         
-        // Preparar dados para exibição (usando campos reais do banco)
+        // 🔧 DADOS CORRIGIDOS: Usando campos reais do banco de dados
         const tamanho = container.tamanho || '20';
         const status = container.status || 'Normal';
         const posicao = container.posicao_atual || container.posicao || 'Não informada';
         const armador = container.armador || 'Não informado';
         const capacidade = container.capacidade || 'Não informada';
         const tara = container.tara || 'Não informada';
-        const booking = container.booking || 'Não informado';
+        const booking = container.booking || 'Não informado';  // 🔧 Agora vem da API corrigida
         const dataEntrada = container.data_criacao || 'Não informada';
         const dataAtualizacao = container.ultima_atualizacao || 'Não informada';
         const unidade = container.unidade || 'Não informada';
-        const tipo = container.tipo_container || 'Standard';
+        const tipo = container.tipo_container === 'real' ? 'Standard' : (container.tipo_container || 'Standard');
+        
+        // 🔧 CORREÇÃO: Lógica de vistoria baseada na regra de negócio
+        // Se container está no pátio (tem posição), foi obrigatoriamente vistoriado
+        const temPosicao = posicao && posicao !== 'Não informada';
+        const statusContainer = container.status || '';
+        const foiVistoriado = statusContainer.toLowerCase() === 'vistoriado' || temPosicao;
         
         // Dados de vistoria (da tabela vistorias) - pegar a mais recente
         const vistorias = container.vistorias || [];
         console.log('🔍 [MODAL DEBUG] Vistorias encontradas:', vistorias.length, vistorias);
         const vistoriaMaisRecente = vistorias.length > 0 ? vistorias[0] : null;
-        const statusVistoria = vistoriaMaisRecente ? 'Realizada' : 'Pendente';
-        const dataVistoria = vistoriaMaisRecente ? vistoriaMaisRecente.data_vistoria : 'Não realizada';
-        const condicaoVistoria = vistoriaMaisRecente ? (vistoriaMaisRecente.condicao || 'Não informada') : 'Não informada';
-        const lacre = vistoriaMaisRecente ? (vistoriaMaisRecente.lacre || 'Não informado') : 'Não informado';
-        const observacoesVistoria = vistoriaMaisRecente ? (vistoriaMaisRecente.observacoes_gerais || vistoriaMaisRecente.observacoes || 'Nenhuma observação') : 'Nenhuma observação';
-        const tipoOperacao = vistoriaMaisRecente ? (vistoriaMaisRecente.tipo_operacao || 'Não informada') : 'Não informada';
         
-        // Dados de operações (da tabela operacoes) - pegar a mais recente
+        // 🔧 LÓGICA CORRIGIDA: Status baseado na regra de negócio
+        const statusVistoria = foiVistoriado ? 'Realizada' : 'Pendente';
+        const dataVistoria = vistoriaMaisRecente ? this.formatarData(vistoriaMaisRecente.data_vistoria) : (foiVistoriado ? 'Realizada (data não registrada)' : 'Não realizada');
+        const condicaoVistoria = vistoriaMaisRecente ? (vistoriaMaisRecente.condicao || 'Aprovado') : (foiVistoriado ? 'Aprovado' : 'Não informada');
+        const lacre = vistoriaMaisRecente ? (vistoriaMaisRecente.lacre || 'Não informado') : 'Não informado';
+        const observacoesVistoria = vistoriaMaisRecente ? (vistoriaMaisRecente.observacoes_gerais || vistoriaMaisRecente.observacoes || 'Nenhuma observação') : (foiVistoriado ? 'Vistoria aprovada - container posicionado no pátio' : 'Nenhuma observação');
+        const tipoOperacao = vistoriaMaisRecente ? (vistoriaMaisRecente.tipo_operacao || 'Descarga') : (foiVistoriado ? 'Descarga' : 'Não informada');
+        const placaVistoria = vistoriaMaisRecente ? (vistoriaMaisRecente.placa || 'Não informada') : 'Não informada';
+        const vagaoVistoria = vistoriaMaisRecente ? (vistoriaMaisRecente.vagao || 'Não informado') : 'Não informado';
+        
+        // 🔧 DADOS DE OPERAÇÕES CORRIGIDOS: da tabela operacoes
         const operacoes = container.operacoes || [];
         console.log('🔍 [MODAL DEBUG] Operações encontradas:', operacoes.length, operacoes);
         const ultimaOperacao = operacoes.length > 0 ? operacoes[0] : null;
         const tipoUltimaOperacao = ultimaOperacao ? (ultimaOperacao.tipo || 'Não informada') : 'Não informada';
         const modoOperacao = ultimaOperacao ? (ultimaOperacao.modo || 'Não informado') : 'Não informado';
-        const placaVeiculo = ultimaOperacao ? (ultimaOperacao.placa || 'Não informada') : 'Não informada';
-        const vagao = ultimaOperacao ? (ultimaOperacao.vagao || 'Não informado') : 'Não informado';
+        const placaVeiculo = ultimaOperacao ? (ultimaOperacao.placa || placaVistoria || 'Não informada') : placaVistoria;
+        const vagao = ultimaOperacao ? (ultimaOperacao.vagao || vagaoVistoria || 'Não informado') : vagaoVistoria;
         const dataUltimaOperacao = ultimaOperacao ? (ultimaOperacao.data_operacao || 'Não informada') : 'Não informada';
         
         // Avarias

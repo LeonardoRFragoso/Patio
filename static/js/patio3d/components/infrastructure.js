@@ -201,15 +201,15 @@ export class Infrastructure {
       normalScale: new THREE.Vector2(1.5, 1.5),
     });
 
-    // Muros laterais (sem aberturas)
+    // Muros laterais
     const murosLaterais = [
-      // Muro Oeste - LATERAL MENOR ESQUERDA (apenas cerca o pátio)
+      // Muro Oeste - COM ABERTURA NO CANTO NORTE (próxima à guarita)
       {
-        geometry: new THREE.BoxGeometry(muroThickness, muroHeight, patioDepth + espacamentoMuro * 2),
-        position: [-patioWidth / 2 - espacamentoMuro, muroHeight / 2, 0],
-        name: "Muro_Oeste"
+        geometry: new THREE.BoxGeometry(muroThickness, muroHeight, patioDepth + espacamentoMuro * 2 - aberturaPortao),
+        position: [-patioWidth / 2 - espacamentoMuro, muroHeight / 2, aberturaPortao/2],
+        name: "Muro_Oeste_Principal"
       },
-      // Muro Leste - LATERAL MENOR DIREITA (apenas cerca o pátio)
+      // Muro Leste - LATERAL MENOR DIREITA (sem abertura)
       {
         geometry: new THREE.BoxGeometry(muroThickness, muroHeight, patioDepth + espacamentoMuro * 2),
         position: [patioWidth / 2 + espacamentoMuro, muroHeight / 2, 0],
@@ -233,21 +233,18 @@ export class Infrastructure {
     // Calcular largura de cada segmento (metade da largura total menos metade da abertura)
     const segmentoLargura = (larguraTotalMuro - aberturaPortao) / 2;
 
-    // Muro Norte - LATERAL MAIOR SUPERIOR (COM ABERTURA)
-    const segmentosNorte = [
-      // Segmento esquerdo
-      {
-        geometry: new THREE.BoxGeometry(segmentoLargura, muroHeight, muroThickness),
-        position: [-aberturaPortao/2 - segmentoLargura/2, muroHeight / 2, -patioDepth / 2 - espacamentoMuro],
-        name: "Muro_Norte_Esquerdo"
-      },
-      // Segmento direito
-      {
-        geometry: new THREE.BoxGeometry(segmentoLargura, muroHeight, muroThickness),
-        position: [aberturaPortao/2 + segmentoLargura/2, muroHeight / 2, -patioDepth / 2 - espacamentoMuro],
-        name: "Muro_Norte_Direito"
-      }
-    ];
+    // Muro Norte - LATERAL MAIOR SUPERIOR (COM ABERTURA NO CANTO OESTE - PRÓXIMA À GUARITA)
+  const aberturaCantoX = -patioWidth / 2 - espacamentoMuro + aberturaPortao; // Posição da abertura no canto oeste
+  
+  const segmentosNorte = [
+    // Segmento principal (maior) - do canto leste até próximo ao canto oeste
+    {
+      geometry: new THREE.BoxGeometry(larguraTotalMuro - aberturaPortao, muroHeight, muroThickness),
+      position: [aberturaPortao/2, muroHeight / 2, -patioDepth / 2 - espacamentoMuro],
+      name: "Muro_Norte_Principal"
+    }
+    // Abertura fica no canto oeste, próxima à guarita
+  ];
 
     // Muro Sul - LATERAL MAIOR INFERIOR (COM ABERTURA)
     const segmentosSul = [
@@ -299,26 +296,27 @@ export class Infrastructure {
     // Posições dos muros da empresa
     const posicaoMuroNorte = -patioDepth / 2 - espacamentoMuro;
     const posicaoMuroSul = patioDepth / 2 + espacamentoMuro;
+    const posicaoMuroOeste = -patioWidth / 2 - espacamentoMuro;
 
-    // ESTRUTURA DE ENTRADA (azul) - LATERAIS DA ABERTURA NORTE
-    // Placa na estrutura da esquerda
-    const estruturaEntrada1 = this.criarEstruturaPortao(
-      -aberturaPortao / 2 - 2, // Lado esquerdo da abertura
+    // ESTRUTURA DE ENTRADA (azul) - NO CANTO NOROESTE PRÓXIMA À GUARITA
+    // Estrutura no canto do muro norte
+    const estruturaEntradaNorte = this.criarEstruturaPortao(
+      posicaoMuroOeste + aberturaPortao + 2, // No final do muro norte, início da abertura
       portaoHeight / 2,
       posicaoMuroNorte - 1, // Ligeiramente deslocado para fora do muro
       new THREE.Color(0.2, 0.4, 0.8), // Azul
       "ENTRADA"
     );
-    this.infraestruturaGroup.add(estruturaEntrada1);
+    this.infraestruturaGroup.add(estruturaEntradaNorte);
 
-    // Estrutura da direita sem placa para evitar duplicação
-    const estruturaEntrada2 = this.criarEstruturaPortaoSemPlaca(
-      aberturaPortao / 2 + 2, // Lado direito da abertura
+    // Estrutura no canto do muro oeste
+    const estruturaEntradaOeste = this.criarEstruturaPortaoSemPlaca(
+      posicaoMuroOeste - 1, // Ligeiramente deslocado para fora do muro oeste
       portaoHeight / 2,
-      posicaoMuroNorte - 1, // Ligeiramente deslocado para fora do muro
+      posicaoMuroNorte + aberturaPortao + 2, // No final do muro oeste, início da abertura
       new THREE.Color(0.2, 0.4, 0.8) // Azul
     );
-    this.infraestruturaGroup.add(estruturaEntrada2);
+    this.infraestruturaGroup.add(estruturaEntradaOeste);
 
     // ESTRUTURA DE SAÍDA (vermelho) - LATERAIS DA ABERTURA SUL
     // Placa na estrutura da esquerda

@@ -11,6 +11,17 @@ export { CONFIG, CORES, CORES_ARMADORES, API_ENDPOINTS } from './constants.js';
 // Exportar validador de dependências
 export { validateDependencies } from './dependencies-validator.js';
 
+// Exportar novas utilidades de validação
+export { 
+  validarPosicionamentoContainer, 
+  isContainer40TEU, 
+  podeColocar20ft, 
+  podeColocar40ft,
+  baiaBloqueadaPor40ft,
+  obterPosicoesDisponiveis,
+  posicaoOcupada
+} from './validation.js';
+
 // Exportar monitor de performance
 export { PerformanceMonitor } from './performance-monitor.js';
 

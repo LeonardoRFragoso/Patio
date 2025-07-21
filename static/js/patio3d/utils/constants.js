@@ -3,7 +3,7 @@
  * Arquivo: utils/constants.js
  */
 
-// Configurações visuais melhoradas
+// Configurações visuais melhoradas com LÓGICA CORRIGIDA DE BAIAS
 export const CONFIG = {
     ROWS: ["A", "B", "C", "D", "E"],
     BAIAS_MAX: 20,
@@ -15,6 +15,27 @@ export const CONFIG = {
       D: 5,
       E: 5,
     },
+    
+    // 🔴 SISTEMA DE BAIAS CORRIGIDO BASEADO EM DADOS REAIS DO PÁTIO SUZANO-SP
+    // Fonte: posicao_suzano.txt - TODAS as baias 01-20 existem
+
+    // TODAS AS BAIAS DISPONÍVEIS (01 a 20)
+    TODAS_BAIAS: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+
+    // LÓGICA DE OCUPAÇÃO FÍSICA:
+    // - Container 20ft: ocupa 1 baia
+    // - Container 40ft: ocupa 2 baias consecutivas
+
+    // BAIAS VÁLIDAS PARA INÍCIO DE CONTAINER 40FT
+    // (deve ter espaço para ocupar a próxima baia também)
+    BAIAS_INICIO_40FT: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19], // Não inclui 20 pois não há 21
+
+    // FUNÇÃO PARA VERIFICAR SE BAIA É VÁLIDA PARA TIPO DE CONTAINER
+    BAIAS_POR_TIPO: {
+      '20ft': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],        // 20ft pode usar qualquer baia
+      '40ft': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]   // 40ft precisa de 2 baias consecutivas
+    },
+    
     ESPACAMENTO_BAIA: 7,
     ESPACAMENTO_ROW: 2.5,
     TAMANHO_CONTAINER: 3,

@@ -86,337 +86,9 @@
     </header>
 
     <div class="container-fluid px-4">
+      <!-- Área de Visualização 3D Premium - AMPLIADA -->
       <div class="row">
-        <!-- Painel de Controles Premium -->
-        <div class="col-xl-3 col-lg-4 col-md-12">
-          <!-- Status do Sistema -->
-          <div class="control-panel fade-in">
-            <div class="control-section">
-              <h6>
-                <i class="fas fa-heartbeat"></i>
-                Status do Sistema
-              </h6>
-              <div class="system-status">
-                <div class="system-status-item">
-                  <span>API Backend:</span>
-                  <span id="api-status" class="status-badge loading"
-                    >⚡ Conectando</span
-                  >
-                </div>
-                <div class="system-status-item">
-                  <span>THREE.js:</span>
-                  <span id="threejs-status" class="status-badge loading"
-                    >⚡ Carregando</span
-                  >
-                </div>
-                <div class="system-status-item">
-                  <span>Dados Pátio:</span>
-                  <span id="data-status" class="status-badge loading"
-                    >⚡ Sincronizando</span
-                  >
-                </div>
-                <div class="system-status-item">
-                  <span>Visualização:</span>
-                  <span id="render-status" class="status-badge loading"
-                    >⚡ Renderizando</span
-                  >
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Ações Rápidas -->
-          <div class="control-panel">
-            <div class="control-section">
-              <h6>
-                <i class="fas fa-bolt"></i>
-                Ações Rápidas
-              </h6>
-              <div class="d-grid gap-3">
-                <button class="btn btn-action" id="btn-refresh-data">
-                  <i class="fas fa-database me-2"></i>
-                  Atualizar Dados
-                </button>
-                <button
-                  class="btn btn-infrastructure"
-                  id="btn-toggle-infraestrutura"
-                >
-                  <i class="fas fa-building me-2"></i>
-                  Infraestrutura
-                </button>
-                <button
-                  class="btn btn-infrastructure"
-                  id="btn-highlight-flutuantes"
-                >
-                  <i class="fas fa-exclamation-triangle me-2"></i>
-                  Destacar Flutuantes
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Controles de Vista Premium -->
-          <div class="control-panel">
-            <div class="control-section">
-              <h6>
-                <i class="fas fa-video"></i>
-                Controles de Vista
-              </h6>
-              <div class="d-grid gap-2">
-                <button class="btn btn-premium active" id="btn-vista-geral">
-                  <i class="fas fa-eye me-2"></i>Vista Geral
-                </button>
-                <button class="btn btn-premium" id="btn-vista-topo">
-                  <i class="fas fa-plane me-2"></i>Vista Aérea
-                </button>
-                <button class="btn btn-premium" id="btn-vista-lateral">
-                  <i class="fas fa-car me-2"></i>Vista Lateral
-                </button>
-                <button class="btn btn-premium" id="btn-vista-containers">
-                  <i class="fas fa-cubes me-2"></i>Foco Containers
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Filtros Avançados -->
-          <div class="control-panel">
-            <div class="control-section">
-              <h6>
-                <i class="fas fa-sliders-h"></i>
-                Filtros Avançados
-              </h6>
-
-              <div class="mb-3">
-                <label class="form-label text-light">
-                  <i class="fas fa-filter me-2"></i>Row:
-                </label>
-                <select class="form-control-premium" id="filtro-row">
-                  <option value="">Todos os Rows</option>
-                  <option value="A">Row A</option>
-                  <option value="B">Row B</option>
-                  <option value="C">Row C</option>
-                  <option value="D">Row D</option>
-                  <option value="E">Row E</option>
-                </select>
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label text-light">
-                  <i class="fas fa-layer-group me-2"></i>Altura:
-                </label>
-                <select class="form-control-premium" id="filtro-altura">
-                  <option value="">Todas as Alturas</option>
-                  <option value="1">Nível 1</option>
-                  <option value="2">Nível 2</option>
-                  <option value="3">Nível 3</option>
-                  <option value="4">Nível 4</option>
-                  <option value="5">Nível 5</option>
-                </select>
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label text-light">
-                  <i class="fas fa-search me-2"></i>Buscar Container:
-                </label>
-                <input
-                  type="text"
-                  class="form-control-premium"
-                  placeholder="Digite o número do container..."
-                  id="busca-container-input"
-                />
-              </div>
-
-              <div class="d-grid gap-2">
-                <button class="btn btn-premium active" id="btn-toggle-labels">
-                  <i class="fas fa-tags me-2"></i>
-                  <span>Ocultar Labels</span>
-                </button>
-                <button
-                  class="btn btn-premium active"
-                  id="btn-toggle-posicoes-vazias"
-                >
-                  <i class="fas fa-eye me-2"></i>
-                  <span>Ocultar Posições Vazias</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Estatísticas Premium -->
-          <div class="control-panel">
-            <div class="control-section">
-              <h6>
-                <i class="fas fa-chart-bar"></i>
-                Estatísticas do Pátio
-              </h6>
-
-              <div class="row g-2">
-                <div class="col-6">
-                  <div class="stat-card">
-                    <div class="stat-number" id="total-containers">0</div>
-                    <div class="stat-label">Total</div>
-                  </div>
-                </div>
-                <div class="col-6">
-                  <div class="stat-card">
-                    <div
-                      class="stat-number success"
-                      id="containers-vistoriados"
-                    >
-                      0
-                    </div>
-                    <div class="stat-label">Vistoriados</div>
-                  </div>
-                </div>
-                <div class="col-6">
-                  <div class="stat-card">
-                    <div class="stat-number warning" id="containers-flutuantes">
-                      0
-                    </div>
-                    <div class="stat-label">Flutuantes</div>
-                  </div>
-                </div>
-                <div class="col-6">
-                  <div class="stat-card">
-                    <div class="stat-number" id="containers-40teu">0</div>
-                    <div class="stat-label">40 TEU</div>
-                  </div>
-                </div>
-              </div>
-
-              <hr
-                style="border-color: rgba(255, 255, 255, 0.2); margin: 1.5rem 0"
-              />
-
-              <div class="row text-center">
-                <div class="col-6">
-                  <h6 class="text-light mb-3">
-                    <i class="fas fa-layer-group me-1"></i>Por Row
-                  </h6>
-                  <small class="text-light d-block mb-2"
-                    >A: <span id="row-A" class="badge-premium">0</span></small
-                  >
-                  <small class="text-light d-block mb-2"
-                    >B: <span id="row-B" class="badge-premium">0</span></small
-                  >
-                  <small class="text-light d-block mb-2"
-                    >C: <span id="row-C" class="badge-premium">0</span></small
-                  >
-                  <small class="text-light d-block mb-2"
-                    >D: <span id="row-D" class="badge-premium">0</span></small
-                  >
-                  <small class="text-light d-block"
-                    >E: <span id="row-E" class="badge-premium">0</span></small
-                  >
-                </div>
-                <div class="col-6">
-                  <h6 class="text-light mb-3">
-                    <i class="fas fa-sort-amount-up me-1"></i>Por Altura
-                  </h6>
-                  <small class="text-light d-block mb-2"
-                    >Nv1:
-                    <span id="altura-1" class="badge-premium">0</span></small
-                  >
-                  <small class="text-light d-block mb-2"
-                    >Nv2:
-                    <span id="altura-2" class="badge-premium">0</span></small
-                  >
-                  <small class="text-light d-block mb-2"
-                    >Nv3:
-                    <span id="altura-3" class="badge-premium">0</span></small
-                  >
-                  <small class="text-light d-block mb-2"
-                    >Nv4:
-                    <span id="altura-4" class="badge-premium">0</span></small
-                  >
-                  <small class="text-light d-block"
-                    >Nv5:
-                    <span id="altura-5" class="badge-premium">0</span></small
-                  >
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Legenda Premium -->
-          <div class="control-panel">
-            <div class="control-section">
-              <h6>
-                <i class="fas fa-palette"></i>
-                Armadores & Status
-              </h6>
-
-              <div class="legend-item" data-armador="EVERGREEN">
-                <div
-                  class="legend-color"
-                  style="background: linear-gradient(45deg, #4caf50, #45a049)"
-                ></div>
-                <span class="legend-text">EVERGREEN</span>
-              </div>
-              <div class="legend-item" data-armador="MAERSK">
-                <div
-                  class="legend-color"
-                  style="background: linear-gradient(45deg, #2196f3, #1976d2)"
-                ></div>
-                <span class="legend-text">MAERSK</span>
-              </div>
-              <div class="legend-item" data-armador="MSC">
-                <div
-                  class="legend-color"
-                  style="background: linear-gradient(45deg, #ff9800, #f57c00)"
-                ></div>
-                <span class="legend-text">MSC</span>
-              </div>
-              <div class="legend-item" data-armador="COSCO">
-                <div
-                  class="legend-color"
-                  style="background: linear-gradient(45deg, #f44336, #d32f2f)"
-                ></div>
-                <span class="legend-text">COSCO</span>
-              </div>
-              <div class="legend-item" data-armador="CMA CGM">
-                <div
-                  class="legend-color"
-                  style="background: linear-gradient(45deg, #9c27b0, #7b1fa2)"
-                ></div>
-                <span class="legend-text">CMA CGM</span>
-              </div>
-              <div class="legend-item" data-armador="HAPAG-LLOYD">
-                <div
-                  class="legend-color"
-                  style="background: linear-gradient(45deg, #ff5722, #e64a19)"
-                ></div>
-                <span class="legend-text">HAPAG-LLOYD</span>
-              </div>
-
-              <hr
-                style="border-color: rgba(255, 255, 255, 0.2); margin: 1.5rem 0"
-              />
-
-              <div class="legend-item">
-                <div
-                  class="legend-color"
-                  style="
-                    background: linear-gradient(45deg, #ff4444, #cc0000);
-                    animation: pulse 2s infinite;
-                  "
-                ></div>
-                <span class="legend-text">Containers Flutuantes</span>
-              </div>
-              <div class="legend-item">
-                <div
-                  class="legend-color"
-                  style="background: linear-gradient(45deg, #888888, #666666)"
-                ></div>
-                <span class="legend-text">Posições Vazias</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Área de Visualização 3D Premium -->
-        <div class="col-xl-9 col-lg-8 col-md-12">
+        <div class="col-12">
           <!-- Alerta de Containers Flutuantes -->
           <div class="alert-flutuantes d-none" id="alerta-flutuantes">
             <div class="d-flex align-items-center">
@@ -480,6 +152,326 @@
                   <p class="loading-message" id="loading-message">
                     Inicializando sistema...
                   </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Painéis de Controle - ABAIXO DA VISUALIZAÇÃO 3D -->
+      <div class="row mt-4">
+        <!-- Status do Sistema -->
+        <div class="col-xl-2 col-lg-3 col-md-6 col-sm-12 mb-3">
+          <div class="control-panel fade-in">
+            <div class="control-section">
+              <h6>
+                <i class="fas fa-heartbeat"></i>
+                Status do Sistema
+              </h6>
+              <div class="system-status">
+                <div class="system-status-item">
+                  <span>API Backend:</span>
+                  <span id="api-status" class="status-badge loading"
+                    >⚡ Conectando</span
+                  >
+                </div>
+                <div class="system-status-item">
+                  <span>THREE.js:</span>
+                  <span id="threejs-status" class="status-badge loading"
+                    >⚡ Carregando</span
+                  >
+                </div>
+                <div class="system-status-item">
+                  <span>Dados Pátio:</span>
+                  <span id="data-status" class="status-badge loading"
+                    >⚡ Sincronizando</span
+                  >
+                </div>
+                <div class="system-status-item">
+                  <span>Visualização:</span>
+                  <span id="render-status" class="status-badge loading"
+                    >⚡ Renderizando</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ações Rápidas -->
+        <div class="col-xl-2 col-lg-3 col-md-6 col-sm-12 mb-3">
+          <div class="control-panel">
+            <div class="control-section">
+              <h6>
+                <i class="fas fa-bolt"></i>
+                Ações Rápidas
+              </h6>
+              <div class="d-grid gap-2">
+                <button class="btn btn-action btn-sm" id="btn-refresh-data">
+                  <i class="fas fa-database me-2"></i>
+                  Atualizar Dados
+                </button>
+                <button
+                  class="btn btn-infrastructure btn-sm"
+                  id="btn-toggle-infraestrutura"
+                >
+                  <i class="fas fa-building me-2"></i>
+                  Infraestrutura
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Controles de Vista -->
+        <div class="col-xl-2 col-lg-3 col-md-6 col-sm-12 mb-3">
+          <div class="control-panel">
+            <div class="control-section">
+              <h6>
+                <i class="fas fa-video"></i>
+                Controles de Vista
+              </h6>
+              <div class="d-grid gap-1">
+                <button class="btn btn-premium btn-sm active" id="btn-vista-geral">
+                  <i class="fas fa-eye me-1"></i>Vista Geral
+                </button>
+                <button class="btn btn-premium btn-sm" id="btn-vista-topo">
+                  <i class="fas fa-plane me-1"></i>Vista Aérea
+                </button>
+                <button class="btn btn-premium btn-sm" id="btn-vista-lateral">
+                  <i class="fas fa-car me-1"></i>Vista Lateral
+                </button>
+                <button class="btn btn-premium btn-sm" id="btn-vista-containers">
+                  <i class="fas fa-cubes me-1"></i>Foco Containers
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filtros Avançados -->
+        <div class="col-xl-3 col-lg-6 col-md-12 mb-3">
+          <div class="control-panel">
+            <div class="control-section">
+              <h6>
+                <i class="fas fa-sliders-h"></i>
+                Filtros Avançados
+              </h6>
+              <div class="row g-2">
+                <div class="col-6">
+                  <label class="form-label text-light small">
+                    <i class="fas fa-filter me-1"></i>Row:
+                  </label>
+                  <select class="form-control-premium form-control-sm" id="filtro-row">
+                    <option value="">Todos os Rows</option>
+                    <option value="A">Row A</option>
+                    <option value="B">Row B</option>
+                    <option value="C">Row C</option>
+                    <option value="D">Row D</option>
+                    <option value="E">Row E</option>
+                  </select>
+                </div>
+                <div class="col-6">
+                  <label class="form-label text-light small">
+                    <i class="fas fa-layer-group me-1"></i>Altura:
+                  </label>
+                  <select class="form-control-premium form-control-sm" id="filtro-altura">
+                    <option value="">Todas as Alturas</option>
+                    <option value="1">Nível 1</option>
+                    <option value="2">Nível 2</option>
+                    <option value="3">Nível 3</option>
+                    <option value="4">Nível 4</option>
+                    <option value="5">Nível 5</option>
+                  </select>
+                </div>
+                <div class="col-12 mt-2">
+                  <label class="form-label text-light small">
+                    <i class="fas fa-search me-1"></i>Buscar Container:
+                  </label>
+                  <input
+                    type="text"
+                    class="form-control-premium form-control-sm"
+                    placeholder="Digite o número do container..."
+                    id="busca-container-input"
+                  />
+                </div>
+                <div class="col-6 mt-2">
+                  <button class="btn btn-premium btn-sm active w-100" id="btn-toggle-labels">
+                    <i class="fas fa-tags me-1"></i>
+                    <span>Labels</span>
+                  </button>
+                </div>
+                <div class="col-6 mt-2">
+                  <button
+                    class="btn btn-premium btn-sm active w-100"
+                    id="btn-toggle-posicoes-vazias"
+                  >
+                    <i class="fas fa-eye me-1"></i>
+                    <span>Posições Vazias</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Estatísticas -->
+        <div class="col-xl-3 col-lg-6 col-md-12 mb-3">
+          <div class="control-panel">
+            <div class="control-section">
+              <h6>
+                <i class="fas fa-chart-bar"></i>
+                Estatísticas do Pátio
+              </h6>
+              <div class="row g-1">
+                <div class="col-3">
+                  <div class="stat-card stat-card-sm">
+                    <div class="stat-number small" id="total-containers">0</div>
+                    <div class="stat-label small">Total</div>
+                  </div>
+                </div>
+                <div class="col-3">
+                  <div class="stat-card stat-card-sm">
+                    <div
+                      class="stat-number small success"
+                      id="containers-vistoriados"
+                    >
+                      0
+                    </div>
+                    <div class="stat-label small">Vistoriados</div>
+                  </div>
+                </div>
+                <div class="col-3">
+                  <div class="stat-card stat-card-sm">
+                    <div class="stat-number small warning" id="containers-flutuantes">
+                      0
+                    </div>
+                    <div class="stat-label small">Flutuantes</div>
+                  </div>
+                </div>
+                <div class="col-3">
+                  <div class="stat-card stat-card-sm">
+                    <div class="stat-number small" id="containers-40teu">0</div>
+                    <div class="stat-label small">40 TEU</div>
+                  </div>
+                </div>
+              </div>
+              <div class="row g-1 mt-2">
+                <div class="col-6">
+                  <h6 class="text-light mb-2 small">
+                    <i class="fas fa-layer-group me-1"></i>Por Row
+                  </h6>
+                  <div class="d-flex justify-content-between">
+                    <small class="text-light">A: <span id="row-A" class="badge-premium">0</span></small>
+                    <small class="text-light">B: <span id="row-B" class="badge-premium">0</span></small>
+                    <small class="text-light">C: <span id="row-C" class="badge-premium">0</span></small>
+                    <small class="text-light">D: <span id="row-D" class="badge-premium">0</span></small>
+                    <small class="text-light">E: <span id="row-E" class="badge-premium">0</span></small>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <h6 class="text-light mb-2 small">
+                    <i class="fas fa-sort-amount-up me-1"></i>Por Altura
+                  </h6>
+                  <div class="d-flex justify-content-between">
+                    <small class="text-light">1: <span id="altura-1" class="badge-premium">0</span></small>
+                    <small class="text-light">2: <span id="altura-2" class="badge-premium">0</span></small>
+                    <small class="text-light">3: <span id="altura-3" class="badge-premium">0</span></small>
+                    <small class="text-light">4: <span id="altura-4" class="badge-premium">0</span></small>
+                    <small class="text-light">5: <span id="altura-5" class="badge-premium">0</span></small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Legenda de Armadores - Layout Horizontal -->
+      <div class="row mt-3">
+        <div class="col-12">
+          <div class="control-panel">
+            <div class="control-section">
+              <h6>
+                <i class="fas fa-palette"></i>
+                Armadores & Status
+              </h6>
+              <div class="row g-2">
+                <div class="col-lg-2 col-md-3 col-sm-4 col-6">
+                  <div class="legend-item legend-item-horizontal" data-armador="EVERGREEN">
+                    <div
+                      class="legend-color legend-color-sm"
+                      style="background: linear-gradient(45deg, #4caf50, #45a049)"
+                    ></div>
+                    <span class="legend-text small">EVERGREEN</span>
+                  </div>
+                </div>
+                <div class="col-lg-2 col-md-3 col-sm-4 col-6">
+                  <div class="legend-item legend-item-horizontal" data-armador="MAERSK">
+                    <div
+                      class="legend-color legend-color-sm"
+                      style="background: linear-gradient(45deg, #2196f3, #1976d2)"
+                    ></div>
+                    <span class="legend-text small">MAERSK</span>
+                  </div>
+                </div>
+                <div class="col-lg-2 col-md-3 col-sm-4 col-6">
+                  <div class="legend-item legend-item-horizontal" data-armador="MSC">
+                    <div
+                      class="legend-color legend-color-sm"
+                      style="background: linear-gradient(45deg, #ff9800, #f57c00)"
+                    ></div>
+                    <span class="legend-text small">MSC</span>
+                  </div>
+                </div>
+                <div class="col-lg-2 col-md-3 col-sm-4 col-6">
+                  <div class="legend-item legend-item-horizontal" data-armador="COSCO">
+                    <div
+                      class="legend-color legend-color-sm"
+                      style="background: linear-gradient(45deg, #f44336, #d32f2f)"
+                    ></div>
+                    <span class="legend-text small">COSCO</span>
+                  </div>
+                </div>
+                <div class="col-lg-2 col-md-3 col-sm-4 col-6">
+                  <div class="legend-item legend-item-horizontal" data-armador="CMA CGM">
+                    <div
+                      class="legend-color legend-color-sm"
+                      style="background: linear-gradient(45deg, #9c27b0, #7b1fa2)"
+                    ></div>
+                    <span class="legend-text small">CMA CGM</span>
+                  </div>
+                </div>
+                <div class="col-lg-2 col-md-3 col-sm-4 col-6">
+                  <div class="legend-item legend-item-horizontal" data-armador="HAPAG-LLOYD">
+                    <div
+                      class="legend-color legend-color-sm"
+                      style="background: linear-gradient(45deg, #ff5722, #e64a19)"
+                    ></div>
+                    <span class="legend-text small">HAPAG-LLOYD</span>
+                  </div>
+                </div>
+                <div class="col-lg-2 col-md-3 col-sm-4 col-6">
+                  <div class="legend-item legend-item-horizontal">
+                    <div
+                      class="legend-color legend-color-sm"
+                      style="
+                        background: linear-gradient(45deg, #ff4444, #cc0000);
+                        animation: pulse 2s infinite;
+                      "
+                    ></div>
+                    <span class="legend-text small">Containers Flutuantes</span>
+                  </div>
+                </div>
+                <div class="col-lg-2 col-md-3 col-sm-4 col-6">
+                  <div class="legend-item legend-item-horizontal">
+                    <div
+                      class="legend-color legend-color-sm"
+                      style="background: linear-gradient(45deg, #888888, #666666)"
+                    ></div>
+                    <span class="legend-text small">Posições Vazias</span>
+                  </div>
                 </div>
               </div>
             </div>
