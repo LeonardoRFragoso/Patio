@@ -737,7 +737,7 @@ function configurarFormularioDescarga(modoTransporte) {
 }
 
 /**
- * Carrega as posições disponíveis para o dropdown
+ * Carrega as posições disponíveis para o dropdown com organização hierárquica
  * @param {string} statusContainer - Status do container (CHEIO/VAZIO)
  * @param {number} containerSize - Tamanho do container em TEUs (20 ou 40)
  */
@@ -773,61 +773,90 @@ async function carregarPosicoesDisponiveis(statusContainer = 'CHEIO', containerS
         return true;
       });
       
-      // Ordenar posições
-      posicoesFiltradasPorTamanho.sort((a, b) => {
-        if (a.baia_posicao[0] !== b.baia_posicao[0]) {
-          return a.baia_posicao[0].localeCompare(b.baia_posicao[0]);
-        }
-        const posA = parseInt(a.baia_posicao.substring(1), 10);
-        const posB = parseInt(b.baia_posicao.substring(1), 10);
-        if (posA !== posB) return posA - posB;
-        return a.altura - b.altura;
+      // Converter para formato do organizador (A01-1)
+      const posicoesFormatadas = posicoesFiltradasPorTamanho.map(posicao => {
+        return `${posicao.baia_posicao}-${posicao.altura}`;
       });
       
-      // Configurar Choices.js se disponível
-      if (window.Choices) {
-        try {
-          const choicesData = posicoesFiltradasPorTamanho.map(p => ({
-            value: p.posicao_completa,
-            label: `✓ ${p.baia_posicao}-${p.altura} (Pos ${p.baia_posicao.substring(1).padStart(2,'0')}, Altura ${p.altura})`
-          }));
-          
-          if (descargaState.posicaoChoices) {
-            descargaState.posicaoChoices.destroy();
+      console.log(`📊 Carregando ${posicoesFormatadas.length} posições organizadas para descarga (${containerSize} TEU)`);
+      
+      // Usar organizador de posições se disponível
+      if (typeof window.organizarComboboxPosicoes === 'function') {
+        // Destruir instância anterior
+        if (descargaState.posicaoChoices) {
+          descargaState.posicaoChoices.destroy();
+          descargaState.posicaoChoices = null;
+        }
+        
+        // Usar organizador moderno com opção de grid
+        const resultado = window.organizarComboboxPosicoes(dropdown, posicoesFormatadas, {
+          showStats: true,
+          showViewToggle: true,
+          showGridView: false, // Começar com lista, usuário pode alternar para grid
+          containerSize: containerSize,
+          searchPlaceholderValue: `Digite bay (A-E), posição (01-20) ou altura (1-5) para containers ${containerSize} TEU...`,
+          onPositionSelect: (posicao, posicaoInfo) => {
+            console.log(`🎯 Posição selecionada para descarga: ${posicao} (${containerSize} TEU)`);
+            
+            // Disparar evento customizado para outros listeners
+            dropdown.dispatchEvent(new CustomEvent('positionSelected', {
+              detail: { posicao, posicaoInfo, containerSize }
+            }));
           }
-          
-          dropdown.innerHTML = '';
-          descargaState.posicaoChoices = new Choices(dropdown, {
-            searchEnabled: true,
-            shouldSort: false,
-            itemSelectText: '',
-            classNames: { containerInner: 'choices__inner' }
-          });
-          
-          if (choicesData.length > 0) {
-            descargaState.posicaoChoices.setChoices(choicesData, 'value', 'label', true);
-          } else {
-            descargaState.posicaoChoices.setChoices([{ 
-              value: '', 
-              label: 'Nenhuma posição disponível', 
-              disabled: true 
-            }], 'value', 'label', true);
+        });
+        
+        descargaState.posicaoChoices = resultado.choices;
+        
+        console.log(`✅ Posições organizadas para descarga: ${resultado.stats.totalPosicoes} posições em ${Object.keys(resultado.stats.porBay).length} bays (${containerSize} TEU)`);
+        
+      } else {
+        // Fallback para método tradicional
+        console.warn('⚠️ Organizador de posições não disponível para descarga, usando método tradicional');
+        
+        if (window.Choices) {
+          try {
+            const choicesData = posicoesFiltradasPorTamanho.map(p => ({
+              value: p.posicao_completa,
+              label: `✓ ${p.baia_posicao}-${p.altura} (Pos ${p.baia_posicao.substring(1).padStart(2,'0')}, Altura ${p.altura})`
+            }));
+            
+            if (descargaState.posicaoChoices) {
+              descargaState.posicaoChoices.destroy();
+            }
+            
+            dropdown.innerHTML = '';
+            descargaState.posicaoChoices = new Choices(dropdown, {
+              searchEnabled: true,
+              shouldSort: false,
+              itemSelectText: '',
+              classNames: { containerInner: 'choices__inner' }
+            });
+            
+            if (choicesData.length > 0) {
+              descargaState.posicaoChoices.setChoices(choicesData, 'value', 'label', true);
+            } else {
+              descargaState.posicaoChoices.setChoices([{ 
+                value: '', 
+                label: 'Nenhuma posição disponível', 
+                disabled: true 
+              }], 'value', 'label', true);
+            }
+            
+            console.log(`✅ Choices tradicional carregado com ${choicesData.length} posições`);
+          } catch (error) {
+            console.warn('⚠️ Erro ao inicializar Choices, usando select nativo', error);
+            configurarSelectNativo(dropdown, posicoesFiltradasPorTamanho);
           }
-          
-          console.log(`✅ Choices carregado com ${choicesData.length} posições`);
-        } catch (error) {
-          console.warn('⚠️ Erro ao inicializar Choices, usando select nativo', error);
+        } else {
           configurarSelectNativo(dropdown, posicoesFiltradasPorTamanho);
         }
-      } else {
-        configurarSelectNativo(dropdown, posicoesFiltradasPorTamanho);
       }
     } else {
       dropdown.innerHTML = '<option value="" selected disabled>Erro ao carregar posições</option>';
       console.error('❌ Erro ao carregar posições:', result.error || 'Erro desconhecido');
     }
   } catch (error) {
-    console.error('❌ Erro ao carregar posições:', error);
+    console.error('❌ Erro ao carregar posições para descarga:', error);
     const dropdown = document.getElementById('posicao_patio_descarga');
     if (dropdown) {
       dropdown.innerHTML = `<option value="" selected disabled>Erro: ${error.message}</option>`;

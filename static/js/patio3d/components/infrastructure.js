@@ -112,7 +112,7 @@ export class Infrastructure {
     const ruaWidth = patioWidth + 100; // Largura um pouco menor para melhor visualização
     const ruaLength = 45; // Espessura da rua
     const espacamentoMuro = 25; // Espaço do pátio até o muro
-    const espacoExterno = 60; // MUITO MAIS ESPAÇO FORA do muro até a rodovia
+    const espacoExterno = 30; // MUITO MAIS ESPAÇO FORA do muro até a rodovia
     const ruaDistance = espacamentoMuro + espacoExterno; // Distância total EXTERNA
 
     // Material de asfalto
@@ -456,7 +456,7 @@ export class Infrastructure {
     const ruaWidth = patioWidth + 100;
     const ruaLength = 45;
     const espacamentoMuro = 25;
-    const espacoExterno = 60;
+    const espacoExterno = 30; // SINCRONIZADO com criarRuaRealistica
     const ruaDistance = espacamentoMuro + espacoExterno;
     
     // Material para as faixas brancas

@@ -600,6 +600,11 @@ def obter_dados_patio_3d():
         
         logger.info(f"📦 Encontrados {len(containers_raw)} containers REAIS no banco de dados")
         
+        # 🔍 DEBUG: Mostrar todos os containers encontrados
+        for i, row in enumerate(containers_raw, 1):
+            container_id, numero, status, posicao_atual, data_criacao, ultima_atualizacao, tamanho_real, armador = row
+            logger.info(f"📋 Container {i}: {numero} | Status: {status} | Posição: '{posicao_atual}' | Tamanho: {tamanho_real}")
+        
         # ✅ PROCESSAR APENAS CONTAINERS REAIS
         containers = []
         posicoes_ocupadas = {}
@@ -607,6 +612,8 @@ def obter_dados_patio_3d():
         
         for row in containers_raw:
             container_id, numero, status, posicao_atual, data_criacao, ultima_atualizacao, tamanho_real, armador = row
+            
+            logger.info(f"🔄 Processando container: {numero} com posição '{posicao_atual}'")
             
             # Garantir formato A01-1
             if posicao_atual and len(posicao_atual) == 4 and posicao_atual[0].isalpha() and posicao_atual[1:].isdigit():
@@ -740,6 +747,10 @@ def obter_dados_patio_3d():
                             }
                             containers.append(container_ocupado_adicional)
                     
+                else:
+                    # 🔍 DEBUG: Container filtrado por posição inválida
+                    logger.warning(f"🚫 Container {numero} FILTRADO - Posição inválida: '{posicao_formatada}' (original: '{posicao_atual}')")
+                    logger.warning(f"🚫 Posição deve estar no formato A01-1 a E20-5")
             except Exception as e:
                 logger.warning(f"Erro ao processar posição {posicao_formatada}: {e}")
         

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Visualização 3D Premium - Pátio de Containers Suzano</title>
+    <title>Visualização 3D - Pátio de Containers</title>
 
     <!-- Meta tags para SEO e Performance -->
     <meta
@@ -59,7 +59,7 @@
           <div class="col-lg-8">
             <h1 class="header-title">
               <i class="fas fa-cube me-3"></i>
-              Visualização 3D Premium
+              Visualização 3D
             </h1>
             <p class="header-subtitle">
               <i class="fas fa-map-marker-alt me-2"></i>
@@ -75,17 +75,8 @@
           </div>
           <div class="col-lg-4 text-end">
             <div class="d-flex gap-2 justify-content-end flex-wrap">
-              <button class="btn btn-outline-light" id="btn-refresh">
-                <i class="fas fa-sync-alt me-2"></i>Atualizar
-              </button>
-              <button class="btn btn-outline-light" id="btn-debug">
-                <i class="fas fa-bug me-2"></i>Debug
-              </button>
               <button class="btn btn-outline-light" id="btn-fullscreen">
                 <i class="fas fa-expand me-2"></i>Tela Cheia
-              </button>
-              <button class="btn btn-outline-light" id="btn-help">
-                <i class="fas fa-question-circle me-2"></i>Ajuda
               </button>
             </div>
           </div>
@@ -551,21 +542,10 @@
                   <div class="legend-item legend-item-horizontal">
                     <div
                       class="legend-color legend-color-sm"
-                      style="
-                        background: linear-gradient(45deg, #ff4444, #cc0000);
-                        animation: pulse 2s infinite;
-                      "
-                    ></div>
-                    <span class="legend-text small">Containers Flutuantes</span>
-                  </div>
-                </div>
-                <div class="col-lg-2 col-md-3 col-sm-4 col-6">
-                  <div class="legend-item legend-item-horizontal">
-                    <div
-                      class="legend-color legend-color-sm"
                       style="background: linear-gradient(45deg, #888888, #666666)"
                     ></div>
                     <span class="legend-text small">Posições Vazias</span>
+                    <span class="legend-count badge badge-sm ms-1" id="count-posicoes-vazias">0</span>
                   </div>
                 </div>
               </div>

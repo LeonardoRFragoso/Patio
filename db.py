@@ -290,7 +290,7 @@ def create_tables():
 def inserir_dados_exemplo(db):
     """
     Inserir alguns containers de exemplo para facilitar os testes
-    Apenas insere se não existirem containers no sistema
+    DESABILITADO: Para permitir testes apenas com dados reais
     """
     try:
         # Verificar se já existem containers
@@ -298,34 +298,41 @@ def inserir_dados_exemplo(db):
         cursor.execute('SELECT COUNT(*) FROM containers')
         count = cursor.fetchone()[0]
         
+        # 🔴 FUNCIONALIDADE DESABILITADA - Não inserir containers de exemplo
+        # if count == 0:
+        #     logger.info("Inserindo dados de exemplo para containers...")
+        #     
+        #     # Inserir containers de exemplo
+        #     containers_exemplo = [
+        #         ('TCLU1234567', 'no patio', 'A1-15'),
+        #         ('MSCU9876543', 'no patio', 'B2-08'),
+        #         ('GESU5555444', 'no patio', 'C3-22'),
+        #         ('CSNU7777888', 'no patio', 'D4-11'),
+        #         ('HDMU3333222', 'no patio', 'E5-05')
+        #     ]
+        #     
+        #     from datetime import datetime
+        #     data_atual = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        #     
+        #     for numero, status, posicao in containers_exemplo:
+        #         db.execute('''
+        #             INSERT OR IGNORE INTO containers (numero, status, posicao_atual, data_criacao, ultima_atualizacao)
+        #             VALUES (?, ?, ?, ?, ?)
+        #         ''', (numero, status, posicao, data_atual, data_atual))
+        #     
+        #     db.commit()
+        #     logger.info(f"Inseridos {len(containers_exemplo)} containers de exemplo")
+        # else:
+        #     logger.info(f"Sistema já possui {count} containers cadastrados")
+        
+        # Log apenas para informação
         if count == 0:
-            logger.info("Inserindo dados de exemplo para containers...")
-            
-            # Inserir containers de exemplo
-            containers_exemplo = [
-                ('TCLU1234567', 'no patio', 'A1-15'),
-                ('MSCU9876543', 'no patio', 'B2-08'),
-                ('GESU5555444', 'no patio', 'C3-22'),
-                ('CSNU7777888', 'no patio', 'D4-11'),
-                ('HDMU3333222', 'no patio', 'E5-05')
-            ]
-            
-            from datetime import datetime
-            data_atual = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            
-            for numero, status, posicao in containers_exemplo:
-                db.execute('''
-                    INSERT OR IGNORE INTO containers (numero, status, posicao_atual, data_criacao, ultima_atualizacao)
-                    VALUES (?, ?, ?, ?, ?)
-                ''', (numero, status, posicao, data_atual, data_atual))
-            
-            db.commit()
-            logger.info(f"Inseridos {len(containers_exemplo)} containers de exemplo")
+            logger.info("Sistema iniciado com banco de dados vazio - pronto para dados reais")
         else:
             logger.info(f"Sistema já possui {count} containers cadastrados")
             
     except Exception as e:
-        logger.error(f"Erro ao inserir dados de exemplo: {e}")
+        logger.error(f"Erro ao verificar dados de exemplo: {e}")
 
 def verificar_integridade_db():
     """Verifica a integridade do banco de dados e corrige problemas comuns"""

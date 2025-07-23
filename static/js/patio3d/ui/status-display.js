@@ -179,7 +179,24 @@ export class StatusDisplay {
         this.atualizarElementoDireto(`count-${armadorId}`, armadorCounts[armador]);
       });
       
-      console.log('✅ [StatusDisplay] Atualização direta concluída com ROW, ALTURA e ARMADORES!');
+      // Calcular e atualizar POSIÇÕES VAZIAS
+      // Assumindo capacidade total do pátio (5 rows x 20 baias x altura máxima por row)
+      const capacidadeTotal = {
+        A: 20 * 2, // Row A: altura máxima 2
+        B: 20 * 3, // Row B: altura máxima 3  
+        C: 20 * 4, // Row C: altura máxima 4
+        D: 20 * 5, // Row D: altura máxima 5
+        E: 20 * 5  // Row E: altura máxima 5
+      };
+      
+      const totalCapacidade = Object.values(capacidadeTotal).reduce((sum, cap) => sum + cap, 0);
+      const posicoesVazias = totalCapacidade - total;
+      
+      console.log(`📊 [StatusDisplay] Posições vazias calculadas: ${posicoesVazias} (Total capacidade: ${totalCapacidade}, Ocupadas: ${total})`);
+      
+      this.atualizarElementoDireto('count-posicoes-vazias', posicoesVazias);
+      
+      console.log('✅ [StatusDisplay] Atualização direta concluída com ROW, ALTURA, ARMADORES e POSIÇÕES VAZIAS!');
     }
   
     // Método auxiliar para atualização direta sem animação

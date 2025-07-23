@@ -1,0 +1,377 @@
+/* ========================================
+   ESTILOS PARA VISUALIZADOR DE GRID DE BAYS
+   Layout lado a lado das posições por bay
+   ======================================== */
+
+/* Container principal do grid */
+.bay-grid-container {
+  background: #f8f9fa;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 1rem 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Header com estatísticas */
+.bay-grid-header {
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.bay-grid-title {
+  margin: 0 0 0.5rem 0;
+  color: #495057;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+.bay-grid-title i {
+  color: #007bff;
+}
+
+.bay-grid-stats {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.875rem;
+  color: #6c757d;
+}
+
+.total-positions {
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+}
+
+/* Grid principal das bays */
+.bay-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+/* Coluna de cada bay */
+.bay-column {
+  background: white;
+  border-radius: 0.375rem;
+  border: 1px solid #dee2e6;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+}
+
+.bay-column:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Header de cada bay */
+.bay-header {
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: white;
+  padding: 0.75rem;
+  text-align: center;
+}
+
+.bay-name {
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+}
+
+.bay-count {
+  font-size: 0.75rem;
+  opacity: 0.9;
+  margin-top: 0.25rem;
+}
+
+/* Container de posições */
+.bay-positions {
+  padding: 0.75rem;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.bay-positions::-webkit-scrollbar {
+  width: 6px;
+}
+
+.bay-positions::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.bay-positions::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.bay-positions::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Grupo de posição (ex: A01) */
+.position-group {
+  margin-bottom: 0.75rem;
+  border: 1px solid #e9ecef;
+  border-radius: 0.25rem;
+  overflow: hidden;
+}
+
+.position-group:last-child {
+  margin-bottom: 0;
+}
+
+/* Label da posição */
+.position-label {
+  background: #e9ecef;
+  padding: 0.375rem 0.5rem;
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: #495057;
+  text-align: center;
+  border-bottom: 1px solid #dee2e6;
+}
+
+/* Container de alturas */
+.heights-container {
+  padding: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  justify-content: center;
+}
+
+/* Botões de altura */
+.height-button {
+  background: white;
+  border: 1px solid #dee2e6;
+  border-left: 3px solid #6c757d;
+  border-radius: 0.25rem;
+  padding: 0.375rem 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 60px;
+  text-align: center;
+  font-size: 0.75rem;
+}
+
+.height-button:hover {
+  background: #f8f9fa;
+  border-color: #adb5bd;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.height-button:active {
+  transform: translateY(0);
+}
+
+.height-button.selected {
+  background: #e3f2fd;
+  border-color: #2196f3;
+  color: #1976d2;
+  font-weight: 600;
+  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+}
+
+.height-number {
+  display: block;
+  font-weight: 700;
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.height-label {
+  display: block;
+  font-size: 0.65rem;
+  opacity: 0.8;
+  margin-top: 0.125rem;
+}
+
+/* Estado vazio da bay */
+.bay-empty {
+  text-align: center;
+  color: #6c757d;
+  font-style: italic;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 0.25rem;
+}
+
+/* Legenda das cores */
+.bay-grid-legend {
+  background: white;
+  border-radius: 0.375rem;
+  padding: 0.75rem;
+  border: 1px solid #dee2e6;
+}
+
+.legend-title {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #495057;
+  margin-bottom: 0.5rem;
+}
+
+.legend-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  color: #6c757d;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Responsividade */
+@media (max-width: 1200px) {
+  .bay-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .bay-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  
+  .bay-grid-container {
+    padding: 0.75rem;
+  }
+  
+  .bay-positions {
+    max-height: 300px;
+  }
+  
+  .legend-items {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .bay-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .heights-container {
+    justify-content: flex-start;
+  }
+  
+  .height-button {
+    min-width: 50px;
+    padding: 0.25rem 0.375rem;
+  }
+}
+
+/* Animações */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.bay-grid-container.fade-in {
+  animation: slideInUp 0.5s ease-out;
+}
+
+.position-group {
+  animation: slideInUp 0.3s ease-out;
+}
+
+.position-group:nth-child(2n) {
+  animation-delay: 0.1s;
+}
+
+.position-group:nth-child(3n) {
+  animation-delay: 0.2s;
+}
+
+/* Estados de loading */
+.bay-grid-container.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.bay-grid-container.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 24px;
+  height: 24px;
+  margin: -12px 0 0 -12px;
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Melhorias de acessibilidade */
+.height-button:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+.height-button:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Indicadores de status */
+.bay-column.has-selections {
+  border-color: #28a745;
+}
+
+.bay-column.has-selections .bay-header {
+  background: linear-gradient(135deg, #28a745, #1e7e34);
+}
+
+/* Tooltips customizados */
+.height-button[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 0.375rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  z-index: 1000;
+  margin-bottom: 0.25rem;
+}
+
+.height-button[title]:hover::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: rgba(0, 0, 0, 0.8);
+  z-index: 1000;
+}

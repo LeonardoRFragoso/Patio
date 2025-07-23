@@ -6,7 +6,7 @@
 // -------------------- COMBOBOX "NOVA POSIÇÃO" DINÂMICO --------------------
 let posicaoChoices = null;
 
-// Carregar posições via backend e popular o select
+// Carregar posições via backend e popular o select com organização hierárquica
 async function carregarPosicoesMovimentacao(forceRefresh = false) {
   const select = document.getElementById('posicao_nova');
   const containerInput = document.getElementById('container_movimentacao');
@@ -38,34 +38,65 @@ async function carregarPosicoesMovimentacao(forceRefresh = false) {
       throw new Error(data.error || 'Erro ao buscar posições.');
     }
 
-    // Reset options
-    select.innerHTML = '<option value="">Selecione a posição</option>';
+    // Extrair lista de posições do backend
+    const posicoes = data.posicoes.map(pos => pos.codigo || pos);
+    
+    console.log(`📊 Carregando ${posicoes.length} posições organizadas para container ${numeroContainer}`);
 
-    data.posicoes.forEach((pos) => {
-      const option = document.createElement('option');
-      option.value = pos.codigo || pos; // backend pode retornar string ou objeto {codigo, descricao}
-      option.textContent = pos.descricao || pos.codigo || pos;
-      select.appendChild(option);
-    });
+    // Usar o organizador de posições para estruturar hierarquicamente
+    if (typeof window.organizarComboboxPosicoes === 'function') {
+      // Usar organizador moderno com opção de grid
+      const resultado = window.organizarComboboxPosicoes(select, posicoes, {
+        showStats: true,
+        showViewToggle: true,
+        showGridView: false, // Começar com lista, usuário pode alternar
+        searchPlaceholderValue: 'Digite bay (A-E), posição (01-20) ou altura (1-5)...',
+        onPositionSelect: (posicao, posicaoInfo) => {
+          console.log(`🎯 Posição selecionada para movimentação: ${posicao}`);
+          
+          // Disparar evento para outros listeners
+          select.dispatchEvent(new CustomEvent('positionSelected', {
+            detail: { posicao, posicaoInfo }
+          }));
+        }
+      });
+      
+      posicaoChoices = resultado.choices;
+      
+      console.log(`✅ Posições organizadas para movimentação: ${resultado.stats.totalPosicoes} posições em ${Object.keys(resultado.stats.porBay).length} bays`);
+    } else {
+      // Fallback para método tradicional
+      console.warn('⚠️ Organizador de posições não disponível, usando método tradicional');
+      
+      select.innerHTML = '<option value="">Selecione a posição</option>';
+      
+      posicoes.forEach((pos) => {
+        const option = document.createElement('option');
+        option.value = pos;
+        option.textContent = pos;
+        select.appendChild(option);
+      });
+      
+      // Inicializar Choices básico
+      if (!posicaoChoices) {
+        posicaoChoices = new Choices(select, {
+          searchEnabled: true,
+          shouldSort: false,
+          placeholderValue: 'Selecione a posição',
+          itemSelectText: '',
+          noResultsText: 'Nenhuma posição encontrada',
+          loadingText: 'Carregando posições...'
+        });
+      } else {
+        posicaoChoices.setChoices(Array.from(select.options).map(o => ({ value: o.value, label: o.textContent, selected: o.selected, disabled: o.disabled })), 'value', 'label', true);
+      }
+    }
 
     select.disabled = false;
     select.dataset.loadedFor = numeroContainer;
 
-    // Inicializar/atualizar Choices
-    if (!posicaoChoices) {
-      posicaoChoices = new Choices(select, {
-        searchEnabled: true,
-        shouldSort: false,
-        placeholderValue: 'Selecione a posição',
-        itemSelectText: '',
-        noResultsText: 'Nenhuma posição encontrada',
-        loadingText: 'Carregando posições...'
-      });
-    } else {
-      posicaoChoices.setChoices(Array.from(select.options).map(o => ({ value: o.value, label: o.textContent, selected: o.selected, disabled: o.disabled })), 'value', 'label', true);
-    }
   } catch (err) {
-    console.error(err);
+    console.error('❌ Erro ao carregar posições:', err);
     Swal.fire({ icon: 'error', title: 'Erro', text: err.message });
   } finally {
     btnRefresh?.classList.remove('rotating');
