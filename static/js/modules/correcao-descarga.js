@@ -370,6 +370,35 @@ const CorrecaoDescargaModule = (() => {
   }
 
   /**
+   * Obtém o token CSRF para requisições
+   * @returns {string|null} Token CSRF
+   */
+  function obterTokenCSRF() {
+    // Tentar várias fontes de token CSRF
+    const sources = [
+      () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
+      () => document.querySelector('input[name="csrf_token"]')?.value,
+      () => document.getElementById('csrf-token-input')?.value,
+      () => window.csrfToken
+    ];
+    
+    for (const getToken of sources) {
+      try {
+        const token = getToken();
+        if (token && token.trim()) {
+          console.log('✅ Token CSRF obtido para correção');
+          return token;
+        }
+      } catch (e) {
+        // Continuar tentando outras fontes
+      }
+    }
+    
+    console.error('❌ Token CSRF não encontrado para correção');
+    return null;
+  }
+
+  /**
    * Envia PUT de correção com todos os campos do formulário
    * @param {number} operacaoId - ID da operação
    * @param {Object} dadosFormulario - Dados completos do formulário
@@ -383,17 +412,27 @@ const CorrecaoDescargaModule = (() => {
         throw new Error('Nova posição é obrigatória');
       }
       
+      // Obter token CSRF
+      const csrfToken = obterTokenCSRF();
+      if (!csrfToken) {
+        throw new Error('Token CSRF não encontrado. Recarregue a página e tente novamente.');
+      }
+      
       // Formatar dados para envio
       const dadosEnvio = {
         ...dadosFormulario,
-        nova_posicao: dadosFormulario.nova_posicao.trim().toUpperCase()
+        nova_posicao: dadosFormulario.nova_posicao.trim().toUpperCase(),
+        csrf_token: csrfToken
       };
       
-      console.log('Enviando dados para correção:', dadosEnvio);
+      console.log('Enviando dados para correção:', { ...dadosEnvio, csrf_token: '[HIDDEN]' });
 
       const resposta = await fetch(`/operacoes/descargas/${operacaoId}/corrigir`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken
+        },
         body: JSON.stringify(dadosEnvio)
       });
 

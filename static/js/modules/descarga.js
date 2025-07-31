@@ -642,7 +642,6 @@ function gerarFormularioDescarga(container, modoTransporte, containerInfo) {
               <div class="col-md-6">
                 <strong>Container:</strong> ${container.numero}<br>
                 <strong>ISO:</strong> ${container.iso_container || '-'}<br>
-                <strong>Tipo:</strong> ${containerInfo.tipo}<br>
                 <strong>Tamanho:</strong> ${containerInfo.containerSize} pés
               </div>
               <div class="col-md-6">
@@ -791,7 +790,7 @@ async function carregarPosicoesDisponiveis(statusContainer = 'CHEIO', containerS
         // Usar organizador moderno com opção de grid
         const resultado = window.organizarComboboxPosicoes(dropdown, posicoesFormatadas, {
           showStats: true,
-          showViewToggle: true,
+          showViewToggle: false,
           showGridView: false, // Começar com lista, usuário pode alternar para grid
           containerSize: containerSize,
           searchPlaceholderValue: `Digite bay (A-E), posição (01-20) ou altura (1-5) para containers ${containerSize} TEU...`,

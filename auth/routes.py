@@ -125,7 +125,8 @@ def configurar_sessao_usuario(user):
     """Configura a sessão do usuário após login bem-sucedido"""
     session['username'] = user['username']
     session['user_id'] = user['id']
-    session['role'] = user['nivel']
+    session['role'] = user['nivel']  # Para compatibilidade com código existente
+    session['nivel'] = user['nivel']  # Para nova lógica de permissões
     session['unidade'] = user['unidade']
 
 def obter_solicitacoes_pendentes():
@@ -267,7 +268,7 @@ def redirecionar_por_nivel(nivel):
     if nivel == NIVEL_ADMIN:
         return redirect(url_for('admin.admin_dashboard'))
     elif nivel == 'admin_administrativo':
-        return redirect(url_for('admin.pagina_corrigir_descarga'))
+        return redirect(url_for('admin.admin_administrativo_dashboard'))
     elif nivel == NIVEL_VISTORIADOR:
         return redirect(url_for('auth.dashboard', tipo='vistoriador'))
     else:

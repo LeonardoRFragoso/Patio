@@ -1,0 +1,421 @@
+/**
+ * ========================================
+ * COMPACT POSITION SELECTOR
+ * Layout ultra-compacto para seleção rápida de posições
+ * ========================================
+ */
+
+.compact-position-selector {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+}
+
+/* Container principal - uma única linha */
+.compact-selector-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  padding: 8px 12px;
+  transition: all 0.3s ease;
+  min-height: 50px;
+}
+
+.compact-selector-container:hover {
+  border-color: #007bff;
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.15);
+}
+
+.compact-selector-container.focused {
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+/* Input de busca compacto */
+.compact-search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  font-weight: 500;
+  background: transparent;
+  color: #495057;
+  min-width: 0;
+}
+
+.compact-search-input::placeholder {
+  color: #6c757d;
+  font-weight: normal;
+}
+
+/* Indicador de posição selecionada */
+.selected-position-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #007bff;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  min-width: 60px;
+  justify-content: center;
+}
+
+.selected-position-indicator.empty {
+  background: #e9ecef;
+  color: #6c757d;
+}
+
+/* Botões de ação rápida */
+.quick-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.quick-action-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 4px;
+  background: #f8f9fa;
+  color: #6c757d;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+.quick-action-btn:hover {
+  background: #007bff;
+  color: white;
+  transform: scale(1.1);
+}
+
+/* Dropdown de sugestões - compacto */
+.compact-suggestions-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 0 0 8px 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  max-height: 300px;
+  overflow-y: auto;
+  display: none;
+}
+
+.compact-suggestions-dropdown.show {
+  display: block;
+}
+
+/* Header do dropdown com estatísticas */
+.suggestions-header {
+  background: #f8f9fa;
+  padding: 8px 12px;
+  border-bottom: 1px solid #dee2e6;
+  font-size: 11px;
+  color: #6c757d;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.suggestions-stats {
+  display: flex;
+  gap: 12px;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.stat-dot.available { background: #28a745; }
+.stat-dot.selected { background: #007bff; }
+
+/* Lista de sugestões agrupadas */
+.suggestions-list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.suggestion-group {
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.group-header {
+  background: #f8f9fa;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: bold;
+  color: #495057;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.suggestion-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  border: none;
+  width: 100%;
+  text-align: left;
+  background: none;
+}
+
+.suggestion-item:hover {
+  background: #f8f9fa;
+}
+
+.suggestion-item.highlighted {
+  background: #e3f2fd;
+}
+
+.suggestion-item.selected {
+  background: #007bff;
+  color: white;
+}
+
+/* Conteúdo da sugestão */
+.suggestion-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.position-badge {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: bold;
+  color: white;
+}
+
+.position-badge.bay-A { background: #dc3545; }
+.position-badge.bay-B { background: #007bff; }
+.position-badge.bay-C { background: #28a745; }
+.position-badge.bay-D { background: #fd7e14; }
+.position-badge.bay-E { background: #6f42c1; }
+
+.position-info {
+  flex: 1;
+}
+
+.position-code {
+  font-weight: 600;
+  font-size: 14px;
+  color: #212529;
+}
+
+.position-details {
+  font-size: 11px;
+  color: #6c757d;
+  margin-top: 1px;
+}
+
+.position-status {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.position-status.available {
+  background: #d4edda;
+  color: #155724;
+}
+
+.position-status.occupied {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+/* Busca rápida por bay */
+.quick-bay-selector {
+  display: flex;
+  gap: 2px;
+  padding: 8px 12px;
+  background: #f8f9fa;
+  border-top: 1px solid #dee2e6;
+}
+
+.bay-quick-btn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.bay-quick-btn:hover {
+  transform: scale(1.1);
+}
+
+.bay-quick-btn.bay-A { border-color: #dc3545; color: #dc3545; }
+.bay-quick-btn.bay-B { border-color: #007bff; color: #007bff; }
+.bay-quick-btn.bay-C { border-color: #28a745; color: #28a745; }
+.bay-quick-btn.bay-D { border-color: #fd7e14; color: #fd7e14; }
+.bay-quick-btn.bay-E { border-color: #6f42c1; color: #6f42c1; }
+
+.bay-quick-btn.active {
+  background: currentColor;
+  color: white !important;
+}
+
+/* Indicador de carregamento */
+.loading-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  color: #6c757d;
+  font-size: 12px;
+}
+
+.loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #e9ecef;
+  border-top: 2px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Estado vazio */
+.empty-state {
+  padding: 20px;
+  text-align: center;
+  color: #6c757d;
+  font-size: 12px;
+}
+
+.empty-state-icon {
+  font-size: 24px;
+  margin-bottom: 8px;
+  opacity: 0.5;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .compact-selector-container {
+    padding: 6px 10px;
+    min-height: 44px;
+  }
+  
+  .compact-search-input {
+    font-size: 14px;
+  }
+  
+  .selected-position-indicator {
+    font-size: 11px;
+    padding: 3px 6px;
+    min-width: 50px;
+  }
+  
+  .quick-action-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 11px;
+  }
+  
+  .compact-suggestions-dropdown {
+    max-height: 250px;
+  }
+}
+
+@media (max-width: 480px) {
+  .quick-actions {
+    display: none;
+  }
+  
+  .compact-selector-container {
+    gap: 8px;
+  }
+  
+  .suggestions-stats {
+    gap: 8px;
+  }
+  
+  .stat-item {
+    font-size: 10px;
+  }
+}
+
+/* Animações suaves */
+.suggestion-item {
+  animation: slideIn 0.2s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Estados de foco e acessibilidade */
+.suggestion-item:focus {
+  outline: 2px solid #007bff;
+  outline-offset: -2px;
+}
+
+.compact-search-input:focus {
+  outline: none;
+}
+
+/* Indicador de teclas de atalho */
+.keyboard-hint {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 10px;
+  color: #6c757d;
+  pointer-events: none;
+}
+
+.keyboard-hint.hidden {
+  display: none;
+}

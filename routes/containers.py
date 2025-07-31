@@ -5,7 +5,7 @@ import sqlite3
 import re
 from db import get_db, log_activity
 from auth.routes import login_required
-from utils.permissions import operador_required, inventariante_required, admin_required
+from utils.permissions import operador_required, inventariante_required, admin_required, admin_completo_only_required
 from utils.csrf import csrf
 
 # Configuração de logging para este módulo
@@ -453,7 +453,7 @@ def buscar_container():
 # ✅ NOVA ROTA: Atualizar posições para formato A01-1
 @containers_bp.route('/operacoes/containers/atualizar_formato', methods=['POST'])
 @login_required
-@admin_required
+@admin_completo_only_required
 def atualizar_formato_posicoes():
     """
     Rota administrativa para atualizar todas as posições no banco 
@@ -834,7 +834,7 @@ def obter_dados_patio_3d():
 # ✅ NOVA ROTA: Validar consistência das posições
 @containers_bp.route('/operacoes/containers/validar-posicoes', methods=['GET'])
 @login_required
-@admin_required
+@admin_completo_only_required
 def validar_posicoes():
     """
     Rota para validar se todas as posições estão no formato A01-1

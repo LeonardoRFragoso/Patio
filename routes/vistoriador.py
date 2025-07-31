@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session
 from functools import wraps
 from utils.db import get_db
-from utils.permissions import vistoriador_required, login_required, admin_required
+from utils.permissions import vistoriador_required, admin_required, admin_completo_only_required
 from utils.csrf import csrf
 import os
 import json
@@ -689,7 +689,7 @@ def registrar_vistoria():
                 container_numero, status, iso_container, tipo_container, tamanho,
                 capacidade, tara, lacre, armador, tipo_operacao, condicao,
                 observacoes, usuario_id, unidade, data_vistoria, vagao, placa
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             container_numero, status, iso_container, tipo_container, tamanho,
             capacidade, tara, lacre, armador, tipo_operacao, condicao,
@@ -1192,7 +1192,7 @@ def listar_avarias():
         return jsonify({'success': False, 'message': f'Erro ao listar avarias: {str(e)}'})
 
 @vistoriador_bp.route('/adicionar-estrutura', methods=['POST'])
-@admin_required
+@admin_completo_only_required
 def adicionar_estrutura():
     """
     Adiciona uma nova estrutura ao banco de dados
@@ -1247,7 +1247,7 @@ def adicionar_estrutura():
         return jsonify({'success': False, 'message': f'Erro ao adicionar estrutura: {str(e)}'})
 
 @vistoriador_bp.route('/adicionar-avaria', methods=['POST'])
-@admin_required
+@admin_completo_only_required
 def adicionar_avaria():
     """
     Adiciona uma nova avaria ao banco de dados

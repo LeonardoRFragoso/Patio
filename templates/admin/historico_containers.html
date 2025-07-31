@@ -1,0 +1,805 @@
+{% extends "base.html" %}
+
+{% block title %}Histórico de Containers - Admin Administrativo{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+<style>
+    .filter-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+    
+    .results-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .btn-filter {
+        border-radius: 8px;
+        padding: 10px 20px;
+        font-weight: 600;
+    }
+    
+    .status-badge {
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .status-vistoriado { background-color: #d4edda; color: #155724; }
+    .status-no-patio { background-color: #d1ecf1; color: #0c5460; }
+    .status-carregado { background-color: #f8d7da; color: #721c24; }
+    .status-movimentado { background-color: #fff3cd; color: #856404; }
+    
+    .table-container {
+        max-height: 600px;
+        overflow-y: auto;
+    }
+    
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+    
+    .container-details {
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+    
+    .container-details:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .pagination-info {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">
+                        <i class="fas fa-history me-2"></i>Histórico de Containers
+                    </h1>
+                    <p class="text-muted mb-0">Visualização completa do histórico de containers com filtros avançados</p>
+                </div>
+                <div class="text-end">
+                    <a href="{{ url_for('admin.admin_administrativo_dashboard') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Voltar ao Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card filter-card">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-filter me-2"></i>Filtros de Busca
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form id="filtrosForm">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label for="unidade" class="form-label">Unidade</label>
+                                <select class="form-select" id="unidade" name="unidade">
+                                    <option value="">Todas as unidades</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-3 mb-3">
+                                <label for="numero" class="form-label">Número do Container</label>
+                                <input type="text" class="form-control" id="numero" name="numero" placeholder="Ex: TCLU1234567">
+                            </div>
+                            
+                            <div class="col-md-3 mb-3">
+                                <label for="status" class="form-label">Status</label>
+                                <select class="form-select" id="status" name="status">
+                                    <option value="">Todos os status</option>
+                                    <option value="vistoriado">Vistoriado</option>
+                                    <option value="no patio">No Pátio</option>
+                                    <option value="carregado">Carregado</option>
+                                    <option value="movimentado">Movimentado</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-3 mb-3">
+                                <label for="per_page" class="form-label">Itens por página</label>
+                                <select class="form-select" id="per_page" name="per_page">
+                                    <option value="25">25</option>
+                                    <option value="50" selected>50</option>
+                                    <option value="100">100</option>
+                                    <option value="200">200</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label for="data_inicio" class="form-label">Data Início</label>
+                                <input type="date" class="form-control" id="data_inicio" name="data_inicio">
+                            </div>
+                            
+                            <div class="col-md-3 mb-3">
+                                <label for="data_fim" class="form-label">Data Fim</label>
+                                <input type="date" class="form-control" id="data_fim" name="data_fim">
+                            </div>
+                            
+                            <div class="col-md-6 mb-3 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary btn-filter me-2">
+                                    <i class="fas fa-search me-2"></i>Buscar
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-filter" id="limparFiltros">
+                                    <i class="fas fa-eraser me-2"></i>Limpar
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resultados -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card results-card position-relative">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-list me-2"></i>Resultados
+                    </h5>
+                    <div class="pagination-info" id="paginationInfo">
+                        <!-- Informações de paginação serão inseridas aqui -->
+                    </div>
+                </div>
+                
+                <div class="loading-overlay d-none" id="loadingOverlay">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Carregando...</span>
+                        </div>
+                        <p class="mt-2 mb-0">Carregando containers...</p>
+                    </div>
+                </div>
+                
+                <div class="card-body p-0">
+                    <div class="table-container">
+                        <table class="table table-hover mb-0" id="containersTable">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th>Número</th>
+                                    <th>Unidade</th>
+                                    <th>Status</th>
+                                    <th>Posição Atual</th>
+                                    <th>Tamanho</th>
+                                    <th>Armador</th>
+                                    <th>Última Operação</th>
+                                    <th>Data Criação</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="containersTableBody">
+                                <!-- Dados serão inseridos aqui via JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="card-footer bg-light">
+                    <nav aria-label="Navegação de páginas">
+                        <ul class="pagination justify-content-center mb-0" id="pagination">
+                            <!-- Paginação será inserida aqui via JavaScript -->
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Detalhes do Container -->
+<div class="modal fade" id="containerModal" tabindex="-1" aria-labelledby="containerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="containerModalLabel">
+                    <i class="fas fa-box me-2"></i>Detalhes do Container
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="containerModalBody">
+                <!-- Conteúdo será inserido via JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+class HistoricoContainers {
+    constructor() {
+        console.log('🚀 HistoricoContainers constructor iniciado');
+        this.currentPage = 1;
+        this.itemsPerPage = 50;
+        this.totalPages = 1;
+        this.filters = {};
+        
+        console.log('📋 Inicializando event listeners...');
+        this.initializeEventListeners();
+        
+        console.log('🏢 Carregando unidades...');
+        this.loadUnidades();
+        
+        // Aguardar um pouco para garantir que tudo esteja carregado
+        console.log('📦 Agendando carregamento automático de containers...');
+        setTimeout(() => {
+            console.log('📦 Executando carregamento automático de containers...');
+            this.buscarContainers();
+        }, 100);
+    }
+    
+    initializeEventListeners() {
+        console.log('🎯 Configurando event listeners...');
+        
+        // Eventos dos filtros
+        const filtrosForm = document.getElementById('filtrosForm');
+        if (filtrosForm) {
+            filtrosForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                console.log('📝 Formulário submetido');
+                this.buscarContainers();
+            });
+            console.log('✅ Event listener do formulário configurado');
+        } else {
+            console.error('❌ Formulário filtrosForm não encontrado');
+        }
+        
+        // Botão buscar
+        const submitBtn = document.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('🔍 Botão buscar clicado');
+                this.buscarContainers();
+            });
+            console.log('✅ Event listener do botão buscar configurado');
+        } else {
+            console.warn('⚠️ Botão submit não encontrado');
+        }
+        
+        // Botão limpar
+        const limparBtn = document.getElementById('limparFiltros');
+        if (limparBtn) {
+            limparBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('🧹 Botão limpar clicado');
+                this.limparFiltros();
+            });
+            console.log('✅ Event listener do botão limpar configurado');
+        } else {
+            console.warn('⚠️ Botão limpar não encontrado');
+        }
+        
+        // Botão download
+        const downloadBtn = document.querySelector('button[onclick="downloadRelatorio()"]');
+        if (downloadBtn) {
+            downloadBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('📥 Botão download clicado');
+                this.downloadRelatorio();
+            });
+            console.log('✅ Event listener do botão download configurado');
+        } else {
+            console.warn('⚠️ Botão download não encontrado');
+        }
+        
+        console.log('🎯 Event listeners configurados com sucesso');
+    }
+    
+    limparFiltros() {
+        document.getElementById('filtrosForm').reset();
+        this.currentPage = 1;
+        this.buscarContainers();
+    }
+    
+    async downloadRelatorio() {
+        try {
+            // Coletar filtros
+            const formData = new FormData(document.getElementById('filtrosForm'));
+            const params = new URLSearchParams();
+            
+            for (let [key, value] of formData.entries()) {
+                if (value.trim()) {
+                    params.append(key, value);
+                }
+            }
+            
+            // Fazer download
+            window.open(`/admin/api/download-relatorio-containers?${params}`, '_blank');
+            
+        } catch (error) {
+            console.error('Erro ao baixar relatório:', error);
+            this.showError('Erro ao baixar relatório');
+        }
+    }
+    
+    async loadUnidades() {
+        try {
+            console.log('Carregando unidades via API...');
+            
+            // Primeiro tentar usar dados do template (fallback)
+            let unidades = [];
+            try {
+                unidades = {{ unidades | tojson }};
+                console.log('Unidades do template:', unidades);
+            } catch (e) {
+                console.log('Dados do template não disponíveis, usando API...');
+            }
+            
+            // Se não tiver unidades do template, buscar via API
+            if (!unidades || unidades.length === 0) {
+                const response = await fetch('/admin/api/unidades');
+                const data = await response.json();
+                
+                if (data.success) {
+                    unidades = data.unidades;
+                    console.log('Unidades carregadas via API:', unidades);
+                    
+                    // Também carregar outros filtros
+                    this.loadStatusOptions(data.status);
+                    this.loadTamanhosOptions(data.tamanhos);
+                    this.loadArmadoresOptions(data.armadores);
+                } else {
+                    console.error('Erro na API de unidades:', data.error);
+                    return;
+                }
+            }
+            
+            // Carregar unidades no select
+            const select = document.getElementById('unidade');
+            if (!select) {
+                console.error('Elemento select unidade não encontrado!');
+                return;
+            }
+            
+            // Limpar opções existentes (exceto a primeira)
+            while (select.children.length > 1) {
+                select.removeChild(select.lastChild);
+            }
+            
+            // Adicionar unidades
+            unidades.forEach(unidade => {
+                const option = document.createElement('option');
+                option.value = unidade;
+                option.textContent = unidade;
+                select.appendChild(option);
+            });
+            
+            console.log('Unidades adicionadas ao select:', unidades.length);
+        } catch (error) {
+            console.error('Erro ao carregar unidades:', error);
+        }
+    }
+    
+    loadStatusOptions(statusList) {
+        if (!statusList || statusList.length === 0) return;
+        
+        const select = document.getElementById('status');
+        if (!select) return;
+        
+        // Limpar opções existentes (exceto a primeira)
+        while (select.children.length > 1) {
+            select.removeChild(select.lastChild);
+        }
+        
+        statusList.forEach(status => {
+            const option = document.createElement('option');
+            option.value = status;
+            option.textContent = status;
+            select.appendChild(option);
+        });
+        
+        console.log('Status adicionados ao select:', statusList.length);
+    }
+    
+    loadTamanhosOptions(tamanhos) {
+        // Implementar se necessário no futuro
+        console.log('Tamanhos disponíveis:', tamanhos);
+    }
+    
+    loadArmadoresOptions(armadores) {
+        // Implementar se necessário no futuro
+        console.log('Armadores disponíveis:', armadores);
+    }
+    
+    async buscarContainers() {
+        try {
+            this.showLoading(true);
+            
+            // Coletar filtros
+            const formData = new FormData(document.getElementById('filtrosForm'));
+            const params = new URLSearchParams();
+            
+            for (let [key, value] of formData.entries()) {
+                if (value.trim()) {
+                    params.append(key, value);
+                }
+            }
+            
+            params.append('pagina', this.currentPage);
+            params.append('itens_por_pagina', this.itemsPerPage);
+            
+            console.log('Buscando containers com parâmetros:', params.toString());
+            
+            const response = await fetch(`/admin/api/historico-containers?${params}`);
+            const data = await response.json();
+            
+            console.log('Resposta da API:', data);
+            
+            if (data.success) {
+                console.log('✅ API retornou sucesso, renderizando containers...');
+                this.renderContainers(data.containers);
+                
+                console.log('📄 Configurando paginação...');
+                this.renderPagination({
+                    page: data.pagina_atual,
+                    per_page: data.itens_por_pagina,
+                    total: data.total_registros,
+                    pages: data.total_paginas
+                });
+                
+                console.log('ℹ️ Atualizando informações de paginação...');
+                this.updatePaginationInfo({
+                    page: data.pagina_atual,
+                    per_page: data.itens_por_pagina,
+                    total: data.total_registros
+                });
+                
+                console.log('🎉 Containers renderizados com sucesso!');
+            } else {
+                console.error('❌ API retornou erro:', data.error);
+                this.showError(data.error || 'Erro ao buscar containers');
+            }
+        } catch (error) {
+            console.error('Erro ao buscar containers:', error);
+            this.showError('Erro de conexão');
+        } finally {
+            this.showLoading(false);
+        }
+    }
+    
+    renderContainers(containers) {
+        const tbody = document.getElementById('containersTableBody');
+        
+        if (!containers || containers.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="9" class="text-center text-muted py-4">
+                        <i class="fas fa-search fa-2x mb-2"></i><br>
+                        Nenhum container encontrado
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        
+        console.log('Renderizando', containers.length, 'containers');
+        
+        tbody.innerHTML = containers.map(container => `
+            <tr class="container-details" data-container-id="${container.id}">
+                <td><strong>${container.numero}</strong></td>
+                <td>${container.unidade}</td>
+                <td><span class="status-badge status-${container.status.replace(' ', '-')}">${container.status}</span></td>
+                <td>${container.posicao_atual || '-'}</td>
+                <td>${container.tamanho || '-'}</td>
+                <td>${container.armador || '-'}</td>
+                <td>
+                    ${container.ultima_operacao ? `
+                        <small>
+                            <strong>${container.ultima_operacao.tipo}</strong><br>
+                            ${this.formatDate(container.ultima_operacao.data)}
+                        </small>
+                    ` : '-'}
+                </td>
+                <td>${this.formatDate(container.data_criacao)}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" onclick="historicoContainers.verDetalhes(${container.id})">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+        
+        // Adicionar event listeners para clique nas linhas
+        document.querySelectorAll('.container-details').forEach(row => {
+            row.addEventListener('click', (e) => {
+                if (!e.target.closest('button')) {
+                    const containerId = row.dataset.containerId;
+                    this.verDetalhes(containerId);
+                }
+            });
+        });
+    }
+    
+    renderPagination(pagination) {
+        const paginationEl = document.getElementById('pagination');
+        this.totalPages = pagination.pages;
+        this.currentPage = pagination.page;
+        
+        if (pagination.pages <= 1) {
+            paginationEl.innerHTML = '';
+            return;
+        }
+        
+        let html = '';
+        
+        // Botão anterior
+        html += `
+            <li class="page-item ${pagination.page === 1 ? 'disabled' : ''}">
+                <a class="page-link" href="#" onclick="historicoContainers.goToPage(${pagination.page - 1})">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            </li>
+        `;
+        
+        // Páginas
+        const startPage = Math.max(1, pagination.page - 2);
+        const endPage = Math.min(pagination.pages, pagination.page + 2);
+        
+        if (startPage > 1) {
+            html += `<li class="page-item"><a class="page-link" href="#" onclick="historicoContainers.goToPage(1)">1</a></li>`;
+            if (startPage > 2) {
+                html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+            }
+        }
+        
+        for (let i = startPage; i <= endPage; i++) {
+            html += `
+                <li class="page-item ${i === pagination.page ? 'active' : ''}">
+                    <a class="page-link" href="#" onclick="historicoContainers.goToPage(${i})">${i}</a>
+                </li>
+            `;
+        }
+        
+        if (endPage < pagination.pages) {
+            if (endPage < pagination.pages - 1) {
+                html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+            }
+            html += `<li class="page-item"><a class="page-link" href="#" onclick="historicoContainers.goToPage(${pagination.pages})">${pagination.pages}</a></li>`;
+        }
+        
+        // Botão próximo
+        html += `
+            <li class="page-item ${pagination.page === pagination.pages ? 'disabled' : ''}">
+                <a class="page-link" href="#" onclick="historicoContainers.goToPage(${pagination.page + 1})">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+        `;
+        
+        paginationEl.innerHTML = html;
+    }
+    
+    updatePaginationInfo(pagination) {
+        const info = document.getElementById('paginationInfo');
+        const start = (pagination.page - 1) * pagination.per_page + 1;
+        const end = Math.min(pagination.page * pagination.per_page, pagination.total);
+        
+        info.textContent = `Mostrando ${start}-${end} de ${pagination.total} containers`;
+    }
+    
+    goToPage(page) {
+        if (page >= 1 && page <= this.totalPages) {
+            this.currentPage = page;
+            this.buscarContainers();
+        }
+    }
+    
+    async verDetalhes(containerId) {
+        try {
+            const response = await fetch(`/admin/api/container-detalhes/${containerId}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                this.renderDetalhesModal(data);
+                const modal = new bootstrap.Modal(document.getElementById('containerModal'));
+                modal.show();
+            } else {
+                this.showError('Erro ao carregar detalhes: ' + data.error);
+            }
+        } catch (error) {
+            console.error('Erro ao carregar detalhes:', error);
+            this.showError('Erro de conexão ao carregar detalhes');
+        }
+    }
+    
+    renderDetalhesModal(data) {
+        const { container, operacoes, vistorias, correcoes } = data;
+        
+        const modalBody = document.getElementById('containerModalBody');
+        modalBody.innerHTML = `
+            <div class="row">
+                <!-- Dados do Container -->
+                <div class="col-md-6 mb-4">
+                    <h6><i class="fas fa-box me-2"></i>Dados do Container</h6>
+                    <table class="table table-sm">
+                        <tr><td><strong>Número:</strong></td><td>${container.numero}</td></tr>
+                        <tr><td><strong>Status:</strong></td><td><span class="status-badge status-${container.status.replace(' ', '-')}">${container.status}</span></td></tr>
+                        <tr><td><strong>Unidade:</strong></td><td>${container.unidade}</td></tr>
+                        <tr><td><strong>Posição Atual:</strong></td><td>${container.posicao_atual || '-'}</td></tr>
+                        <tr><td><strong>Tamanho:</strong></td><td>${container.tamanho || '-'}</td></tr>
+                        <tr><td><strong>Tipo:</strong></td><td>${container.tipo_container || '-'}</td></tr>
+                        <tr><td><strong>Armador:</strong></td><td>${container.armador || '-'}</td></tr>
+                        <tr><td><strong>Booking:</strong></td><td>${container.booking || '-'}</td></tr>
+                        <tr><td><strong>Capacidade:</strong></td><td>${container.capacidade || '-'}</td></tr>
+                        <tr><td><strong>Tara:</strong></td><td>${container.tara || '-'}</td></tr>
+                    </table>
+                </div>
+                
+                <!-- Histórico de Operações -->
+                <div class="col-md-6 mb-4">
+                    <h6><i class="fas fa-history me-2"></i>Histórico de Operações</h6>
+                    <div style="max-height: 300px; overflow-y: auto;">
+                        ${operacoes.length > 0 ? operacoes.map(op => `
+                            <div class="card mb-2">
+                                <div class="card-body p-2">
+                                    <div class="d-flex justify-content-between">
+                                        <strong>${op.tipo}</strong>
+                                        <small class="text-muted">${this.formatDate(op.data_operacao)}</small>
+                                    </div>
+                                    ${op.modo ? `<small>Modo: ${op.modo}</small><br>` : ''}
+                                    ${op.posicao ? `<small>Posição: ${op.posicao}</small><br>` : ''}
+                                    ${op.usuario ? `<small>Usuário: ${op.usuario}</small><br>` : ''}
+                                    ${op.observacoes ? `<small>Obs: ${op.observacoes}</small>` : ''}
+                                </div>
+                            </div>
+                        `).join('') : '<p class="text-muted">Nenhuma operação registrada</p>'}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <!-- Vistorias -->
+                <div class="col-md-6 mb-4">
+                    <h6><i class="fas fa-clipboard-check me-2"></i>Vistorias</h6>
+                    <div style="max-height: 200px; overflow-y: auto;">
+                        ${vistorias.length > 0 ? vistorias.map(v => `
+                            <div class="card mb-2">
+                                <div class="card-body p-2">
+                                    <div class="d-flex justify-content-between">
+                                        <strong>Vistoria</strong>
+                                        <small class="text-muted">${this.formatDate(v.data_vistoria)}</small>
+                                    </div>
+                                    ${v.condicao ? `<small>Condição: ${v.condicao}</small><br>` : ''}
+                                    ${v.lacre ? `<small>Lacre: ${v.lacre}</small><br>` : ''}
+                                    ${v.observacoes ? `<small>Obs: ${v.observacoes}</small>` : ''}
+                                </div>
+                            </div>
+                        `).join('') : '<p class="text-muted">Nenhuma vistoria registrada</p>'}
+                    </div>
+                </div>
+                
+                <!-- Correções -->
+                <div class="col-md-6 mb-4">
+                    <h6><i class="fas fa-edit me-2"></i>Correções de Descarga</h6>
+                    <div style="max-height: 200px; overflow-y: auto;">
+                        ${correcoes.length > 0 ? correcoes.map(c => `
+                            <div class="card mb-2">
+                                <div class="card-body p-2">
+                                    <div class="d-flex justify-content-between">
+                                        <strong>Correção</strong>
+                                        <small class="text-muted">${this.formatDate(c.data_correcao)}</small>
+                                    </div>
+                                    ${c.posicao_anterior ? `<small>De: ${c.posicao_anterior}</small><br>` : ''}
+                                    ${c.nova_posicao ? `<small>Para: ${c.nova_posicao}</small><br>` : ''}
+                                    ${c.observacoes ? `<small>Obs: ${c.observacoes}</small>` : ''}
+                                </div>
+                            </div>
+                        `).join('') : '<p class="text-muted">Nenhuma correção registrada</p>'}
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.getElementById('containerModalLabel').innerHTML = `
+            <i class="fas fa-box me-2"></i>Detalhes do Container ${container.numero}
+        `;
+    }
+    
+    formatDate(dateString) {
+        if (!dateString) return '-';
+        
+        try {
+            const date = new Date(dateString);
+            return date.toLocaleString('pt-BR');
+        } catch {
+            return dateString;
+        }
+    }
+    
+    showLoading(show) {
+        const overlay = document.getElementById('loadingOverlay');
+        if (overlay) {
+            if (show) {
+                overlay.classList.remove('d-none');
+            } else {
+                overlay.classList.add('d-none');
+            }
+        }
+    }
+    
+    showError(message) {
+        console.error('Erro:', message);
+        alert(message);
+    }
+}
+
+// Inicializar quando a página carregar
+let historicoContainers;
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🎯 DOM carregado, inicializando HistoricoContainers...');
+    
+    // Verificar se elementos essenciais existem
+    const filtrosForm = document.getElementById('filtrosForm');
+    const containersTableBody = document.getElementById('containersTableBody');
+    
+    if (!filtrosForm) {
+        console.error('❌ Elemento filtrosForm não encontrado!');
+        return;
+    }
+    
+    if (!containersTableBody) {
+        console.error('❌ Elemento containersTableBody não encontrado!');
+        return;
+    }
+    
+    console.log('✅ Elementos essenciais encontrados, criando instância...');
+    historicoContainers = new HistoricoContainers();
+    
+    console.log('✅ HistoricoContainers inicializado com sucesso!');
+});
+
+// Funções globais para compatibilidade
+function limparFiltros() {
+    if (historicoContainers) {
+        historicoContainers.limparFiltros();
+    }
+}
+
+function downloadRelatorio() {
+    if (historicoContainers) {
+        historicoContainers.downloadRelatorio();
+    }
+}
+</script>
+{% endblock %}

@@ -33,10 +33,10 @@
                     </div>
                     
                     <ul class="nav flex-column">
-                        {% if session.get('role') == 'admin' %}
+                        {% if session.get('nivel') == 'admin' %}
                         <!-- Itens visíveis apenas para admin completo -->
                         <li class="nav-item">
-                            <a class="nav-link text-white {% if request.path == '/admin/' %}active{% endif %}" href="{{ url_for('admin.admin_dashboard') }}">
+                            <a class="nav-link text-white {% if request.path == '/admin/' or request.path == '/admin/dashboard' %}active{% endif %}" href="{{ url_for('admin.admin_dashboard') }}">
                                 <i class="fas fa-tachometer-alt me-2"></i> Dashboard
                             </a>
                         </li>
@@ -58,14 +58,29 @@
                                 <i class="fas fa-cubes me-2"></i> Estruturas & Avarias
                             </a>
                         </li>
+                        
+                        {% elif session.get('nivel') == 'admin_administrativo' %}
+                        <!-- Itens visíveis apenas para admin administrativo -->
+                        <li class="nav-item">
+                            <a class="nav-link text-white {% if request.path == '/admin/admin-administrativo' %}active{% endif %}" href="{{ url_for('admin.admin_administrativo_dashboard') }}">
+                                <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white {% if 'historico-containers' in request.path %}active{% endif %}" href="{{ url_for('admin.historico_containers') }}">
+                                <i class="fas fa-history me-2"></i> Histórico Completo
+                            </a>
+                        </li>
                         {% endif %}
                         
                         <!-- Item visível para ambos os tipos de admin -->
+                        {% if session.get('nivel') in ['admin', 'admin_administrativo'] %}
                         <li class="nav-item">
                             <a class="nav-link text-white {% if 'corrigir-descarga' in request.path %}active{% endif %}" href="{{ url_for('admin.pagina_corrigir_descarga') }}">
                                 <i class="fas fa-tools me-2"></i> Corrigir Descarga
                             </a>
                         </li>
+                        {% endif %}
                         
                         <li class="nav-item mt-4">
                             <a class="nav-link text-white" href="{{ url_for('auth.logout') }}">

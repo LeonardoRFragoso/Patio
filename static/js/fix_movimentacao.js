@@ -48,7 +48,7 @@ async function carregarPosicoesMovimentacao(forceRefresh = false) {
       // Usar organizador moderno com opção de grid
       const resultado = window.organizarComboboxPosicoes(select, posicoes, {
         showStats: true,
-        showViewToggle: true,
+        showViewToggle: false,
         showGridView: false, // Começar com lista, usuário pode alternar
         searchPlaceholderValue: 'Digite bay (A-E), posição (01-20) ou altura (1-5)...',
         onPositionSelect: (posicao, posicaoInfo) => {

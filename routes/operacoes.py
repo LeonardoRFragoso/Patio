@@ -483,12 +483,20 @@ def _get_unidade_usuario(cursor, username: str):
 def listar_descargas_corrigiveis():
     """Lista descargas que podem ser corrigidas (última operação do container é descarga e container ainda está no pátio)"""
     try:
-        # Obter unidade do usuário da sessão
+        # Obter informações do usuário da sessão
         username = session.get('username')
         unidade = session.get('unidade')
+        nivel = session.get('nivel')
         
-        current_app.logger.info(f"Usuário {username} solicitando lista de descargas corrigíveis")
-        current_app.logger.info(f"Buscando containers no pátio da unidade: {unidade}")
+        current_app.logger.info(f"Usuário {username} (nível: {nivel}) solicitando lista de descargas corrigíveis")
+        
+        # Admin Administrativo pode ver containers de todas as unidades
+        if nivel == 'admin_administrativo':
+            current_app.logger.info("Admin Administrativo: buscando containers de TODAS as unidades")
+            unidade_filtro = None
+        else:
+            current_app.logger.info(f"Buscando containers no pátio da unidade: {unidade}")
+            unidade_filtro = unidade
         
         db = get_db()
         cursor = db.cursor()
@@ -506,13 +514,17 @@ def listar_descargas_corrigiveis():
         total_containers = cursor.fetchone()[0]
         current_app.logger.info(f"Total de containers no pátio (todas unidades): {total_containers}")
         
-        # Buscar containers no pátio da unidade do usuário
-        cursor.execute("""
-            SELECT COUNT(*) FROM containers 
-            WHERE status = 'no patio' AND unidade = ?
-        """, (unidade,))
-        total_unidade = cursor.fetchone()[0]
-        current_app.logger.info(f"Total de containers no pátio da unidade {unidade}: {total_unidade}")
+        # Buscar containers no pátio (filtrar por unidade se não for admin administrativo)
+        if unidade_filtro:
+            cursor.execute("""
+                SELECT COUNT(*) FROM containers 
+                WHERE status = 'no patio' AND unidade = ?
+            """, (unidade_filtro,))
+            total_unidade = cursor.fetchone()[0]
+            current_app.logger.info(f"Total de containers no pátio da unidade {unidade_filtro}: {total_unidade}")
+        else:
+            total_unidade = total_containers
+            current_app.logger.info(f"Total de containers no pátio (todas as unidades): {total_unidade}")
         
         # Em ambiente de desenvolvimento, criar containers de teste se não houver nenhum
         if current_app.config.get('ENV') == 'development' and total_unidade == 0:
@@ -543,14 +555,23 @@ def listar_descargas_corrigiveis():
         for op in cursor.fetchall():
             current_app.logger.info(f"Descarga ID: {op[0]}, Container: {op[3]}, Status: {op[4]}, Unidade: {op[5]}")
         
-        # Verificar containers no pátio da unidade do usuário
-        current_app.logger.info(f"Containers no pátio da unidade {unidade}:")
-        cursor.execute("""
-            SELECT id, numero, status, unidade, posicao_atual
-            FROM containers
-            WHERE status = 'no patio' AND unidade = ?
-            LIMIT 10
-        """, (unidade,))
+        # Verificar containers no pátio (filtrar por unidade se não for admin administrativo)
+        if unidade_filtro:
+            current_app.logger.info(f"Containers no pátio da unidade {unidade_filtro}:")
+            cursor.execute("""
+                SELECT id, numero, status, unidade, posicao_atual
+                FROM containers
+                WHERE status = 'no patio' AND unidade = ?
+                LIMIT 10
+            """, (unidade_filtro,))
+        else:
+            current_app.logger.info("Containers no pátio (todas as unidades):")
+            cursor.execute("""
+                SELECT id, numero, status, unidade, posicao_atual
+                FROM containers
+                WHERE status = 'no patio'
+                LIMIT 10
+            """)
         
         containers_no_patio = cursor.fetchall()
         for c in containers_no_patio:
@@ -582,31 +603,59 @@ def listar_descargas_corrigiveis():
             # Commit das alterações
             db.commit()
         
-        # Buscar containers para correção (no pátio da unidade do usuário)
+        # Buscar containers para correção (filtrar por unidade se não for admin administrativo)
         # Verificar se as operações existem e são válidas e se a última operação foi uma descarga
         current_app.logger.info("Executando consulta principal para containers corrigíveis:")
-        cursor.execute("""
-            SELECT 
-                o.id AS operacao_id,
-                c.numero AS container_numero,
-                c.posicao_atual,
-                c.status,
-                o.data_operacao,
-                o.tipo
-            FROM operacoes o
-            JOIN containers c ON o.container_id = c.id
-            JOIN (SELECT container_id, MAX(data_operacao) as ultima_data 
-                  FROM operacoes 
-                  GROUP BY container_id) ultima 
-                ON o.container_id = ultima.container_id AND o.data_operacao = ultima.ultima_data
-            WHERE c.unidade = ? 
-                AND o.tipo = 'descarga'
-                AND c.status = 'no patio'
-                AND o.id IS NOT NULL
-                AND c.id IS NOT NULL
-            ORDER BY o.data_operacao DESC
-            LIMIT 20
-        """, (unidade,))
+        
+        if unidade_filtro:
+            # Admin normal: apenas da sua unidade
+            cursor.execute("""
+                SELECT 
+                    o.id AS operacao_id,
+                    c.numero AS container_numero,
+                    c.posicao_atual,
+                    c.status,
+                    o.data_operacao,
+                    o.tipo,
+                    c.unidade
+                FROM operacoes o
+                JOIN containers c ON o.container_id = c.id
+                JOIN (SELECT container_id, MAX(data_operacao) as ultima_data 
+                      FROM operacoes 
+                      GROUP BY container_id) ultima 
+                    ON o.container_id = ultima.container_id AND o.data_operacao = ultima.ultima_data
+                WHERE c.unidade = ? 
+                    AND o.tipo = 'descarga'
+                    AND c.status = 'no patio'
+                    AND o.id IS NOT NULL
+                    AND c.id IS NOT NULL
+                ORDER BY o.data_operacao DESC
+                LIMIT 20
+            """, (unidade_filtro,))
+        else:
+            # Admin Administrativo: todas as unidades
+            cursor.execute("""
+                SELECT 
+                    o.id AS operacao_id,
+                    c.numero AS container_numero,
+                    c.posicao_atual,
+                    c.status,
+                    o.data_operacao,
+                    o.tipo,
+                    c.unidade
+                FROM operacoes o
+                JOIN containers c ON o.container_id = c.id
+                JOIN (SELECT container_id, MAX(data_operacao) as ultima_data 
+                      FROM operacoes 
+                      GROUP BY container_id) ultima 
+                    ON o.container_id = ultima.container_id AND o.data_operacao = ultima.ultima_data
+                WHERE o.tipo = 'descarga'
+                    AND c.status = 'no patio'
+                    AND o.id IS NOT NULL
+                    AND c.id IS NOT NULL
+                ORDER BY o.data_operacao DESC
+                LIMIT 50
+            """)
         
         containers = []
         for row in cursor.fetchall():
@@ -620,7 +669,8 @@ def listar_descargas_corrigiveis():
                     'posicao_atual': row[2],
                     'status': row[3],
                     'data_operacao': row[4],
-                    'tipo_operacao': row[5]
+                    'tipo_operacao': row[5],
+                    'unidade': row[6] if len(row) > 6 else 'N/A'
                 })
                 current_app.logger.info(f"Container válido para correção: {row[1]}, Operação: {operacao_id}, Tipo: {row[5]}")
             else:
@@ -850,16 +900,20 @@ def corrigir_descarga(operacao_id):
 
         # Verificar unidade do usuário
         username = session.get('username')
-        cursor.execute('SELECT id, unidade FROM usuarios WHERE username = ?', (username,))
+        cursor.execute('SELECT id, unidade, nivel FROM usuarios WHERE username = ?', (username,))
         user_row = cursor.fetchone()
         if not user_row:
             return jsonify({'success': False, 'error': 'Usuário não encontrado'}), 400
-        usuario_id, unidade_usuario = user_row
-        if unidade_usuario.upper() != unidade_container.upper() and unidade_usuario != 'TODAS':
-            return jsonify({'success': False, 'error': 'Container pertence a outra unidade'}), 403
+        usuario_id, unidade_usuario, nivel_usuario = user_row
+        
+        # Admin Administrativo pode corrigir descargas de TODAS as unidades
+        if nivel_usuario != 'admin_administrativo':
+            if unidade_usuario.upper() != unidade_container.upper() and unidade_usuario != 'TODAS':
+                return jsonify({'success': False, 'error': 'Container pertence a outra unidade'}), 403
 
         # Validar posição com regras do pátio
-        resultado_validacao = patio_suzano.validar_posicao(nova_posicao)
+        # Precisamos do status do container para validação
+        resultado_validacao = patio_suzano.validar_operacao(nova_posicao, status_container)
         if not resultado_validacao['valido']:
             return jsonify({'success': False, 'error': resultado_validacao['mensagem']}), 400
 

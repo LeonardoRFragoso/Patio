@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify, make_response
 from functools import wraps
 from datetime import datetime
 import sqlite3
@@ -6,7 +6,7 @@ import logging
 from werkzeug.security import generate_password_hash, check_password_hash
 from utils.db import get_db
 from utils.security import is_strong_password
-from utils.permissions import admin_required, admin_completo_required, admin_administrativo_required
+from utils.permissions import admin_required, admin_completo_required, admin_administrativo_required, admin_completo_only_required, admin_administrativo_only_required
 
 # Configuração de logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -16,6 +16,422 @@ logger = logging.getLogger('admin_routes')
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
 # Decorator para verificar se o usuário está autenticado e é administrador
+
+@admin_bp.route('/')
+@admin_required
+def admin_index():
+    """Rota raiz que redireciona para o dashboard apropriado baseado no tipo de admin"""
+    user_role = session.get('role')
+    if user_role == 'admin':
+        return redirect(url_for('admin.admin_dashboard'))
+    elif user_role == 'admin_administrativo':
+        return redirect(url_for('admin.admin_administrativo_dashboard'))
+    else:
+        flash('Tipo de usuário não reconhecido', 'danger')
+        return redirect(url_for('auth.dashboard'))
+
+@admin_bp.route('/admin-administrativo')
+@admin_administrativo_only_required
+def admin_administrativo_dashboard():
+    """Dashboard específico para Admin Administrativo"""
+    try:
+        db = get_db()
+        cursor = db.cursor()
+        
+        # Estatísticas de descargas corrigidas (últimos 30 dias)
+        cursor.execute("""
+            SELECT COUNT(*) FROM correcoes_descarga 
+            WHERE data_correcao >= datetime('now', '-30 days')
+        """)
+        descargas_corrigidas = cursor.fetchone()[0]
+        
+        # Total de containers por unidade (converter para dicionário)
+        cursor.execute("""
+            SELECT unidade, COUNT(*) as total
+            FROM containers 
+            GROUP BY unidade
+            ORDER BY total DESC
+        """)
+        containers_por_unidade_raw = cursor.fetchall()
+        containers_por_unidade = {row[0]: row[1] for row in containers_por_unidade_raw}
+        
+        # Containers no pátio por unidade (converter para dicionário)
+        cursor.execute("""
+            SELECT unidade, COUNT(*) as total
+            FROM containers 
+            WHERE status = 'no patio'
+            GROUP BY unidade
+            ORDER BY total DESC
+        """)
+        containers_patio_raw = cursor.fetchall()
+        containers_patio_por_unidade = {row[0]: row[1] for row in containers_patio_raw}
+        
+        # Total geral de containers
+        cursor.execute("SELECT COUNT(*) FROM containers")
+        total_containers = cursor.fetchone()[0]
+        
+        # Containers no pátio (total)
+        cursor.execute("SELECT COUNT(*) FROM containers WHERE status = 'no patio'")
+        containers_no_patio = cursor.fetchone()[0]
+        
+        # Total de unidades
+        cursor.execute("SELECT COUNT(DISTINCT unidade) FROM containers")
+        total_unidades = cursor.fetchone()[0]
+        
+        return render_template('admin/admin_administrativo_dashboard.html', 
+                             descargas_corrigidas=descargas_corrigidas,
+                             containers_por_unidade=containers_por_unidade,
+                             containers_patio_por_unidade=containers_patio_por_unidade,
+                             total_containers=total_containers,
+                             containers_no_patio=containers_no_patio,
+                             total_unidades=total_unidades)
+    except Exception as e:
+        logger.error(f"Erro ao carregar dashboard admin administrativo: {str(e)}")
+        flash('Erro ao carregar dashboard', 'danger')
+        return redirect(url_for('auth.dashboard'))
+
+@admin_bp.route('/historico-containers')
+@admin_administrativo_only_required
+def historico_containers():
+    """Página de histórico completo de containers com filtros"""
+    try:
+        db = get_db()
+        cursor = db.cursor()
+        
+        # Buscar todas as unidades disponíveis para o filtro
+        cursor.execute("SELECT DISTINCT unidade FROM containers ORDER BY unidade")
+        unidades = [row[0] for row in cursor.fetchall()]
+        
+        return render_template('admin/historico_containers.html', unidades=unidades)
+    except Exception as e:
+        logger.error(f"Erro ao carregar página de histórico: {str(e)}")
+        flash('Erro ao carregar página de histórico', 'danger')
+        return redirect(url_for('admin.admin_administrativo_dashboard'))
+
+@admin_bp.route('/api/historico-containers')
+@admin_administrativo_only_required
+def api_historico_containers():
+    """API para buscar containers com filtros - TODAS AS UNIDADES para Admin Administrativo"""
+    try:
+        # Parâmetros de filtro
+        unidade = request.args.get('unidade', '')
+        numero = request.args.get('numero', '')
+        status = request.args.get('status', '')
+        data_inicio = request.args.get('data_inicio', '')
+        data_fim = request.args.get('data_fim', '')
+        itens_por_pagina = int(request.args.get('itens_por_pagina', 50))
+        pagina = int(request.args.get('pagina', 1))
+        
+        db = get_db()
+        cursor = db.cursor()
+        
+        # Construir query base - Admin Administrativo vê TODAS as unidades
+        where_clauses = []
+        params = []
+        
+        # Não filtrar por unidade do usuário - Admin Administrativo vê todas
+        if unidade:
+            where_clauses.append("c.unidade = ?")
+            params.append(unidade)
+            
+        if numero:
+            where_clauses.append("c.numero LIKE ?")
+            params.append(f"%{numero}%")
+            
+        if status:
+            where_clauses.append("c.status = ?")
+            params.append(status)
+            
+        if data_inicio:
+            where_clauses.append("c.data_criacao >= ?")
+            params.append(data_inicio)
+            
+        if data_fim:
+            where_clauses.append("c.data_criacao <= ?")
+            params.append(data_fim + ' 23:59:59')
+        
+        where_sql = " AND ".join(where_clauses) if where_clauses else "1=1"
+        
+        # Contar total de registros
+        count_query = f"SELECT COUNT(*) FROM containers c WHERE {where_sql}"
+        cursor.execute(count_query, params)
+        total_registros = cursor.fetchone()[0]
+        
+        # Buscar containers com paginação - query corrigida para evitar duplicação
+        offset = (pagina - 1) * itens_por_pagina
+        query = f"""
+            SELECT c.id, c.numero, c.unidade, c.status, c.posicao_atual, c.tamanho, 
+                   c.armador, c.data_criacao, c.ultima_atualizacao, c.tipo_container,
+                   c.capacidade, c.tara, c.booking,
+                   (
+                       SELECT u.nome 
+                       FROM usuarios u 
+                       WHERE u.unidade = c.unidade 
+                       LIMIT 1
+                   ) as nome_unidade
+            FROM containers c
+            WHERE {where_sql}
+            ORDER BY c.data_criacao DESC, c.numero ASC
+            LIMIT ? OFFSET ?
+        """
+        
+        cursor.execute(query, params + [itens_por_pagina, offset])
+        containers = cursor.fetchall()
+        
+        # Formatar resultados com colunas corretas
+        resultados = []
+        for container in containers:
+            resultados.append({
+                'id': container[0],
+                'numero': container[1],
+                'unidade': container[2],
+                'status': container[3],
+                'posicao_atual': container[4] or '-',
+                'tamanho': container[5] or '-',
+                'armador': container[6] or '-',
+                'data_criacao': container[7],
+                'ultima_atualizacao': container[8],
+                'tipo_container': container[9] or '-',
+                'capacidade': container[10] or '-',
+                'tara': container[11] or '-',
+                'booking': container[12] or '-',
+                'nome_unidade': container[13] or container[2]
+            })
+        
+        logger.info(f"Admin Administrativo buscou histórico: {total_registros} containers encontrados")
+        
+        return jsonify({
+            'success': True,
+            'containers': resultados,
+            'total_registros': total_registros,
+            'pagina_atual': pagina,
+            'itens_por_pagina': itens_por_pagina,
+            'total_paginas': (total_registros + itens_por_pagina - 1) // itens_por_pagina
+        })
+        
+    except Exception as e:
+        logger.error(f"Erro ao buscar histórico de containers: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@admin_bp.route('/api/download-relatorio-containers')
+@admin_administrativo_only_required
+def download_relatorio_containers():
+    """Download de relatório de containers em CSV - TODAS AS UNIDADES para Admin Administrativo"""
+    try:
+        import csv
+        from io import StringIO
+        from datetime import datetime
+        
+        # Parâmetros de filtro (mesmos da API de busca)
+        unidade = request.args.get('unidade', '')
+        numero = request.args.get('numero', '')
+        status = request.args.get('status', '')
+        data_inicio = request.args.get('data_inicio', '')
+        data_fim = request.args.get('data_fim', '')
+        
+        db = get_db()
+        cursor = db.cursor()
+        
+        # Construir query - Admin Administrativo vê TODAS as unidades
+        where_clauses = []
+        params = []
+        
+        if unidade:
+            where_clauses.append("c.unidade = ?")
+            params.append(unidade)
+            
+        if numero:
+            where_clauses.append("c.numero LIKE ?")
+            params.append(f"%{numero}%")
+            
+        if status:
+            where_clauses.append("c.status = ?")
+            params.append(status)
+            
+        if data_inicio:
+            where_clauses.append("c.data_criacao >= ?")
+            params.append(data_inicio)
+            
+        if data_fim:
+            where_clauses.append("c.data_criacao <= ?")
+            params.append(data_fim + ' 23:59:59')
+        
+        where_sql = " AND ".join(where_clauses) if where_clauses else "1=1"
+        
+        # Buscar todos os containers (sem paginação para relatório)
+        query = f"""
+            SELECT c.numero, c.unidade, c.status, c.posicao_atual, c.tamanho, 
+                   c.armador, c.data_criacao, c.ultima_operacao, c.data_ultima_operacao,
+                   c.tipo, c.lacre, c.peso_bruto, c.tara, c.payload
+            FROM containers c
+            WHERE {where_sql}
+            ORDER BY c.data_criacao DESC, c.numero ASC
+        """
+        
+        cursor.execute(query, params)
+        containers = cursor.fetchall()
+        
+        # Criar CSV
+        output = StringIO()
+        writer = csv.writer(output)
+        
+        # Cabeçalho do CSV
+        writer.writerow([
+            'Número', 'Unidade', 'Status', 'Posição Atual', 'Tamanho',
+            'Armador', 'Data Criação', 'Última Operação', 'Data Última Operação',
+            'Tipo', 'Lacre', 'Peso Bruto', 'Tara', 'Payload'
+        ])
+        
+        # Dados dos containers
+        for container in containers:
+            writer.writerow([
+                container[0] or '',  # numero
+                container[1] or '',  # unidade
+                container[2] or '',  # status
+                container[3] or '',  # posicao_atual
+                container[4] or '',  # tamanho
+                container[5] or '',  # armador
+                container[6] or '',  # data_criacao
+                container[7] or '',  # ultima_operacao
+                container[8] or '',  # data_ultima_operacao
+                container[9] or '',  # tipo
+                container[10] or '', # lacre
+                container[11] or 0,  # peso_bruto
+                container[12] or 0,  # tara
+                container[13] or 0   # payload
+            ])
+        
+        # Preparar resposta
+        output.seek(0)
+        response = make_response(output.getvalue())
+        response.headers['Content-Type'] = 'text/csv; charset=utf-8'
+        
+        # Nome do arquivo com timestamp
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        filename = f'relatorio_containers_{timestamp}.csv'
+        response.headers['Content-Disposition'] = f'attachment; filename={filename}'
+        
+        logger.info(f"Admin Administrativo baixou relatório: {len(containers)} containers")
+        
+        return response
+        
+    except Exception as e:
+        logger.error(f"Erro ao gerar relatório de containers: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': 'Erro ao gerar relatório'
+        }), 500
+
+@admin_bp.route('/api/unidades')
+@admin_administrativo_only_required
+def api_unidades():
+    """API para obter lista de unidades disponíveis"""
+    try:
+        db = get_db()
+        cursor = db.cursor()
+        
+        # Buscar todas as unidades disponíveis
+        cursor.execute("SELECT DISTINCT unidade FROM containers WHERE unidade IS NOT NULL ORDER BY unidade")
+        unidades = [row[0] for row in cursor.fetchall()]
+        
+        # Buscar também status disponíveis
+        cursor.execute("SELECT DISTINCT status FROM containers WHERE status IS NOT NULL ORDER BY status")
+        status_list = [row[0] for row in cursor.fetchall()]
+        
+        # Buscar tamanhos disponíveis
+        cursor.execute("SELECT DISTINCT tamanho FROM containers WHERE tamanho IS NOT NULL ORDER BY tamanho")
+        tamanhos = [row[0] for row in cursor.fetchall()]
+        
+        # Buscar armadores disponíveis
+        cursor.execute("SELECT DISTINCT armador FROM containers WHERE armador IS NOT NULL ORDER BY armador")
+        armadores = [row[0] for row in cursor.fetchall()]
+        
+        logger.info(f"Admin Administrativo carregou filtros: {len(unidades)} unidades, {len(status_list)} status")
+        
+        return jsonify({
+            'success': True,
+            'unidades': unidades,
+            'status': status_list,
+            'tamanhos': tamanhos,
+            'armadores': armadores
+        })
+        
+    except Exception as e:
+        logger.error(f"Erro ao carregar unidades: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@admin_bp.route('/api/container-detalhes/<int:container_id>')
+@admin_administrativo_only_required
+def api_container_detalhes_completo(container_id):
+    """API para obter detalhes completos de um container específico"""
+    try:
+        db = get_db()
+        cursor = db.cursor()
+        
+        # Buscar dados do container
+        cursor.execute("""
+            SELECT * FROM containers WHERE id = ?
+        """, (container_id,))
+        container = cursor.fetchone()
+        
+        if not container:
+            return jsonify({'success': False, 'error': 'Container não encontrado'}), 404
+        
+        # Buscar todas as operações
+        cursor.execute("""
+            SELECT tipo, modo, posicao, posicao_anterior, placa, vagao,
+                   data_operacao, usuario_id, observacoes, resultado_vistoria
+            FROM operacoes 
+            WHERE container_id = ? 
+            ORDER BY data_operacao DESC
+        """, (container_id,))
+        operacoes = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
+        
+        # Buscar todas as vistorias (usar container_numero em vez de container_id)
+        # Primeiro buscar o número do container
+        container_numero = container_dict.get('numero') if 'container_dict' in locals() else None
+        if not container_numero:
+            container_numero = container[1] if container and len(container) > 1 else None
+        
+        vistorias = []
+        if container_numero:
+            cursor.execute("""
+                SELECT * FROM vistorias 
+                WHERE container_numero = ? 
+                ORDER BY data_vistoria DESC
+            """, (container_numero,))
+            vistorias = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
+        
+        # Buscar correções de descarga
+        cursor.execute("""
+            SELECT * FROM correcoes_descarga 
+            WHERE container_id = ? 
+            ORDER BY data_correcao DESC
+        """, (container_id,))
+        correcoes = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
+        
+        container_dict = dict(zip([col[0] for col in cursor.description], container))
+        
+        return jsonify({
+            'success': True,
+            'container': container_dict,
+            'operacoes': operacoes,
+            'vistorias': vistorias,
+            'correcoes': correcoes
+        })
+        
+    except Exception as e:
+        logger.error(f"Erro ao buscar detalhes do container: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 @admin_bp.route('/corrigir-descarga')
 @admin_required  # Ambos os tipos de admin podem acessar
@@ -210,8 +626,8 @@ def inicializar_tabelas_estruturas_avarias():
 # Rotas para o Dashboard Administrativo
 #----------------------------------------------
 
-@admin_bp.route('/')
-@admin_required
+@admin_bp.route('/dashboard')
+@admin_completo_only_required
 def admin_dashboard():
     """Rota para o dashboard administrativo"""
     try:
@@ -274,7 +690,7 @@ def admin_dashboard():
 #----------------------------------------------
 
 @admin_bp.route('/usuarios')
-@admin_completo_required
+@admin_completo_only_required
 def listar_usuarios():
     """Rota para listar todos os usuários"""
     try:
@@ -299,7 +715,7 @@ def listar_usuarios():
         return redirect(url_for('admin.admin_dashboard'))
 
 @admin_bp.route('/usuarios/novo', methods=['GET', 'POST'])
-@admin_completo_required
+@admin_completo_only_required
 def novo_usuario():
     """Rota para criar um novo usuário"""
     if request.method == 'POST':
@@ -359,7 +775,7 @@ def novo_usuario():
     return render_template('admin/novo_usuario.html')
 
 @admin_bp.route('/usuarios/<int:usuario_id>/editar', methods=['GET', 'POST'])
-@admin_completo_required
+@admin_completo_only_required
 def editar_usuario(usuario_id):
     """Rota para editar um usuário existente"""
     try:
@@ -427,7 +843,7 @@ def editar_usuario(usuario_id):
         return redirect(url_for('admin.listar_usuarios'))
 
 @admin_bp.route('/usuarios/<int:usuario_id>/excluir', methods=['POST'])
-@admin_completo_required
+@admin_completo_only_required
 def excluir_usuario(usuario_id):
     """Rota para excluir um usuário"""
     try:
@@ -466,7 +882,7 @@ def excluir_usuario(usuario_id):
         return redirect(url_for('admin.listar_usuarios'))
 
 @admin_bp.route('/solicitacoes')
-@admin_completo_required
+@admin_completo_only_required
 def listar_solicitacoes():
     """Rota para listar todas as solicitações de registro pendentes"""
     try:
@@ -491,7 +907,7 @@ def listar_solicitacoes():
         return redirect(url_for('admin.admin_dashboard'))
 
 @admin_bp.route('/solicitacoes/<int:solicitacao_id>/aprovar', methods=['POST'])
-@admin_completo_required
+@admin_completo_only_required
 def aprovar_solicitacao(solicitacao_id):
     """Rota para aprovar uma solicitação de registro e criar o usuário"""
     try:
@@ -567,7 +983,7 @@ def aprovar_solicitacao(solicitacao_id):
         return redirect(url_for('admin.listar_solicitacoes'))
 
 @admin_bp.route('/solicitacoes/<int:solicitacao_id>/rejeitar', methods=['POST'])
-@admin_completo_required
+@admin_completo_only_required
 def rejeitar_solicitacao(solicitacao_id):
     """Rota para rejeitar uma solicitação de registro"""
     try:
@@ -625,7 +1041,7 @@ def rejeitar_solicitacao(solicitacao_id):
 #----------------------------------------------
 
 @admin_bp.route('/estruturas-avarias')
-@admin_completo_required
+@admin_completo_only_required
 def gerenciar_estruturas_avarias():
     """Rota para gerenciar estruturas e avarias de containers"""
     try:
@@ -678,7 +1094,7 @@ def gerenciar_estruturas_avarias():
         return redirect(url_for('admin.admin_dashboard'))
 
 @admin_bp.route('/estruturas/adicionar', methods=['POST'])
-@admin_completo_required
+@admin_completo_only_required
 def adicionar_estrutura():
     """Rota para adicionar uma nova estrutura"""
     try:
@@ -751,7 +1167,7 @@ def adicionar_estrutura():
         return jsonify({'success': False, 'error': f'Erro interno: {str(e)}'}), 500
 
 @admin_bp.route('/avarias/adicionar', methods=['POST'])
-@admin_completo_required
+@admin_completo_only_required
 def adicionar_avaria():
     """Rota para adicionar uma nova avaria"""
     try:
@@ -828,7 +1244,7 @@ def adicionar_avaria():
 #----------------------------------------------
 
 @admin_bp.route('/status-dados')
-@admin_completo_required
+@admin_completo_only_required
 def status_dados_completo():
     """Verifica se todos os dados foram migrados corretamente"""
     try:
@@ -895,7 +1311,7 @@ def status_dados_completo():
         return jsonify({'error': str(e)}), 500
 
 @admin_bp.route('/remigracao-completa', methods=['POST'])
-@admin_completo_required
+@admin_completo_only_required
 def remigracao_completa():
     """Força uma remigração completa de todos os dados"""
     try:

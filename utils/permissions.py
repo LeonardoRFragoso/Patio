@@ -16,7 +16,9 @@ ROLES = {
 
 def get_user_role():
     """Retorna o nível de acesso do usuário atual."""
-    return session.get('role', None)
+    # Verificar tanto 'role' quanto 'nivel' para compatibilidade
+    role = session.get('role') or session.get('nivel')
+    return role
 
 def has_role(required_role):
     """
@@ -88,6 +90,42 @@ def admin_completo_required(f):
 def admin_administrativo_required(f):
     """Decorator para restringir acesso apenas a administradores administrativos ou completos."""
     return role_required('admin_administrativo')(f)
+
+def admin_completo_only_required(f):
+    """Decorator para restringir acesso APENAS a administradores completos (exclui admin_administrativo)."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        user_role = get_user_role()
+        if user_role != 'admin':
+            # Verificar se é uma requisição AJAX/JSON
+            if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({
+                    'success': False,
+                    'error': 'Acesso negado. Você precisa ter nível de administrador completo.'
+                }), 403
+            else:
+                flash('Acesso negado. Você precisa ter nível de administrador completo.', 'danger')
+                return redirect(url_for('auth.dashboard'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+def admin_administrativo_only_required(f):
+    """Decorator para restringir acesso APENAS a administradores administrativos (exclui admin completo)."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        user_role = get_user_role()
+        if user_role != 'admin_administrativo':
+            # Verificar se é uma requisição AJAX/JSON
+            if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({
+                    'success': False,
+                    'error': 'Acesso negado. Esta funcionalidade é específica para administradores administrativos.'
+                }), 403
+            else:
+                flash('Acesso negado. Esta funcionalidade é específica para administradores administrativos.', 'danger')
+                return redirect(url_for('auth.dashboard'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 def inventariante_required(f):
     """Decorator para restringir acesso a inventariantes e administradores."""

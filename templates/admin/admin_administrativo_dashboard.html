@@ -1,0 +1,457 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Admin Administrativo{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<style>
+    .dashboard-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+    }
+    
+    .dashboard-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .stats-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        font-size: 2rem;
+        color: white;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stats-label {
+        color: #495057;
+        font-weight: 700;
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        line-height: 1.3;
+    }
+    
+    .action-btn {
+        background: linear-gradient(135deg, #f47621 0%, #f58942 100%);
+        border: none;
+        color: white !important;
+        padding: 2.5rem 2rem;
+        border-radius: 20px;
+        font-weight: 800;
+        text-decoration: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        transition: all 0.4s ease;
+        box-shadow: 0 10px 25px rgba(244, 118, 33, 0.3);
+        position: relative;
+        overflow: hidden;
+        min-height: 200px;
+        font-size: 1.2rem;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+    }
+    
+    .action-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.6s;
+    }
+    
+    .action-btn:hover::before {
+        left: 100%;
+    }
+    
+    .welcome-card {
+        background: linear-gradient(135deg, #1f5f99 0%, #2a6ba3 100%);
+        color: white;
+        border-radius: 20px;
+        padding: 3rem 2.5rem;
+        margin-bottom: 3rem;
+        box-shadow: 0 15px 40px rgba(31, 95, 153, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .welcome-card::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 200px;
+        height: 200px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        z-index: 1;
+    }
+    
+    .welcome-card h3 {
+        font-size: 2rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+        position: relative;
+        z-index: 2;
+    }
+    
+    .welcome-card p {
+        font-size: 1.1rem;
+        opacity: 0.95;
+        position: relative;
+        z-index: 2;
+    }
+    
+    .table-header {
+        background: linear-gradient(135deg, #1f5f99 0%, #2a6ba3 100%);
+        padding: 2rem;
+        border-bottom: none;
+        color: white;
+    }
+    
+    .table-header h5 {
+        margin: 0;
+        color: white;
+        font-weight: 800;
+        font-size: 1.3rem;
+    }
+    
+    .bg-primary-gradient {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+    }
+    
+    .bg-success-gradient {
+        background: linear-gradient(135deg, #28a745, #1e7e34);
+    }
+    
+    .bg-warning-gradient {
+        background: linear-gradient(135deg, #f47621, #d4611c);
+    }
+    
+    .bg-info-gradient {
+        background: linear-gradient(135deg, #17a2b8, #117a8b);
+    }
+    
+    .stats-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2.5rem 2rem;
+        text-align: center;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+        transition: all 0.4s ease;
+        border: none;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+        min-height: 180px;
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+    }
+    
+    .stats-number {
+        font-size: 3.5rem;
+        font-weight: 900;
+        margin-bottom: 0.8rem;
+        color: var(--itracker-blue);
+        line-height: 1;
+    }
+    
+    .action-btn:hover {
+        transform: translateY(-5px) scale(1.02);
+        box-shadow: 0 15px 35px rgba(244, 118, 33, 0.5);
+        color: white !important;
+        text-decoration: none;
+        background: linear-gradient(135deg, #f58942 0%, #f47621 100%);
+    }
+    
+    .action-btn.secondary {
+        background: linear-gradient(135deg, #1f5f99 0%, #2a6ba3 100%) !important;
+        box-shadow: 0 10px 25px rgba(31, 95, 153, 0.25);
+        color: white !important;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+    }
+    
+    .action-btn.secondary:hover {
+        box-shadow: 0 15px 35px rgba(31, 95, 153, 0.4);
+        transform: translateY(-5px) scale(1.02);
+        color: white !important;
+        text-decoration: none;
+    }
+    
+    .table-card {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+        margin-bottom: 3rem;
+        transition: all 0.3s ease;
+    }
+    
+    .table-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+    }
+    
+    .unit-badge {
+        background: linear-gradient(135deg, #1f5f99 0%, #2a6ba3 100%);
+        color: white;
+        padding: 0.8rem 1.5rem;
+        border-radius: 25px;
+        font-weight: 700;
+        font-size: 1rem;
+        box-shadow: 0 4px 10px rgba(31, 95, 153, 0.3);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+    
+    .count-badge {
+        background: linear-gradient(135deg, #f47621 0%, #f58942 100%);
+        color: white;
+        padding: 0.6rem 1.2rem;
+        border-radius: 20px;
+        font-weight: 800;
+        font-size: 1.3rem;
+        box-shadow: 0 4px 10px rgba(244, 118, 33, 0.4);
+        min-width: 50px;
+        display: inline-block;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+    
+    .container-fluid {
+        padding: 2rem;
+        background: linear-gradient(135deg, #f8f9fa 0%, rgba(31, 95, 153, 0.05) 100%);
+        min-height: 100vh;
+    }
+    
+    .row {
+        margin-bottom: 2rem;
+    }
+    
+    h4 {
+        font-size: 2.2rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .text-muted {
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .table {
+        margin-bottom: 0;
+    }
+    
+    .table td {
+        padding: 1.5rem 1rem;
+        vertical-align: middle;
+        border: none;
+        font-size: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">Dashboard Administrativo</h1>
+                    <p class="text-muted mb-0">Gestão de descargas e histórico de containers</p>
+                </div>
+                <div class="text-end">
+                    <small class="text-muted">Usuário: {{ session.username }}</small><br>
+                    <small class="text-muted">Acesso: Admin Administrativo</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Welcome Card -->
+    <div class="welcome-card">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h3><i class="fas fa-user-shield me-2"></i>Bem-vindo, Admin Administrativo</h3>
+                <p class="mb-0">Gerencie descargas e visualize o histórico completo de containers de todas as unidades.</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <img src="/static/assets/itracker_logo.png" alt="iTracker" style="max-height: 60px; opacity: 0.8;">
+            </div>
+        </div>
+    </div>
+
+    <!-- Estatísticas -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card">
+                <div class="stats-icon" style="background: linear-gradient(135deg, #f47621 0%, #f58942 100%);">
+                    <i class="fas fa-tools"></i>
+                </div>
+                <div class="stats-number">{{ descargas_corrigidas }}</div>
+                <div class="stats-label">Descargas Corrigidas (30 dias)</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card">
+                <div class="stats-icon" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                    <i class="fas fa-cubes"></i>
+                </div>
+                <div class="stats-number">{{ total_containers }}</div>
+                <div class="stats-label">Total de Containers</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card">
+                <div class="stats-icon" style="background: linear-gradient(135deg, #1f5f99 0%, #2a6ba3 100%);">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div class="stats-number">{{ total_unidades }}</div>
+                <div class="stats-label">Unidades Ativas</div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stats-card">
+                <div class="stats-icon" style="background: linear-gradient(135deg, #f47621 0%, #f58942 100%);">
+                    <i class="fas fa-warehouse"></i>
+                </div>
+                <div class="stats-number">{{ containers_no_patio }}</div>
+                <div class="stats-label">Containers no Pátio</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ações Principais -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="text-center mb-4">
+                <h4 style="color: var(--itracker-blue); font-weight: 700; margin-bottom: 1rem;">
+                    <i class="fas fa-cogs me-2"></i>Ações Principais
+                </h4>
+                <p class="text-muted">Selecione uma das opções abaixo para gerenciar o sistema</p>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-lg-5 col-md-6 mb-3">
+                    <a href="{{ url_for('admin.pagina_corrigir_descarga') }}" class="action-btn w-100 text-center" style="display: block; padding: 2rem;">
+                        <i class="fas fa-tools fa-2x mb-2"></i>
+                        <h5 class="mb-2">Corrigir Descargas</h5>
+                        <small>Ajustar posições e dados de containers de todas as unidades</small>
+                    </a>
+                </div>
+                <div class="col-lg-5 col-md-6 mb-3">
+                    <a href="{{ url_for('admin.historico_containers') }}" class="action-btn secondary w-100 text-center" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; color: white !important; text-decoration: none;">
+                        <i class="fas fa-history fa-2x mb-2"></i>
+                        <h5 class="mb-2">Histórico Completo</h5>
+                        <small>Visualizar histórico completo com filtros avançados</small>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Containers por Unidade -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="table-card">
+                <div class="table-header">
+                    <h5><i class="fas fa-chart-bar me-2"></i>Containers por Unidade</h5>
+                </div>
+                <div class="p-3">
+                    <div class="table-responsive">
+                        <table class="table table-borderless">
+                            <tbody>
+                                {% for unidade, count in containers_por_unidade.items() %}
+                                <tr>
+                                    <td>
+                                        <span class="unit-badge">{{ unidade }}</span>
+                                    </td>
+                                    <td class="text-end">
+                                        <span class="count-badge">{{ count }}</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="table-card">
+                <div class="table-header">
+                    <h5><i class="fas fa-warehouse me-2"></i>Containers no Pátio</h5>
+                </div>
+                <div class="p-3">
+                    <div class="table-responsive">
+                        <table class="table table-borderless">
+                            <tbody>
+                                {% for unidade, count in containers_patio_por_unidade.items() %}
+                                <tr>
+                                    <td>
+                                        <span class="unit-badge">{{ unidade }}</span>
+                                    </td>
+                                    <td class="text-end">
+                                        <span class="count-badge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);">{{ count }}</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Atualizar estatísticas a cada 5 minutos
+    setInterval(function() {
+        location.reload();
+    }, 300000);
+    
+    // Animação dos números
+    document.addEventListener('DOMContentLoaded', function() {
+        const statNumbers = document.querySelectorAll('.stat-number');
+        statNumbers.forEach(function(element) {
+            const finalValue = parseInt(element.textContent);
+            let currentValue = 0;
+            const increment = finalValue / 20;
+            
+            const timer = setInterval(function() {
+                currentValue += increment;
+                if (currentValue >= finalValue) {
+                    element.textContent = finalValue;
+                    clearInterval(timer);
+                } else {
+                    element.textContent = Math.floor(currentValue);
+                }
+            }, 50);
+        });
+    });
+</script>
+{% endblock %}

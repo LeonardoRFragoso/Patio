@@ -423,47 +423,11 @@ function adicionarControlesVisualizacao(selectElement, posicoes, options, stats,
     `;
   }
   
-  // Controles de visualização
-  if (options.showViewToggle !== false) {
-    const isGridView = options.showGridView || false;
-    controlsHTML += `
-      <div class="view-toggle-controls">
-        <div class="btn-group btn-group-sm" role="group">
-          <input type="radio" class="btn-check" name="view-toggle-${selectElement.id}" id="list-view-${selectElement.id}" ${!isGridView ? 'checked' : ''}>
-          <label class="btn btn-outline-primary" for="list-view-${selectElement.id}">
-            <i class="fas fa-list me-1"></i>Lista
-          </label>
-          
-          <input type="radio" class="btn-check" name="view-toggle-${selectElement.id}" id="grid-view-${selectElement.id}" ${isGridView ? 'checked' : ''}>
-          <label class="btn btn-outline-primary" for="grid-view-${selectElement.id}">
-            <i class="fas fa-th-large me-1"></i>Grid
-          </label>
-        </div>
-      </div>
-    `;
-  }
+  // Controles de visualização REMOVIDOS - apenas dropdown simples
   
   controlsElement.innerHTML = controlsHTML;
   
-  // Configurar event listeners para toggle de visualização
-  if (options.showViewToggle !== false) {
-    const listViewRadio = controlsElement.querySelector(`#list-view-${selectElement.id}`);
-    const gridViewRadio = controlsElement.querySelector(`#grid-view-${selectElement.id}`);
-    
-    if (listViewRadio && gridViewRadio) {
-      listViewRadio.addEventListener('change', () => {
-        if (listViewRadio.checked) {
-          alternarVisualizacao(selectElement, posicoes, { ...options, showGridView: false });
-        }
-      });
-      
-      gridViewRadio.addEventListener('change', () => {
-        if (gridViewRadio.checked) {
-          alternarVisualizacao(selectElement, posicoes, { ...options, showGridView: true });
-        }
-      });
-    }
-  }
+  // Event listeners de toggle removidos - apenas dropdown simples
   
   // Inicializar tooltips do Bootstrap
   if (typeof bootstrap !== 'undefined') {
