@@ -430,6 +430,18 @@
                             <i class="fas fa-sync-alt"></i>
                           </button>
                         </div>
+                        
+                        <!-- Botões CRUD de Placas -->
+                        <div class="placas-crud-buttons mt-2">
+                          <div class="btn-group" role="group" aria-label="Gerenciar placas">
+                            <button type="button" class="btn btn-success btn-sm" onclick="window.placasCrud?.adicionarPlaca()" title="Adicionar nova placa">
+                              <i class="fas fa-plus"></i> Adicionar
+                            </button>
+                            <button type="button" class="btn btn-info btn-sm" onclick="window.placasCrud?.mostrarListaPlacas()" title="Listar todas as placas">
+                              <i class="fas fa-list"></i> Listar
+                            </button>
+                          </div>
+                        </div>
                       </div>
                       <div class="form-group">
                         <label class="form-label" for="observacoes_carregamento_rod">Observações:</label>
@@ -751,7 +763,6 @@
     <script src="/static/js/container-history.js"></script>
     <script src="/static/js/search-container.js"></script>
     <!-- Scripts restaurados -->
-    <script src="/static/js/debug_movimentacao.js"></script>
     <script src="/static/js/dropdown-fix.js"></script>
     <script src="/static/js/form-reset.js"></script>
     <!-- Script de consulta de status -->
@@ -1116,13 +1127,7 @@
     <script src="/static/js/position-organizer-loader.js"></script>
     
     <!-- Utilitário de Ordenação de Posições -->
-    <script src="/static/js/utils/position-sorting.js"></script>
-    
-    <!-- Patch de Ordenação para Organizador Atual -->
-    <script src="/static/js/position-sorting-patch.js"></script>
-    
-    <!-- Correção Direta de Ordenação -->
-    <script src="/static/js/position-sorting-direct-fix.js"></script>
+    <!-- Scripts de ordenação removidos - causavam loop infinito com movimentação segura -->
     
     <!-- Scripts de grids complexos removidos - mantendo apenas o seletor simples -->
     
@@ -1133,9 +1138,12 @@
     <script type="module" defer src="/static/js/dashboard.js"></script>
     <!-- Scripts para funcionalidades específicas - Ordem importante para dependências -->
     <script src="/static/js/container-history.js"></script>
-    <script src="/static/js/fix_movimentacao.js"></script>
+    <!-- Funcionalidade de movimentação integrada ao módulo oficial modules/movimentacao.js -->
     <!-- Módulo Correção de Descarga -->
     <script type="module" defer src="/static/js/corrigir-descarga.js"></script>
+    
+    <!-- Interface CRUD de Placas -->
+    <script type="module" defer src="/static/js/modules/placas-crud.js"></script>
     
     <!-- Garantir que as dependências estejam carregadas antes de carregar o search-container.js -->
     <script>

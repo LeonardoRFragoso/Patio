@@ -2,11 +2,11 @@
  * Sistema de Visualização 3D do Pátio - VERSÃO MODULARIZADA PARA SUZANO-SP
  * Arquivo: static/js/PatioVisualizacao3D.js
  * 
- * ✅ VERSÃO COMPLETAMENTE MODULARIZADA
- * ✅ Arquitetura limpa e organizada
- * ✅ Separação de responsabilidades
- * ✅ Manutenibilidade aprimorada
- * ✅ Performance otimizada
+ * VERSÃO COMPLETAMENTE MODULARIZADA
+ * Arquitetura limpa e organizada
+ * Separação de responsabilidades
+ * Manutenibilidade aprimorada
+ * Performance otimizada
  */
 
 // ===== IMPORTAÇÕES DOS MÓDULOS =====
@@ -42,8 +42,8 @@ import {
   GridSystem
 } from './patio3d/components/index.js';
 
-// 🔴 COMPONENTE CORRIGIDO: Posições vazias com lógica de baias ímpares/pares
-import { EmptyPositionsCorrected } from './patio3d/components/empty-positions-corrected.js';
+// DESABILITADO: Causava marcações duplicadas - criarGridFisicoCorreto já cria as posições corretas
+// import { EmptyPositionsCorrected } from './patio3d/components/empty-positions-corrected.js';
 
 // UI
 import {
@@ -56,7 +56,7 @@ import {
   ModalsDialogs
 } from './patio3d/ui/index.js';
 
-console.log("🚀 Carregando PatioVisualizacao3D VERSÃO MODULARIZADA PARA SUZANO-SP...");
+console.log(" Carregando PatioVisualizacao3D VERSÃO MODULARIZADA PARA SUZANO-SP...");
 
 // ===== CLASSE PRINCIPAL MODULARIZADA =====
 export class PatioVisualizacao3DManager {
@@ -69,8 +69,8 @@ export class PatioVisualizacao3DManager {
     
     // ===== COMPONENTES 3D =====
     this.containerRenderer = new ContainerRenderer();
-    // 🔴 NOVO: Posições vazias com lógica corrigida
-    this.emptyPositionsCorrected = new EmptyPositionsCorrected();
+    // DESABILITADO: EmptyPositionsCorrected causava marcações duplicadas
+    // this.emptyPositionsCorrected = new EmptyPositionsCorrected();
     this.labelsManager = new LabelsManager();
     this.infrastructure = new Infrastructure();
     this.gridSystem = new GridSystem();
@@ -120,7 +120,7 @@ export class PatioVisualizacao3DManager {
 
   // ===== INICIALIZAÇÃO PRINCIPAL =====
   async init() {
-    console.log("🚀 Inicializando Sistema 3D MODULARIZADO PARA SUZANO-SP...");
+    console.log(" Inicializando Sistema 3D MODULARIZADO PARA SUZANO-SP...");
 
     try {
       // 1. Validar dependências
@@ -193,16 +193,16 @@ export class PatioVisualizacao3DManager {
         this.statusDisplay.atualizarStatusSistema("render", "success", "Renderizando");
         this.statusDisplay.atualizarIndicadorSistema("online", "Sistema Online");
         
-        console.log("🎯 Status final atualizado com delay (DIRETO + ORIGINAL)");
+        console.log(" Status final atualizado com delay (DIRETO + ORIGINAL)");
       }, 500);
 
-      console.log("✨ Sistema MODULARIZADO inicializado com sucesso!");
+      console.log(" Sistema MODULARIZADO inicializado com sucesso!");
       this.toastManager.show("Sistema 3D Premium carregado com sucesso!", "success");
 
       return true;
 
     } catch (error) {
-      console.error(`❌ Erro na inicialização: ${error.message}`);
+      console.error(` Erro na inicialização: ${error.message}`);
       this.statusDisplay.atualizarStatusSistema("api", "error", "Erro: " + error.message);
       this.statusDisplay.atualizarIndicadorSistema("error", "Erro no Sistema");
       this.statusDisplay.mostrarErroCarregamento(`Erro ao inicializar: ${error.message}`);
@@ -222,14 +222,18 @@ export class PatioVisualizacao3DManager {
     this.scene.add(this.containerGroup);
     this.scene.add(this.labelGroup);
 
-    console.log("📦 Grupos de objetos criados");
+    console.log(" Grupos de objetos criados");
   }
 
   // ===== CONFIGURAR ELEMENTOS ESTÁTICOS =====
   async configurarElementosEstaticos() {
-    // Grid system
+    // Grid system básico
     const gridGroup = this.gridSystem.criarGridAprimorado();
     this.scene.add(gridGroup);
+
+    // ✅ CORREÇÃO CRÍTICA: Criar grid físico com apenas 10 posições ímpares
+    // Isso substitui/complementa o grid básico com as marcações corretas
+    this.containerRenderer.criarGridFisicoCorreto(this.scene);
 
     // Infraestrutura
     this.infraestruturaGroup = await this.infrastructure.criarInfraestruturaRealistica();
@@ -237,7 +241,7 @@ export class PatioVisualizacao3DManager {
       this.scene.add(this.infraestruturaGroup);
     }
 
-    console.log("🏗️ Elementos estáticos configurados");
+    console.log("✅ Elementos estáticos configurados com grid físico correto (10 posições ímpares)");
   }
 
   // ===== CONFIGURAR CONTROLES E INTERAÇÕES =====
@@ -263,7 +267,7 @@ export class PatioVisualizacao3DManager {
       this.CORES
     );
 
-    console.log("🎮 Controles e interações configurados");
+    console.log(" Controles e interações configurados");
   }
 
   // ===== CONFIGURAR SISTEMAS DE UI =====
@@ -292,19 +296,19 @@ export class PatioVisualizacao3DManager {
       this.posicoesVaziasGroup
     );
 
-    console.log("🎛️ Sistemas de UI configurados");
+    console.log(" Sistemas de UI configurados");
   }
 
   // ===== ATUALIZAÇÃO DIRETA DE STATUS (BACKUP) =====
   atualizarStatusDireto(tipo, status, texto) {
-    console.log(`🔄 [DIRETO] Atualizando status: ${tipo} -> ${status} (${texto})`);
+    console.log(` Atualizando status: ${tipo} -> ${status} (${texto})`);
     const elemento = document.getElementById(`${tipo}-status`);
     if (elemento) {
       elemento.className = `status-badge ${status}`;
       elemento.textContent = texto;
-      console.log(`✅ [DIRETO] Status ${tipo} atualizado com sucesso`);
+      console.log(` Status ${tipo} atualizado com sucesso`);
     } else {
-      console.error(`❌ [DIRETO] Elemento ${tipo}-status não encontrado`);
+      console.error(` Elemento ${tipo}-status não encontrado`);
     }
   }
 
@@ -325,7 +329,7 @@ export class PatioVisualizacao3DManager {
         this.statusDisplay.atualizarStatusSistema("api", "success", "Conectado");
         this.statusDisplay.atualizarStatusSistema("data", "success", `${this.patioData.containers?.length || 0} containers`);
         
-        console.log("🎯 Status API e dados atualizados com delay (DIRETO + ORIGINAL)");
+        console.log(" Status API e dados atualizados com delay (DIRETO + ORIGINAL)");
       }, 300);
 
       // Criar visualização
@@ -347,7 +351,7 @@ export class PatioVisualizacao3DManager {
 
   // ===== CRIAR VISUALIZAÇÃO COMPLETA =====
   async criarVisualizacaoCompleta() {
-    console.log("🎨 Criando visualização completa...");
+    console.log(" Criando visualização completa...");
 
     // 1. Renderizar containers
     const containersRenderizados = this.containerRenderer.criarVisualizacaoContainers(
@@ -377,7 +381,7 @@ export class PatioVisualizacao3DManager {
       this.CONFIG
     );
 
-    console.log(`✨ Visualização criada: ${containersRenderizados} containers, ${labelsCreados} labels`);
+    console.log(` Visualização criada: ${containersRenderizados} containers, ${labelsCreados} labels`);
   }
 
   // ===== CONFIGURAR MONITORAMENTO =====
@@ -389,7 +393,7 @@ export class PatioVisualizacao3DManager {
     // Configurar eventos customizados
     this.configurarEventosCustomizados();
 
-    console.log("📊 Sistemas de monitoramento configurados");
+    console.log(" Sistemas de monitoramento configurados");
   }
 
   // ===== CONFIGURAR EVENTOS CUSTOMIZADOS =====
@@ -439,7 +443,7 @@ export class PatioVisualizacao3DManager {
       this.scene.remove(particulas);
     });
 
-    console.log("🔗 Eventos customizados configurados");
+    console.log(" Eventos customizados configurados");
   }
 
   // ===== INICIAR SISTEMA DE ANIMAÇÃO =====
@@ -452,7 +456,7 @@ export class PatioVisualizacao3DManager {
       this.labelGroup
     );
 
-    console.log("🎬 Sistema de animação iniciado");
+    console.log(" Sistema de animação iniciado");
   }
 
   // ===== CONFIGURAÇÃO FINAL ESPECÍFICA PARA SUZANO-SP =====
@@ -695,7 +699,7 @@ export class PatioVisualizacao3DManager {
   }
 
   debugAPIs() {
-    console.log("🔍 Testando APIs...");
+    console.log(" Testando APIs...");
     this.apiManager.obterDadosPatio3D()
       .then((result) => {
         console.log(`API funcionando: ${result.data?.containers?.length || 0} containers`);
@@ -722,7 +726,7 @@ export class PatioVisualizacao3DManager {
 
   // ===== LIMPEZA =====
   dispose() {
-    console.log("🧹 Limpando sistema completo...");
+    console.log(" Limpando sistema completo...");
 
     // Parar animação
     this.animationSystem.dispose();
@@ -739,7 +743,7 @@ export class PatioVisualizacao3DManager {
     this.dataManager.dispose();
     this.sceneManager.dispose();
 
-    console.log("✅ Sistema limpo completamente");
+    console.log(" Sistema limpo completamente");
   }
 }
 
@@ -752,7 +756,7 @@ let patio3dManagerInstance = null;
 // ===== INICIALIZAÇÃO AUTOMÁTICA =====
 document.addEventListener("DOMContentLoaded", async function () {
   try {
-    console.log("🚀 Inicializando Sistema 3D MODULARIZADO...");
+    console.log(" Inicializando Sistema 3D MODULARIZADO...");
 
     // Aguardar carregamento do THREE.js
     const aguardarTHREE = () => {
@@ -778,7 +782,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // Funções de utilidade global
     window.testarZoom = () => {
-      console.log("🔍 Teste de zoom executado");
+      console.log(" Teste de zoom executado");
       patio3dManagerInstance.cameraControls.posicionarCameraTopo();
     };
 
@@ -790,8 +794,8 @@ document.addEventListener("DOMContentLoaded", async function () {
     window.detectarProblemas = () => patio3dManagerInstance.detectarContainersProblematicos();
     window.getSystemInfo = () => patio3dManagerInstance.getSystemInfo();
 
-    console.log("✨ Sistema MODULARIZADO inicializado com sucesso!");
-    console.log("🎮 Funções disponíveis:");
+    console.log(" Sistema MODULARIZADO inicializado com sucesso!");
+    console.log(" Funções disponíveis:");
     console.log("  - testarZoom() - Testa vista de topo");
     console.log("  - debugCena() - Mostra informações da cena");
     console.log("  - resetarCamera() - Reseta a câmera");
@@ -802,7 +806,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     console.log("  - getSystemInfo() - Informações completas do sistema");
 
   } catch (error) {
-    console.error("❌ Erro crítico:", error);
+    console.error(" Erro crítico:", error);
 
     // Mostrar erro na interface
     const container = document.getElementById("three-container");
@@ -826,8 +830,8 @@ document.addEventListener("DOMContentLoaded", async function () {
 window.addEventListener("beforeunload", () => {
   if (patio3dManagerInstance) {
     patio3dManagerInstance.dispose();
-    console.log("🧹 Recursos do sistema 3D limpos na saída");
+    console.log(" Recursos do sistema 3D limpos na saída");
   }
 });
 
-console.log("✨ PatioVisualizacao3D MODULARIZADO carregado!");
+console.log(" PatioVisualizacao3D MODULARIZADO carregado!");

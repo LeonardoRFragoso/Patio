@@ -348,6 +348,9 @@ function mostrarSugestoesContainers(input, containers) {
       // Buscar e preencher posição automaticamente
       await atualizarPosicaoAtual(container.numero);
       
+      // Carregar posições disponíveis para movimentação
+      await carregarPosicoesDisponiveis(container.numero);
+      
       // Disparar evento de change
       input.dispatchEvent(new Event('change', { bubbles: true }));
       
@@ -403,6 +406,135 @@ async function buscarPosicaoContainer(containerNumero) {
       error: 'Erro de conexão'
     };
   }
+}
+
+/**
+ * Carrega posições disponíveis para movimentação de forma robusta
+ * @param {string} containerNumero - Número do container
+ */
+async function carregarPosicoesDisponiveis(containerNumero) {
+  console.log(' [MOVIMENTACAO] Carregando posições disponíveis para:', containerNumero);
+  
+  const select = document.getElementById('posicao_nova');
+  if (!select || !containerNumero) {
+    console.error(' [MOVIMENTACAO] Elementos não encontrados ou container vazio');
+    return false;
+  }
+  
+  try {
+    // Mostrar loading
+    select.innerHTML = '<option value=""> Carregando posições...</option>';
+    select.disabled = true;
+    
+    // 1. Buscar dados do container
+    const containerResp = await fetch(`/operacoes/buscar_container?numero=${encodeURIComponent(containerNumero)}`);
+    const containerData = await containerResp.json();
+    
+    if (!containerData.success) {
+      throw new Error(containerData.message || 'Container não encontrado');
+    }
+    
+    const container = containerData.container;
+    const containerSize = parseInt(container.tamanho) || 20;
+    const statusContainer = container.status || 'CHEIO';
+    const posicaoAtual = container.posicao_atual;
+    
+    console.log(` [MOVIMENTACAO] Container: ${containerSize}TEU, status: ${statusContainer}, posição atual: ${posicaoAtual}`);
+    
+    // 2. Buscar posições disponíveis
+    const posicoesResp = await fetch(`/api/posicoes/disponiveis?status=${statusContainer}&unidade=SUZANO&container_size=${containerSize}`);
+    const posicoesResult = await posicoesResp.json();
+    
+    if (!posicoesResult.success) {
+      throw new Error('Erro ao buscar posições disponíveis');
+    }
+    
+    // 3. Processar posições (excluir posição atual)
+    const posicoes = posicoesResult.posicoes
+      .map(p => `${p.baia_posicao}-${p.altura}`)
+      .filter(p => p !== posicaoAtual)
+      .sort();
+    
+    console.log(` [MOVIMENTACAO] Encontradas ${posicoes.length} posições disponíveis (excluindo ${posicaoAtual})`);
+    
+    if (posicoes.length === 0) {
+      select.innerHTML = '<option value=""> Nenhuma posição disponível</option>';
+      select.disabled = true;
+      console.warn(' [MOVIMENTACAO] Nenhuma posição disponível para movimentação');
+      return false;
+    }
+    
+    // 4. Construir HTML com organizador hierárquico
+    let html = '<option value="">Selecione a nova posição</option>';
+    
+    // Usar organizador hierárquico se disponível
+    if (window.organizarComboboxPosicoes && posicoes.length <= 50) {
+      console.log(' [MOVIMENTACAO] Usando organizador hierárquico');
+      const posicoesObj = posicoes.map(pos => {
+        const [baia, altura] = pos.split('-');
+        return { baia_posicao: baia, altura: parseInt(altura) };
+      });
+      
+      try {
+        const htmlOrganizado = window.organizarComboboxPosicoes(posicoesObj, 'movimentacao');
+        if (htmlOrganizado && htmlOrganizado.trim()) {
+          html = '<option value="">Selecione a nova posição</option>' + htmlOrganizado;
+        } else {
+          throw new Error('Organizador retornou HTML vazio');
+        }
+      } catch (orgError) {
+        console.warn(' [MOVIMENTACAO] Erro no organizador, usando fallback simples:', orgError);
+        html = criarHTMLSimplesPosicoes(posicoes);
+      }
+    } else {
+      console.log(' [MOVIMENTACAO] Usando organização simples (fallback)');
+      html = criarHTMLSimplesPosicoes(posicoes);
+    }
+    
+    // 5. Atualizar select de forma segura
+    select.innerHTML = html;
+    select.disabled = false;
+    
+    console.log(` [MOVIMENTACAO] ${posicoes.length} posições carregadas com sucesso`);
+    
+    return true;
+    
+  } catch (error) {
+    console.error(' [MOVIMENTACAO] Erro ao carregar posições:', error);
+    
+    select.innerHTML = '<option value=""> Erro - Tente novamente</option>';
+    select.disabled = false;
+    
+    return false;
+  }
+}
+
+/**
+ * Cria HTML simples para posições (fallback)
+ * @param {Array} posicoes - Array de posições
+ * @returns {string} HTML das opções
+ */
+function criarHTMLSimplesPosicoes(posicoes) {
+  let html = '';
+  
+  // Agrupar por bay para melhor UX
+  const porBay = {};
+  posicoes.forEach(pos => {
+    const bay = pos[0];
+    if (!porBay[bay]) porBay[bay] = [];
+    porBay[bay].push(pos);
+  });
+  
+  // Construir optgroups
+  Object.keys(porBay).sort().forEach(bay => {
+    html += `<optgroup label="Bay ${bay} (${porBay[bay].length} posições)">`;
+    porBay[bay].forEach(pos => {
+      html += `<option value="${pos}">${pos}</option>`;
+    });
+    html += '</optgroup>';
+  });
+  
+  return html;
 }
 
 /**
@@ -730,19 +862,8 @@ async function atualizarContainersMovimentacao() {
       setTimeout(() => btn.classList.remove('refresh-success'), 1000);
     });
     
-    // Toast de sucesso
-    const Toast = Swal.mixin({
-      toast: true,
-      position: 'top-end',
-      showConfirmButton: false,
-      timer: 3000,
-      timerProgressBar: true
-    });
-    
-    Toast.fire({
-      icon: 'success',
-      title: `${containers.length} containers atualizados`
-    });
+    // Log silencioso de sucesso (sem toast interferente)
+    console.log(`✅ [MOVIMENTACAO] ${containers.length} containers carregados para movimentação`);
     
   } catch (error) {
     console.error('❌ Erro ao atualizar containers:', error);
@@ -857,4 +978,20 @@ function aplicarMascaraPosicao(input) {
   });
 }
 
+// ========================================
+// EXPORTAÇÕES GLOBAIS PARA COMPATIBILIDADE
+// ========================================
+
+// Exportar funções principais para uso global
+window.carregarPosicoesMovimentacao = carregarPosicoesDisponiveis;
+window.carregarPosicoesDisponiveis = carregarPosicoesDisponiveis;
+window.atualizarContainersMovimentacao = atualizarContainersMovimentacao;
+window.buscarPosicaoContainer = buscarPosicaoContainer;
+
+// Aliases para compatibilidade com scripts antigos
+window.carregarPosicoes = carregarPosicoesDisponiveis;
+window.atualizarPosicoes = carregarPosicoesDisponiveis;
+
 console.log('✅ Módulo de movimentação carregado');
+console.log('🔗 Funções exportadas globalmente: carregarPosicoesMovimentacao, carregarPosicoesDisponiveis, atualizarContainersMovimentacao');
+console.log('🔄 Aliases compatíveis: carregarPosicoes, atualizarPosicoes');

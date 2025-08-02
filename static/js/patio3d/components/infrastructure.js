@@ -246,22 +246,6 @@ export class Infrastructure {
     // Abertura fica no canto oeste, próxima à guarita
   ];
 
-    // Muro Sul - LATERAL MAIOR INFERIOR (COM ABERTURA)
-    const segmentosSul = [
-      // Segmento esquerdo
-      {
-        geometry: new THREE.BoxGeometry(segmentoLargura, muroHeight, muroThickness),
-        position: [-aberturaPortao/2 - segmentoLargura/2, muroHeight / 2, patioDepth / 2 + espacamentoMuro],
-        name: "Muro_Sul_Esquerdo"
-      },
-      // Segmento direito
-      {
-        geometry: new THREE.BoxGeometry(segmentoLargura, muroHeight, muroThickness),
-        position: [aberturaPortao/2 + segmentoLargura/2, muroHeight / 2, patioDepth / 2 + espacamentoMuro],
-        name: "Muro_Sul_Direito"
-      }
-    ];
-
     // Adicionar segmentos do muro norte
     segmentosNorte.forEach((segmento) => {
       const muro = new THREE.Mesh(segmento.geometry, muroMaterial.clone());
@@ -272,17 +256,7 @@ export class Infrastructure {
       this.infraestruturaGroup.add(muro);
     });
 
-    // Adicionar segmentos do muro sul
-    segmentosSul.forEach((segmento) => {
-      const muro = new THREE.Mesh(segmento.geometry, muroMaterial.clone());
-      muro.position.set(...segmento.position);
-      muro.castShadow = true;
-      muro.receiveShadow = true;
-      muro.name = segmento.name;
-      this.infraestruturaGroup.add(muro);
-    });
-
-    console.log("✅ Muros da empresa criados COM ABERTURAS para entrada/saída");
+    console.log("✅ Muros da empresa criados COM ABERTURAS para entrada/saída (muro sul removido)");
   }
 
   // ===== ESTRUTURAS DOS PORTÕES NAS ABERTURAS =====
@@ -318,25 +292,7 @@ export class Infrastructure {
     );
     this.infraestruturaGroup.add(estruturaEntradaOeste);
 
-    // ESTRUTURA DE SAÍDA (vermelho) - LATERAIS DA ABERTURA SUL
-    // Placa na estrutura da esquerda
-    const estruturaSaida1 = this.criarEstruturaPortao(
-      -aberturaPortao / 2 - 2, // Lado esquerdo da abertura
-      portaoHeight / 2,
-      posicaoMuroSul + 1, // Ligeiramente deslocado para fora do muro
-      new THREE.Color(0.8, 0.3, 0.2), // Vermelho
-      "SAÍDA"
-    );
-    this.infraestruturaGroup.add(estruturaSaida1);
-
-    // Estrutura da direita sem placa para evitar duplicação
-    const estruturaSaida2 = this.criarEstruturaPortaoSemPlaca(
-      aberturaPortao / 2 + 2, // Lado direito da abertura
-      portaoHeight / 2,
-      posicaoMuroSul + 1, // Ligeiramente deslocado para fora do muro
-      new THREE.Color(0.8, 0.3, 0.2) // Vermelho
-    );
-    this.infraestruturaGroup.add(estruturaSaida2);
+    // ESTRUTURAS DE SAÍDA REMOVIDAS (junto com o muro sul)
 
     console.log("✅ Estruturas dos portões criadas nas aberturas");
   }

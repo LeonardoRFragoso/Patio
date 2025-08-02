@@ -128,6 +128,7 @@ def configurar_sessao_usuario(user):
     session['role'] = user['nivel']  # Para compatibilidade com código existente
     session['nivel'] = user['nivel']  # Para nova lógica de permissões
     session['unidade'] = user['unidade']
+    session['logged_in'] = True  # ✅ CORREÇÃO: Adicionar chave logged_in para @login_required
 
 def obter_solicitacoes_pendentes():
     """Obtém solicitações pendentes para administradores"""

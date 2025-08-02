@@ -16,24 +16,40 @@ export const CONFIG = {
       E: 5,
     },
     
-    // 🔴 SISTEMA DE BAIAS CORRIGIDO BASEADO EM DADOS REAIS DO PÁTIO SUZANO-SP
-    // Fonte: posicao_suzano.txt - TODAS as baias 01-20 existem
+    // 🔴 SISTEMA DE BAIAS CORRIGIDO - LÓGICA REAL DO PÁTIO SUZANO-SP
+    // BASEADO NA EXPLICAÇÃO CORRETA DO USUÁRIO:
+    // - Posições FÍSICAS: Apenas ímpares (A01, A03, A05, A07, A09, A11, A13, A15, A17, A19)
+    // - Posições LÓGICAS: Pares (A02, A04, A06, A08, A10, A12, A14, A16, A18, A20)
 
-    // TODAS AS BAIAS DISPONÍVEIS (01 a 20)
-    TODAS_BAIAS: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+    // POSIÇÕES FÍSICAS REAIS (apenas ímpares)
+    BAIAS_FISICAS: [1, 3, 5, 7, 9, 11, 13, 15, 17, 19],
+    
+    // POSIÇÕES LÓGICAS (pares - representam containers 40ft)
+    BAIAS_LOGICAS: [2, 4, 6, 8, 10, 12, 14, 16, 18, 20],
 
-    // LÓGICA DE OCUPAÇÃO FÍSICA:
-    // - Container 20ft: ocupa 1 baia
-    // - Container 40ft: ocupa 2 baias consecutivas
+    // LÓGICA DE OCUPAÇÃO CORRETA:
+    // - Container 20ft: ocupa 1 posição física ímpar (A01, A03, A05, etc.)
+    // - Container 40ft: ocupa 2 posições físicas ímpares subsequentes (A01+A03, A03+A05, etc.)
+    //   e é representado pela posição lógica par correspondente (A02, A04, etc.)
 
-    // BAIAS VÁLIDAS PARA INÍCIO DE CONTAINER 40FT
-    // (deve ter espaço para ocupar a próxima baia também)
-    BAIAS_INICIO_40FT: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19], // Não inclui 20 pois não há 21
+    // MAPEAMENTO: POSIÇÃO LÓGICA → POSIÇÕES FÍSICAS OCUPADAS
+    MAPEAMENTO_40FT: {
+      2: [1, 3],   // A02 representa container 40ft ocupando A01+A03
+      4: [3, 5],   // A04 representa container 40ft ocupando A03+A05
+      6: [5, 7],   // A06 representa container 40ft ocupando A05+A07
+      8: [7, 9],   // A08 representa container 40ft ocupando A07+A09
+      10: [9, 11], // A10 representa container 40ft ocupando A09+A11
+      12: [11, 13],// A12 representa container 40ft ocupando A11+A13
+      14: [13, 15],// A14 representa container 40ft ocupando A13+A15
+      16: [15, 17],// A16 representa container 40ft ocupando A15+A17
+      18: [17, 19],// A18 representa container 40ft ocupando A17+A19
+      20: [19, 21] // A20 seria A19+A21, mas A21 não existe - INVÁLIDA
+    },
 
-    // FUNÇÃO PARA VERIFICAR SE BAIA É VÁLIDA PARA TIPO DE CONTAINER
+    // BAIAS VÁLIDAS POR TIPO DE CONTAINER
     BAIAS_POR_TIPO: {
-      '20ft': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],        // 20ft pode usar qualquer baia
-      '40ft': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]   // 40ft precisa de 2 baias consecutivas
+      '20ft': [1, 3, 5, 7, 9, 11, 13, 15, 17, 19],        // 20ft usa posições físicas ímpares
+      '40ft': [2, 4, 6, 8, 10, 12, 14, 16, 18]            // 40ft usa posições lógicas pares (exceto 20 que seria inválida)
     },
     
     ESPACAMENTO_BAIA: 7,

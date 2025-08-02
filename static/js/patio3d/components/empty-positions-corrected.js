@@ -1,13 +1,13 @@
 /**
- * Componente de Posições Vazias - VERSÃO CORRIGIDA BASEADA EM DADOS REAIS
+ * Componente de Posições Vazias - VERSÃO CORRIGIDA COM LÓGICA FÍSICA REAL
  * Arquivo: components/empty-positions-corrected.js
  * 
- * 🔴 IMPLEMENTA A LÓGICA REAL DO PÁTIO SUZANO-SP:
- * - Baseado em dados reais de posicao_suzano.txt
- * - TODAS as baias 01-20 existem
- * - Container 20ft: ocupa 1 baia (qualquer baia 1-20)
- * - Container 40ft: ocupa 2 baias consecutivas (baias 1-19 como início)
- * - Cores distintas para diferentes tipos de containers
+ * 🔴 IMPLEMENTA A LÓGICA FÍSICA REAL DO PÁTIO SUZANO-SP:
+ * - Baseado na explicação correta do usuário
+ * - APENAS 10 posições físicas ímpares existem: A01, A03, A05, A07, A09, A11, A13, A15, A17, A19
+ * - Container 20ft: ocupa 1 posição física ímpar (A01, A03, A05, etc.)
+ * - Container 40ft: ocupa 2 posições físicas ímpares consecutivas (A01+A03, A03+A05, etc.)
+ * - Posições pares são apenas lógicas e NÃO devem ser exibidas como marcações
  */
 
 import { CONFIG, CORES } from '../utils/constants.js';
@@ -74,7 +74,7 @@ export class EmptyPositionsCorrected {
    */
   criarPosicoesVazias(patioData) {
     try {
-      console.log("🔄 Criando posições vazias com lógica corrigida...");
+      console.log("🔄 Criando posições vazias com NOVA LÓGICA CORRIGIDA...");
       
       // Limpar posições existentes
       this.limparPosicoes();
@@ -87,34 +87,37 @@ export class EmptyPositionsCorrected {
       const containers = patioData.containers;
       let posicoesCreated = 0;
 
-      // Para cada fileira
-      for (const row of CONFIG.ROWS) {
-        const alturaMaxima = CONFIG.ALTURAS_MAX_POR_ROW[row] || CONFIG.ALTURAS_MAX;
+      // 🔴 NOVA LÓGICA: Usar função de obter posições disponíveis corrigida
+      
+      // POSIÇÕES PARA CONTAINERS 20ft (POSIÇÕES FÍSICAS ÍMPARES)
+      if (this.visibilidade.container20ft) {
+        const posicoes20ft = obterPosicoesDisponiveis(containers, '20ft');
+        console.log(`📍 Posições 20ft disponíveis:`, posicoes20ft.length);
         
-        // Para cada altura possível na fileira
-        for (let altura = 1; altura <= alturaMaxima; altura++) {
-          
-          // 🔴 POSIÇÕES PARA CONTAINERS 20ft (BAIAS ÍMPARES)
-          if (this.mostrarPosicoes20ft) {
-            const posicoes20ft = obterPosicoesDisponiveis(containers, row, altura, false);
-            
-            for (const baia of posicoes20ft) {
-              const posicaoMesh = this.criarPosicaoVazia20ft(row, baia, altura);
-              if (posicaoMesh) {
-                this.posicoesVaziasGroup.add(posicaoMesh);
-                posicoesCreated++;
-              }
+        for (const posicaoInfo of posicoes20ft) {
+          if (posicaoInfo.baia % 2 === 1) { // Apenas ímpares
+            const posicaoMesh = this.criarPosicaoVazia20ft(posicaoInfo.row, posicaoInfo.baia, posicaoInfo.altura);
+            if (posicaoMesh) {
+              this.group.add(posicaoMesh);
+              posicoesCreated++;
             }
           }
-          
-          // 🔴 POSIÇÕES PARA CONTAINERS 40ft (BAIAS PARES)
-          if (this.mostrarPosicoes40ft) {
-            const posicoes40ft = obterPosicoesDisponiveis(containers, row, altura, true);
-            
-            for (const baia of posicoes40ft) {
-              const posicaoMesh = this.criarPosicaoVazia40ft(row, baia, altura);
+        }
+      }
+      
+      // POSIÇÕES PARA CONTAINERS 40ft (POSIÇÕES LÓGICAS PARES)
+      if (this.visibilidade.container40ft) {
+        const posicoes40ft = obterPosicoesDisponiveis(containers, '40ft');
+        console.log(`📍 Posições 40ft disponíveis:`, posicoes40ft.length);
+        
+        for (const posicaoInfo of posicoes40ft) {
+          const posicoesOcupadas = posicaoInfo.posicoesOcupadas || CONFIG.MAPEAMENTO_40FT[posicaoInfo.baia];
+          if (posicoesOcupadas && posicoesOcupadas.length === 2) {
+            const [baiaFisica1, baiaFisica2] = posicoesOcupadas;
+            if (baiaFisica1 % 2 === 1 && baiaFisica2 % 2 === 1) { // Apenas ímpares
+              const posicaoMesh = this.criarPosicaoVazia40ft(posicaoInfo.row, posicaoInfo.baia, posicaoInfo.altura, posicoesOcupadas);
               if (posicaoMesh) {
-                this.posicoesVaziasGroup.add(posicaoMesh);
+                this.group.add(posicaoMesh);
                 posicoesCreated++;
               }
             }
@@ -122,8 +125,8 @@ export class EmptyPositionsCorrected {
         }
       }
 
-      this.posicoesRenderizadas = posicoesCreated;
-      this.posicoesVaziasGroup.visible = true;
+      console.log(`✅ ${posicoesCreated} posições vazias criadas com NOVA LÓGICA`);
+      this.group.visible = true;
       
       console.log(`✅ ${posicoesCreated} posições vazias criadas com lógica corrigida`);
       console.log(`   - Posições 20ft: ${this.mostrarPosicoes20ft ? 'ATIVADAS' : 'DESATIVADAS'}`);
@@ -190,53 +193,74 @@ export class EmptyPositionsCorrected {
   }
 
   /**
-   * 🔴 CRIAR POSIÇÃO VAZIA PARA CONTAINER 40ft (BAIA PAR)
+   * 🔴 CRIAR POSIÇÃO VAZIA PARA CONTAINER 40ft - NOVA LÓGICA
    * @param {string} row - Fileira (A-E)
-   * @param {number} baia - Baia par (2,4,6,8,10,12,14,16,18,20)
+   * @param {number} baia - Baia lógica par (2,4,6,8,10,12,14,16,18)
    * @param {number} altura - Altura (1-5)
+   * @param {Array} posicoesOcupadas - Array com as duas posições físicas ímpares que serão ocupadas
    * @returns {THREE.Mesh} Mesh da posição vazia
    */
-  criarPosicaoVazia40ft(row, baia, altura) {
+  criarPosicaoVazia40ft(row, baia, altura, posicoesOcupadas) {
     try {
-      const posicao = this.calcularPosicao3D(row, baia, altura);
-      if (!posicao) return null;
+      if (!posicoesOcupadas || posicoesOcupadas.length !== 2) {
+        console.warn(`⚠️ Posições ocupadas inválidas para container 40ft na baia ${baia}`);
+        return null;
+      }
+      
+      const [baiaFisica1, baiaFisica2] = posicoesOcupadas;
+      
+      // 🔴 NOVA LÓGICA: Calcular posição 3D baseada nas duas posições físicas ocupadas
+      const posicao1 = this.calcularPosicao3D(row, baiaFisica1, altura);
+      const posicao2 = this.calcularPosicao3D(row, baiaFisica2, altura);
+      
+      if (!posicao1 || !posicao2) {
+        console.error(`Erro ao calcular posições 3D para baias físicas ${baiaFisica1} e ${baiaFisica2}`);
+        return null;
+      }
+      
+      // Posição central entre as duas posições físicas
+      const posicaoCentral = new THREE.Vector3(
+        (posicao1.x + posicao2.x) / 2,
+        posicao1.y, // Mesma altura
+        posicao1.z   // Mesma fileira
+      );
 
-      // Geometria para container 40ft
+      // Geometria para container 40ft (ocupa espaço de 2 posições físicas)
       const geometry = new THREE.BoxGeometry(
-        CONFIG.CONTAINER_40_COMPRIMENTO,
-        CONFIG.ALTURA_CONTAINER,
+        CONFIG.ESPACAMENTO_BAIA * 2, // Largura de 2 posições físicas
+        CONFIG.ALTURA_CONTAINER * 0.8,
         CONFIG.CONTAINER_40_LARGURA
       );
 
-      // Material azul translúcido para 40ft
+      // Material azul para 40ft
       const material = new THREE.MeshStandardMaterial({
         color: new THREE.Color(0.2, 0.4, 0.8), // Azul para 40ft
         transparent: true,
-        opacity: 0.3,
+        opacity: 0.4,
         wireframe: true,
         roughness: 0.8,
         metalness: 0.1
       });
 
       const mesh = new THREE.Mesh(geometry, material);
-      mesh.position.copy(posicao);
+      mesh.position.copy(posicaoCentral);
       mesh.rotation.x = Math.PI / 2; // Orientação horizontal
-
-      // Ajuste de posição para 40ft (centralizar entre 2 baias)
-      mesh.position.x += CONFIG.ESPACAMENTO_BAIA / 2;
 
       // Metadados
       mesh.userData = {
         tipo: 'posicao_vazia_40ft',
         row: row,
-        baia: baia,
+        baia: baia, // Baia lógica par
         altura: altura,
         posicao: `${row}${String(baia).padStart(2, '0')}-${altura}`,
-        containerType: '40ft'
+        containerType: '40ft',
+        posicoesOcupadas: posicoesOcupadas,
+        descricao: `Posição lógica ${baia} (ocupará físicas ${baiaFisica1} + ${baiaFisica2})`
       };
 
-      mesh.name = `PosicaoVazia40ft_${row}${String(baia).padStart(2, '0')}_${altura}`;
+      mesh.name = `PosicaoVazia40ft_${row}${String(baia).padStart(2, '0')}_${altura}_Fisicas${baiaFisica1}${baiaFisica2}`;
 
+      console.log(`✅ Posição vazia 40ft criada: ${mesh.userData.descricao}`);
       return mesh;
     } catch (error) {
       console.error(`Erro ao criar posição 40ft: ${error.message}`);

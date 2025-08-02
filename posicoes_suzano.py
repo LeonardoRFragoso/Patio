@@ -270,7 +270,8 @@ class PatioSuzano:
     def sugerir_posicoes_40_teu_livres(self, status_container: str, db_connection, baia_preferida: str = None) -> List[str]:
         """
         🔴 LÓGICA CORRIGIDA: Sugere posições válidas para containers de 40 TEU.
-        NOVA REGRA: Container 40ft ocupa 2 baias consecutivas (N e N+1)
+        REGRA FÍSICA: Container 40ft ocupa 2 posições ímpares físicas consecutivas (ex: A01-1 e A03-1)
+        POSIÇÃO LÓGICA: É representada pela posição par intermediária (ex: A02-1)
         REGRA PONTE: Container 40ft pode ser empilhado sobre dois containers 20ft adjacentes
         
         Args:
@@ -279,45 +280,54 @@ class PatioSuzano:
             baia_preferida (str): Baia preferida (opcional)
             
         Returns:
-            List[str]: Lista de posições válidas para container 40 TEU
+            List[str]: Lista de posições lógicas válidas para container 40 TEU (posições pares)
         """
         posicoes_validas = []
         
-        # Obter todas as posições disponíveis para o status
-        posicoes_candidatas = self.obter_posicoes_disponiveis_para_status(status_container)
-        
         # Filtrar por baia se especificada
-        if baia_preferida:
-            posicoes_candidatas = [p for p in posicoes_candidatas if p[0] == baia_preferida]
+        baias_para_verificar = [baia_preferida] if baia_preferida else ['A', 'B', 'C', 'D', 'E']
         
-        for posicao in posicoes_candidatas:
-            row, baia_numero, altura = self.decompor_posicao(posicao)
-            
-            # 🔴 NOVA LÓGICA: Container 40ft precisa de 2 baias consecutivas
-            # Verificar se pode iniciar nesta baia (precisa de baia+1 disponível)
-            if baia_numero > 19:  # Baia 20 não pode iniciar container 40ft
-                continue
-                
-            baia_inicial = posicao  # Posição atual
-            baia_final = f"{row}{baia_numero+1:02d}-{altura}"  # Próxima baia
-            
-            # Verificar se ambas as posições existem
-            if not self.validar_posicao_existe(baia_final):
-                continue
-                
-            # Verificar se ambas as posições estão livres
-            inicial_livre = not self.verificar_posicao_ocupada(baia_inicial, db_connection)
-            final_livre = not self.verificar_posicao_ocupada(baia_final, db_connection)
-            
-            if inicial_livre and final_livre:
-                # 🔴 REGRA PONTE: Verificar se há suporte adequado para empilhamento
-                if altura > 1:
-                    # Para altura > 1, verificar se há suporte adequado
-                    if self._validar_suporte_40ft_ponte(row, baia_numero, altura, db_connection):
-                        posicoes_validas.append(posicao)
-                else:
-                    # Para altura 1, sempre válido se as posições estão livres
-                    posicoes_validas.append(posicao)
+        # Para cada baia, verificar posições ímpares físicas consecutivas disponíveis
+        for baia in baias_para_verificar:
+            for altura in range(1, 6):  # Alturas 1-5
+                # Verificar pares de posições ímpares físicas consecutivas
+                for baia_impar in range(1, 20, 2):  # 1, 3, 5, 7, 9, 11, 13, 15, 17, 19
+                    baia_impar_seguinte = baia_impar + 2  # 3, 5, 7, 9, 11, 13, 15, 17, 19, 21
+                    
+                    # Verificar se a segunda posição ímpar existe (máximo 19)
+                    if baia_impar_seguinte > 19:
+                        continue
+                    
+                    # Construir posições físicas ímpares
+                    posicao_fisica_1 = f"{baia}{baia_impar:02d}-{altura}"  # Ex: A01-1
+                    posicao_fisica_2 = f"{baia}{baia_impar_seguinte:02d}-{altura}"  # Ex: A03-1
+                    
+                    # Verificar se ambas as posições físicas existem no arquivo de configuração
+                    if not (self.validar_posicao_existe(posicao_fisica_1) and self.validar_posicao_existe(posicao_fisica_2)):
+                        continue
+                    
+                    # Verificar se ambas as posições físicas são adequadas para o status
+                    if not (self.validar_condicao_container(posicao_fisica_1, status_container) and 
+                            self.validar_condicao_container(posicao_fisica_2, status_container)):
+                        continue
+                    
+                    # Verificar se ambas as posições físicas estão livres
+                    fisica_1_livre = not self.verificar_posicao_ocupada(posicao_fisica_1, db_connection)
+                    fisica_2_livre = not self.verificar_posicao_ocupada(posicao_fisica_2, db_connection)
+                    
+                    if fisica_1_livre and fisica_2_livre:
+                        # Calcular posição lógica (posição par intermediária)
+                        baia_logica = baia_impar + 1  # Ex: A01+A03 -> A02
+                        posicao_logica = f"{baia}{baia_logica:02d}-{altura}"  # Ex: A02-1
+                        
+                        # 🔴 REGRA PONTE: Verificar se há suporte adequado para empilhamento
+                        if altura > 1:
+                            # Para altura > 1, verificar se há suporte adequado
+                            if self._validar_suporte_40ft_ponte(baia, baia_impar, altura, db_connection):
+                                posicoes_validas.append(posicao_logica)
+                        else:
+                            # Para altura 1, sempre válido se as posições físicas estão livres
+                            posicoes_validas.append(posicao_logica)
         
         # Priorizar por altura (mais baixo primeiro), depois por baia
         def prioridade_40_teu(posicao: str) -> Tuple[int, str, int]:

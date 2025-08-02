@@ -56,11 +56,12 @@ export class EmptyPositions {
 
       let posicoesVaziasCriadas = 0;
 
-      // Criar posições vazias para cada row/baia/altura
+      // 🔴 CORRIGIDO: Criar posições vazias APENAS para baias físicas ímpares
       CONFIG.ROWS.forEach((row) => {
         const alturaMaximaRow = CONFIG.ALTURAS_MAX_POR_ROW[row] || CONFIG.ALTURAS_MAX;
 
-        for (let bay = 1; bay <= CONFIG.BAIAS_MAX; bay++) {
+        // 🔴 USAR APENAS BAIAS FÍSICAS ÍMPARES
+        CONFIG.BAIAS_FISICAS.forEach((bay) => {
           for (let altura = 1; altura <= alturaMaximaRow; altura++) {
             const posKey = `${row}${bay}-${altura}`;
 
@@ -73,7 +74,7 @@ export class EmptyPositions {
               }
             }
           }
-        }
+        });
       });
 
       this.totalPosicoesVazias = posicoesVaziasCriadas;
@@ -431,7 +432,17 @@ export class EmptyPositions {
       if (isNaN(alturaNumber) || alturaNumber < 1 || alturaNumber > CONFIG.ALTURAS_MAX)
         return null;
 
-      const x = (bayNumber - 10.5) * CONFIG.ESPACAMENTO_BAIA;
+      // 🔴 CORREÇÃO CRÍTICA: Usar mesmo sistema do container-renderer
+      // Converter baia física ímpar para índice físico sequencial
+      const indiceFisico = CONFIG.BAIAS_FISICAS.indexOf(bayNumber);
+      if (indiceFisico === -1) {
+        console.warn(`⚠️ Baia ${bayNumber} não é uma baia física válida`);
+        return null;
+      }
+
+      // 🎯 COORDENADAS ALINHADAS: Mesmo sistema do container-renderer
+      const INICIO_PATIO_X = -35; // Coordenada X do início do pátio
+      const x = INICIO_PATIO_X + (indiceFisico * CONFIG.ESPACAMENTO_BAIA);
       const z = (rowIndex - 2) * CONFIG.ESPACAMENTO_ROW;
       const y = (alturaNumber - 1) * CONFIG.ALTURA_CONTAINER + CONFIG.ALTURA_CONTAINER / 2;
 

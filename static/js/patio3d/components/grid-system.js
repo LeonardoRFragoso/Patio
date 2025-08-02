@@ -99,7 +99,9 @@ export class GridSystem {
     });
 
     // Linhas verticais (baias)
-    for (let bay = 1; bay <= CONFIG.BAIAS_MAX; bay++) {
+    // Exibir APENAS as baias físicas (ímpares: 1, 3, 5, 7, 9, 11, 13, 15, 17, 19)
+    const baiasFisicas = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19];
+    for (const bay of baiasFisicas) {
       const x = (bay - 10.5) * CONFIG.ESPACAMENTO_BAIA;
       
       const geometry = new THREE.BufferGeometry().setFromPoints([
@@ -140,12 +142,13 @@ export class GridSystem {
       this.gridGroup.add(marcador);
     });
 
-    // Marcadores para baias principais (a cada 5)
-    for (let bay = 5; bay <= CONFIG.BAIAS_MAX; bay += 5) {
+    // Marcadores para baias físicas a cada 5 posições (5 e 15)
+    const baiasFisicas = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19];
+    baiasFisicas.filter(b => b % 5 === 0).forEach(bay => {
       const marcador = this.criarMarcadorBaia(bay);
       this.marcadores.push(marcador);
       this.gridGroup.add(marcador);
-    }
+    });
 
     // Marcador de origem (0,0)
     const marcadorOrigem = this.criarMarcadorOrigem();

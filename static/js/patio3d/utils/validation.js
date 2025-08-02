@@ -43,19 +43,19 @@ export function isContainer40TEU(container) {
 /**
  * Verifica se um container 20ft pode ser colocado em uma posição
  * @param {string} row - Row (A, B, C, D, E)
- * @param {number} baia - Número da baia (1-20, qualquer uma)
+ * @param {number} baia - Número da baia (deve ser ímpar: 1, 3, 5, 7, 9, 11, 13, 15, 17, 19)
  * @param {number} altura - Altura (1-5)
  * @param {Array} containersExistentes - Lista de containers já posicionados
  * @returns {boolean} - true se pode colocar
  */
 export function podeColocar20ft(row, baia, altura, containersExistentes = []) {
-  // 1. Verificar se baia está no range válido (1-20)
-  if (baia < 1 || baia > 20) {
-    console.warn(`❌ Baia ${baia} fora do range válido (1-20)`);
+  // 1. 🔴 NOVA REGRA: Container 20ft só pode usar posições físicas ímpares
+  if (!CONFIG.BAIAS_FISICAS.includes(baia)) {
+    console.warn(`❌ Container 20ft só pode usar posições físicas ímpares. Baia ${baia} é inválida. Use: ${CONFIG.BAIAS_FISICAS.join(', ')}`);
     return false;
   }
   
-  // 2. Verificar se posição não está ocupada
+  // 2. Verificar se posição física não está ocupada
   if (posicaoOcupada(row, baia, altura, containersExistentes)) {
     return false;
   }
@@ -82,70 +82,85 @@ export function podeColocar20ft(row, baia, altura, containersExistentes = []) {
 /**
  * Verifica se um container 40ft pode ser colocado em uma posição
  * @param {string} row - Row (A, B, C, D, E)
- * @param {number} baia - Número da baia inicial (1-19, precisa de baia+1 livre)
+ * @param {number} baia - Número da baia lógica par (2, 4, 6, 8, 10, 12, 14, 16, 18)
  * @param {number} altura - Altura (1-5)
  * @param {Array} containersExistentes - Lista de containers já posicionados
  * @returns {boolean} - true se pode colocar
  */
 export function podeColocar40ft(row, baia, altura, containersExistentes = []) {
-  // 1. Verificar se baia está no range válido para início de 40ft (1-19)
-  if (baia < 1 || baia > 19) {
-    console.warn(`❌ Baia ${baia} inválida para container 40ft (precisa de 1-19 para ocupar 2 baias)`);
+  // 1. 🔴 NOVA REGRA: Container 40ft usa posição lógica par
+  if (!CONFIG.BAIAS_POR_TIPO['40ft'].includes(baia)) {
+    console.warn(`❌ Container 40ft só pode usar posições lógicas pares. Baia ${baia} é inválida. Use: ${CONFIG.BAIAS_POR_TIPO['40ft'].join(', ')}`);
     return false;
   }
   
-  // 2. Verificar altura máxima para o row
+  // 2. Obter as posições físicas ímpares que serão ocupadas
+  const posicoesOcupadas = CONFIG.MAPEAMENTO_40FT[baia];
+  if (!posicoesOcupadas) {
+    console.warn(`❌ Mapeamento não encontrado para baia lógica ${baia}`);
+    return false;
+  }
+  
+  const [baiaFisica1, baiaFisica2] = posicoesOcupadas;
+  
+  // 3. Verificar se a segunda posição física existe (para evitar A20 que seria A19+A21)
+  if (!CONFIG.BAIAS_FISICAS.includes(baiaFisica2)) {
+    console.warn(`❌ Posição lógica ${baia} requer posição física ${baiaFisica2} que não existe`);
+    return false;
+  }
+  
+  // 4. Verificar altura máxima para o row
   const alturaMaxima = CONFIG.ALTURAS_MAX_POR_ROW[row] || CONFIG.ALTURAS_MAX;
   if (altura > alturaMaxima) {
     console.warn(`❌ Altura ${altura} excede máximo para row ${row}: ${alturaMaxima}`);
     return false;
   }
   
-  // 3. REGRA CRÍTICA: Container 40ft ocupa 2 baias consecutivas
-  const baiaInicial = baia;
-  const baiaFinal = baia + 1;
+  // 5. 🔴 REGRA CRÍTICA: Verificar se ambas as posições físicas ímpares estão livres
+  const fisica1Livre = !posicaoOcupada(row, baiaFisica1, altura, containersExistentes);
+  const fisica2Livre = !posicaoOcupada(row, baiaFisica2, altura, containersExistentes);
   
-  // Verificar se ambas as baias estão livres na mesma altura
-  const inicialLivre = !posicaoOcupada(row, baiaInicial, altura, containersExistentes);
-  const finalLivre = !posicaoOcupada(row, baiaFinal, altura, containersExistentes);
-  
-  if (!inicialLivre || !finalLivre) {
-    console.warn(`❌ Container 40ft precisa de baias ${baiaInicial} e ${baiaFinal} livres em ${row}-${altura}`);
+  if (!fisica1Livre || !fisica2Livre) {
+    console.warn(`❌ Container 40ft (posição lógica ${baia}) precisa das posições físicas ${baiaFisica1} e ${baiaFisica2} livres. ${baiaFisica1}: ${fisica1Livre ? 'livre' : 'ocupada'}, ${baiaFisica2}: ${fisica2Livre ? 'livre' : 'ocupada'}`);
     return false;
   }
   
-  // 4. Verificar suporte (se altura > 1, ambas as baias devem ter suporte)
+  // 6. Verificar suporte (se altura > 1, ambas as posições físicas devem ter suporte)
   if (altura > 1) {
-    const suporteInicial = posicaoOcupada(row, baiaInicial, altura - 1, containersExistentes);
-    const suporteFinal = posicaoOcupada(row, baiaFinal, altura - 1, containersExistentes);
+    const suporteFisica1 = posicaoOcupada(row, baiaFisica1, altura - 1, containersExistentes);
+    const suporteFisica2 = posicaoOcupada(row, baiaFisica2, altura - 1, containersExistentes);
     
-    if (!suporteInicial || !suporteFinal) {
-      console.warn(`❌ Container 40ft precisa de suporte em ambas as baias ${baiaInicial} e ${baiaFinal}`);
+    if (!suporteFisica1 || !suporteFisica2) {
+      console.warn(`❌ Container 40ft em altura ${altura} precisa de suporte em ambas as posições físicas. Suporte ${baiaFisica1}: ${suporteFisica1 ? 'ok' : 'faltando'}, Suporte ${baiaFisica2}: ${suporteFisica2 ? 'ok' : 'faltando'}`);
       return false;
     }
   }
   
+  console.log(`✅ Container 40ft pode ser colocado na posição lógica ${row}${baia.toString().padStart(2, '0')}-${altura} (ocupará posições físicas ${baiaFisica1} e ${baiaFisica2})`);
   return true;
 }
 
 /**
- * Verifica se uma posição está bloqueada por um container 40ft
+ * Verifica se uma posição física está bloqueada por um container 40ft
  * @param {string} row - Row (A, B, C, D, E)
- * @param {number} baia - Número da baia a verificar
+ * @param {number} baia - Número da baia física ímpar a verificar
  * @param {number} altura - Altura (1-5)
  * @param {Array} containersExistentes - Lista de containers já posicionados
  * @returns {boolean} - true se está bloqueada
  */
 export function baiaBloqueadaPor40ft(row, baia, altura, containersExistentes = []) {
-  // Verificar se há container 40ft que ocupa esta baia
+  // 🔴 NOVA LÓGICA: Verificar se há containers 40ft que ocupam esta posição física ímpar
   for (const container of containersExistentes) {
-    if (container.row === row && container.altura === altura && isContainer40TEU(container)) {
-      const baiaInicial = container.baia;
-      const baiaFinal = container.baia + 1;
+    if (container.row !== row || container.altura !== altura) continue;
+    
+    // Se é um container 40ft, verificar se bloqueia a baia física atual
+    if (isContainer40TEU(container)) {
+      const baiaLogica = container.baia || container.bay;
       
-      // Se a baia verificada está dentro do range ocupado pelo 40ft
-      if (baia >= baiaInicial && baia <= baiaFinal) {
-        console.log(`🚫 Baia ${baia} ocupada por container 40ft nas baias ${baiaInicial}-${baiaFinal}`);
+      // Obter as posições físicas ocupadas por este container 40ft
+      const posicoesOcupadas = CONFIG.MAPEAMENTO_40FT[baiaLogica];
+      if (posicoesOcupadas && posicoesOcupadas.includes(baia)) {
+        console.log(`🚫 Posição física ${baia} ocupada por container 40ft na posição lógica ${baiaLogica} (ocupa físicas: ${posicoesOcupadas.join(', ')})`);
         return true;
       }
     }
@@ -218,7 +233,7 @@ export function validarPosicionamentoContainer(containers, novoContainer) {
 }
 
 /**
- * 🔴 FUNÇÃO PARA OBTER TODAS AS POSIÇÕES DISPONÍVEIS
+ * 🔴 FUNÇÃO PARA OBTER TODAS AS POSIÇÕES DISPONÍVEIS - NOVA LÓGICA CORRIGIDA
  * @param {Array} containers - Lista de containers existentes
  * @param {string} tipoContainer - '20ft' ou '40ft'
  * @returns {Array} Lista de posições disponíveis
@@ -229,33 +244,48 @@ export function obterPosicoesDisponiveis(containers = [], tipoContainer = '20ft'
   CONFIG.ROWS.forEach(row => {
     const alturaMaxima = CONFIG.ALTURAS_MAX_POR_ROW[row] || CONFIG.ALTURAS_MAX;
     
-    // Para 20ft: testar todas as baias (1-20)
-    // Para 40ft: testar baias 1-19 (precisa de 2 baias consecutivas)
-    const baiaMax = tipoContainer === '40ft' ? 19 : 20;
+    // 🔴 NOVA LÓGICA: Usar baias específicas por tipo
+    const baiasParaTestar = CONFIG.BAIAS_POR_TIPO[tipoContainer] || [];
     
-    for (let baia = 1; baia <= baiaMax; baia++) {
+    for (const baia of baiasParaTestar) {
       for (let altura = 1; altura <= alturaMaxima; altura++) {
         let podeColocar = false;
         
         if (tipoContainer === '40ft') {
+          // Container 40ft: testar posição lógica par
           podeColocar = podeColocar40ft(row, baia, altura, containers);
         } else {
+          // Container 20ft: testar posição física ímpar
           podeColocar = podeColocar20ft(row, baia, altura, containers);
         }
         
         if (podeColocar) {
-          posicoesDisponiveis.push({
+          const posicaoInfo = {
             row,
             baia,
             altura,
             posicao: `${row}${String(baia).padStart(2, '0')}-${altura}`,
             tipo: tipoContainer
-          });
+          };
+          
+          // Para containers 40ft, adicionar informação das posições físicas ocupadas
+          if (tipoContainer === '40ft') {
+            const posicoesOcupadas = CONFIG.MAPEAMENTO_40FT[baia];
+            if (posicoesOcupadas) {
+              posicaoInfo.posicoesOcupadas = posicoesOcupadas;
+              posicaoInfo.descricao = `Posição lógica ${baia} (ocupará físicas ${posicoesOcupadas.join(' + ')})`;
+            }
+          } else {
+            posicaoInfo.descricao = `Posição física ${baia}`;
+          }
+          
+          posicoesDisponiveis.push(posicaoInfo);
         }
       }
     }
   });
   
+  console.log(`🔍 Posições disponíveis para ${tipoContainer}:`, posicoesDisponiveis.length);
   return posicoesDisponiveis;
 }
 

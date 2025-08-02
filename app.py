@@ -81,6 +81,10 @@ def create_app(config_class=Config):
     # Registrar blueprint de operações de containers
     from routes.operacoes_containers import operacoes_containers_bp
     app.register_blueprint(operacoes_containers_bp)  # ✅ NOVO BLUEPRINT PARA OPERAÇÕES DE CONTAINERS
+    
+    # Registrar blueprint da API de placas
+    from routes.placas_api import placas_api_bp
+    app.register_blueprint(placas_api_bp)  # ✅ NOVO BLUEPRINT PARA API DE PLACAS
 
     # Context processor para disponibilizar dados em todos os templates
     @app.context_processor

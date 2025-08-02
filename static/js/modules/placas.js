@@ -1,7 +1,7 @@
 // ========================================
 // MÓDULO DE GESTÃO DE PLACAS
 // Centraliza todas as operações com placas de caminhões
-// Integração com planilha SharePoint/OneDrive
+// Integração com banco de dados (migrado do SharePoint)
 // Usado por: carregamento rodoviário
 // ========================================
 
@@ -61,7 +61,7 @@ function sincronizarComCacheGlobal() {
 }
 
 /**
- * Carrega placas da planilha SharePoint/OneDrive com cache local
+ * Carrega placas do banco de dados com cache local
  * @param {boolean} forceRefresh - Força atualização do cache
  * @returns {Promise<Array>} Lista de placas
  */
@@ -78,13 +78,24 @@ export async function carregarPlacas(forceRefresh = false) {
       return placasState.placasCache;
     }
     
-    console.log('🔄 Carregando placas da planilha SharePoint/OneDrive (placas)...');
+    console.log('🔄 Carregando placas do banco de dados (placas)...');
     
     // Marcar como carregando
     placasState.isLoading = true;
     placasState.lastError = null;
     
-    const response = await fetch(`/api/sharepoint/placas/lista${forceRefresh ? '?refresh=true' : ''}`);
+    // Obter token CSRF
+    const metaTag = document.querySelector('meta[name="csrf-token"]');
+    const csrfToken = metaTag ? metaTag.getAttribute('content') : null;
+    
+    // Nova API do banco de dados
+    const response = await fetch('/api/placas/simples', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrfToken
+      }
+    });
     
     if (!response.ok) {
       throw new Error(`Erro HTTP ${response.status}: ${response.statusText}`);
@@ -92,21 +103,21 @@ export async function carregarPlacas(forceRefresh = false) {
     
     const result = await response.json();
     
-    if (result.success && Array.isArray(result.data)) {
+    if (result.success && Array.isArray(result.placas)) {
       // Atualizar cache local
-      placasState.placasCache = result.data;
+      placasState.placasCache = result.placas;
       placasState.placasCacheTime = agora;
-      placasState.totalPlacas = result.data.length;
-      placasState.lastUpdateSource = 'sharepoint';
+      placasState.totalPlacas = result.placas.length;
+      placasState.lastUpdateSource = 'banco_de_dados';
       
       // Sincronizar com cache global
       if (window.appState) {
-        window.appState.placasCache = result.data;
+        window.appState.placasCache = result.placas;
         window.appState.placasCacheTime = agora;
       }
       
-      console.log(`✅ ${result.data.length} placas carregadas da planilha (placas)`);
-      return result.data;
+      console.log(`✅ ${result.placas.length} placas carregadas do banco de dados (placas)`);
+      return result.placas;
     } else {
       throw new Error(result.error || 'Formato de resposta inválido da API de placas');
     }
@@ -157,8 +168,15 @@ export async function criarComboboxPlacas(inputElement, placas = null, options =
     wrapper.className = 'combobox-wrapper';
     wrapper.style.position = 'relative';
     
-    inputElement.parentNode.insertBefore(wrapper, inputElement);
-    wrapper.appendChild(inputElement);
+    // Verificar se parentNode existe antes de usar insertBefore
+    const parent = inputElement.parentNode;
+    if (parent) {
+      parent.insertBefore(wrapper, inputElement);
+      wrapper.appendChild(inputElement);
+    } else {
+      console.warn('⚠️ Elemento de input não tem parentNode, pulando configuração de wrapper');
+      return null;
+    }
   }
   
   // Limpar event listeners existentes
@@ -672,6 +690,82 @@ export function obterEstatisticasPlacas() {
 }
 
 /**
+ * Atualiza placas via API e mostra feedback ao usuário
+ * Função principal chamada pelo botão de atualizar placas
+ */
+export async function atualizarPlacas() {
+  try {
+    console.log('🔄 Iniciando atualização de placas...');
+    
+    // Mostrar feedback de carregamento
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({
+        title: 'Atualizando placas...',
+        text: 'Buscando dados do banco de dados',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+    }
+    
+    // Obter token CSRF
+    const metaTag = document.querySelector('meta[name="csrf-token"]');
+    const csrfToken = metaTag ? metaTag.getAttribute('content') : null;
+    
+    const response = await fetch('/api/placas/refresh', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrfToken
+      }
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      // Limpar cache local para forçar recarregamento
+      limparCachePlacas();
+      
+      // Recarregar placas
+      await carregarPlacas(true);
+      
+      // Atualizar todos os comboboxes na página
+      await atualizarTodosComboboxes();
+      
+      // Mostrar sucesso
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          icon: 'success',
+          title: 'Placas atualizadas!',
+          text: result.message || `${result.total || 0} placas carregadas com sucesso`,
+          timer: 3000,
+          showConfirmButton: false
+        });
+      }
+      
+      console.log(`✅ Placas atualizadas: ${result.total || 0} placas`);
+      
+    } else {
+      throw new Error(result.error || 'Erro desconhecido ao atualizar placas');
+    }
+    
+  } catch (error) {
+    console.error('❌ Erro ao atualizar placas:', error);
+    
+    // Mostrar erro
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro ao atualizar placas',
+        text: 'Não foi possível atualizar a lista de placas. Tente novamente.',
+        confirmButtonText: 'OK'
+      });
+    }
+  }
+}
+
+/**
  * Mostra notificação relacionada a placas
  * @param {string} tipo - Tipo: 'success', 'error', 'warning', 'info'
  * @param {string} titulo - Título da notificação
@@ -718,6 +812,7 @@ if (typeof window !== 'undefined') {
   window.buscarPlacas = buscarPlacas;
   window.limparCachePlacas = limparCachePlacas;
   window.obterEstatisticasPlacas = obterEstatisticasPlacas;
+  window.atualizarPlacas = atualizarPlacas;
 }
 
 // Auto-inicialização quando carregado

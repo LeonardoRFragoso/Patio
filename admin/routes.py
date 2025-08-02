@@ -366,72 +366,87 @@ def api_unidades():
             'error': str(e)
         }), 500
 
-@admin_bp.route('/api/container-detalhes/<int:container_id>')
+@admin_bp.route('/api/container-historico/<string:container_numero>')
 @admin_administrativo_only_required
-def api_container_detalhes_completo(container_id):
-    """API para obter detalhes completos de um container específico"""
+def api_container_historico(container_numero):
+    """API para obter TODO o histórico do container: dados principais, todas as vistorias, operações e correções de descarga."""
     try:
         db = get_db()
         cursor = db.cursor()
-        
-        # Buscar dados do container
-        cursor.execute("""
-            SELECT * FROM containers WHERE id = ?
-        """, (container_id,))
+
+        # Buscar dados principais do container
+        cursor.execute("SELECT * FROM containers WHERE numero = ?", (container_numero,))
         container = cursor.fetchone()
-        
         if not container:
             return jsonify({'success': False, 'error': 'Container não encontrado'}), 404
-        
-        # Buscar todas as operações
-        cursor.execute("""
-            SELECT tipo, modo, posicao, posicao_anterior, placa, vagao,
-                   data_operacao, usuario_id, observacoes, resultado_vistoria
-            FROM operacoes 
-            WHERE container_id = ? 
-            ORDER BY data_operacao DESC
-        """, (container_id,))
-        operacoes = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
-        
-        # Buscar todas as vistorias (usar container_numero em vez de container_id)
-        # Primeiro buscar o número do container
-        container_numero = container_dict.get('numero') if 'container_dict' in locals() else None
-        if not container_numero:
-            container_numero = container[1] if container and len(container) > 1 else None
-        
-        vistorias = []
-        if container_numero:
-            cursor.execute("""
-                SELECT * FROM vistorias 
-                WHERE container_numero = ? 
-                ORDER BY data_vistoria DESC
-            """, (container_numero,))
-            vistorias = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
-        
-        # Buscar correções de descarga
-        cursor.execute("""
-            SELECT * FROM correcoes_descarga 
-            WHERE container_id = ? 
-            ORDER BY data_correcao DESC
-        """, (container_id,))
-        correcoes = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
-        
         container_dict = dict(zip([col[0] for col in cursor.description], container))
-        
+        container_id = container_dict['id']
+
+        # Buscar todas as vistorias
+        cursor.execute("SELECT * FROM vistorias WHERE container_numero = ? ORDER BY data_vistoria ASC", (container_numero,))
+        vistorias = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
+
+        # Buscar todas as operações
+        cursor.execute("SELECT * FROM operacoes WHERE container_id = ? ORDER BY data_operacao ASC", (container_id,))
+        operacoes = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
+
+        # Buscar todas as correções de descarga
+        cursor.execute("SELECT * FROM correcoes_descarga WHERE container_id = ? ORDER BY data_correcao ASC", (container_id,))
+        correcoes = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
+
         return jsonify({
             'success': True,
             'container': container_dict,
-            'operacoes': operacoes,
             'vistorias': vistorias,
+            'operacoes': operacoes,
+            'correcoes_descarga': correcoes
+        })
+    except Exception as e:
+        logger.error(f"Erro ao buscar histórico completo do container: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@admin_bp.route('/api/container-detalhes/<int:container_id>')
+@admin_administrativo_only_required
+def api_container_detalhes(container_id):
+    """API para obter detalhes completos do container por ID"""
+    try:
+        db = get_db()
+        cursor = db.cursor()
+
+        # Buscar dados principais do container por ID
+        cursor.execute("SELECT * FROM containers WHERE id = ?", (container_id,))
+        container = cursor.fetchone()
+        if not container:
+            return jsonify({'success': False, 'error': 'Container não encontrado'}), 404
+        
+        container_dict = dict(zip([col[0] for col in cursor.description], container))
+        container_numero = container_dict['numero']
+
+        # Buscar todas as vistorias
+        cursor.execute("SELECT * FROM vistorias WHERE container_numero = ? ORDER BY data_vistoria DESC", (container_numero,))
+        vistorias = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
+
+        # Buscar todas as operações
+        cursor.execute("SELECT * FROM operacoes WHERE container_id = ? ORDER BY data_operacao DESC", (container_id,))
+        operacoes = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
+
+        # Buscar todas as correções de descarga
+        cursor.execute("SELECT * FROM correcoes_descarga WHERE container_id = ? ORDER BY data_correcao DESC", (container_id,))
+        correcoes = [dict(zip([col[0] for col in cursor.description], row)) for row in cursor.fetchall()]
+
+        logger.info(f"Admin Administrativo acessou detalhes do container ID {container_id} ({container_numero})")
+
+        return jsonify({
+            'success': True,
+            'container': container_dict,
+            'vistorias': vistorias,
+            'operacoes': operacoes,
             'correcoes': correcoes
         })
-        
     except Exception as e:
-        logger.error(f"Erro ao buscar detalhes do container: {str(e)}")
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        }), 500
+        logger.error(f"Erro ao buscar detalhes do container ID {container_id}: {str(e)}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 
 @admin_bp.route('/corrigir-descarga')
 @admin_required  # Ambos os tipos de admin podem acessar

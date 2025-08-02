@@ -1,107 +1,99 @@
 /**
- * Script para corrigir o problema de exibição de erro após movimentação bem-sucedida
- * Este script também gerencia o combobox dinâmico de "Nova Posição" usando Choices.js
- */
+ * Script para corrigir o problema de exibição de erro após movimentação// ========================================
+// SOLUÇÃO DE EMERGÊNCIA - MOVIMENTAÇÃO
+// Versão mínima sem execução automática para evitar travamentos
+// ========================================
 
-// -------------------- COMBOBOX "NOVA POSIÇÃO" DINÂMICO --------------------
-let posicaoChoices = null;
+console.log('🚨 MODO EMERGÊNCIA: Script de movimentação carregado (sem auto-execução)');
 
-// Carregar posições via backend e popular o select com organização hierárquica
-async function carregarPosicoesMovimentacao(forceRefresh = false) {
+// Função manual para carregar posições (só executa quando chamada explicitamente)
+window.carregarPosicoesManual = async function() {
+  console.log('🔧 Carregamento manual de posições iniciado...');
+  
   const select = document.getElementById('posicao_nova');
   const containerInput = document.getElementById('container_movimentacao');
-  const btnRefresh = document.querySelector('.btn-refresh[onclick*="carregarPosicoesMovimentacao"]');
-
-  if (!select || !containerInput) return;
-
-  const numeroContainer = containerInput.value.trim();
-  if (!numeroContainer) {
-    Swal.fire({
-      icon: 'info',
-      title: 'Informe o Container',
-      text: 'Digite primeiro o número do container para carregar as posições válidas.'
-    });
+  
+  if (!select || !containerInput) {
+    console.error('❌ Elementos não encontrados');
+    alert('Erro: Elementos da página não encontrados');
     return;
   }
-
-  // Evitar recarregar se já está carregado para este container
-  if (!forceRefresh && select.dataset.loadedFor === numeroContainer) return;
-
-  btnRefresh?.classList.add('rotating');
-  select.disabled = true;
-
-  try {
-    const resp = await fetch(`/operacoes/posicoes/movimentacao/${numeroContainer}`);
-    const data = await resp.json();
-
-    if (!resp.ok || !data.success) {
-      throw new Error(data.error || 'Erro ao buscar posições.');
-    }
-
-    // Extrair lista de posições do backend
-    const posicoes = data.posicoes.map(pos => pos.codigo || pos);
-    
-    console.log(`📊 Carregando ${posicoes.length} posições organizadas para container ${numeroContainer}`);
-
-    // Usar o organizador de posições para estruturar hierarquicamente
-    if (typeof window.organizarComboboxPosicoes === 'function') {
-      // Usar organizador moderno com opção de grid
-      const resultado = window.organizarComboboxPosicoes(select, posicoes, {
-        showStats: true,
-        showViewToggle: false,
-        showGridView: false, // Começar com lista, usuário pode alternar
-        searchPlaceholderValue: 'Digite bay (A-E), posição (01-20) ou altura (1-5)...',
-        onPositionSelect: (posicao, posicaoInfo) => {
-          console.log(`🎯 Posição selecionada para movimentação: ${posicao}`);
-          
-          // Disparar evento para outros listeners
-          select.dispatchEvent(new CustomEvent('positionSelected', {
-            detail: { posicao, posicaoInfo }
-          }));
-        }
-      });
-      
-      posicaoChoices = resultado.choices;
-      
-      console.log(`✅ Posições organizadas para movimentação: ${resultado.stats.totalPosicoes} posições em ${Object.keys(resultado.stats.porBay).length} bays`);
-    } else {
-      // Fallback para método tradicional
-      console.warn('⚠️ Organizador de posições não disponível, usando método tradicional');
-      
-      select.innerHTML = '<option value="">Selecione a posição</option>';
-      
-      posicoes.forEach((pos) => {
-        const option = document.createElement('option');
-        option.value = pos;
-        option.textContent = pos;
-        select.appendChild(option);
-      });
-      
-      // Inicializar Choices básico
-      if (!posicaoChoices) {
-        posicaoChoices = new Choices(select, {
-          searchEnabled: true,
-          shouldSort: false,
-          placeholderValue: 'Selecione a posição',
-          itemSelectText: '',
-          noResultsText: 'Nenhuma posição encontrada',
-          loadingText: 'Carregando posições...'
-        });
-      } else {
-        posicaoChoices.setChoices(Array.from(select.options).map(o => ({ value: o.value, label: o.textContent, selected: o.selected, disabled: o.disabled })), 'value', 'label', true);
-      }
-    }
-
-    select.disabled = false;
-    select.dataset.loadedFor = numeroContainer;
-
-  } catch (err) {
-    console.error('❌ Erro ao carregar posições:', err);
-    Swal.fire({ icon: 'error', title: 'Erro', text: err.message });
-  } finally {
-    btnRefresh?.classList.remove('rotating');
+  
+  const numeroContainer = containerInput.value.trim();
+  if (!numeroContainer) {
+    alert('Digite primeiro o número do container');
+    return;
   }
-}
+  
+  try {
+    select.innerHTML = '<option value="">Carregando...</option>';
+    select.disabled = true;
+    
+    console.log('📡 Buscando container:', numeroContainer);
+    
+    // Buscar container
+    const containerResp = await fetch(`/operacoes/buscar_container?numero=${encodeURIComponent(numeroContainer)}`);
+    const containerData = await containerResp.json();
+    
+    if (!containerData.success) {
+      throw new Error('Container não encontrado');
+    }
+    
+    const container = containerData.container;
+    const containerSize = parseInt(container.tamanho) || 20;
+    const statusContainer = container.status || 'CHEIO';
+    const posicaoAtual = container.posicao_atual;
+    
+    console.log('📋 Container encontrado:', containerSize + 'TEU, posição atual:', posicaoAtual);
+    
+    // Buscar posições
+    const posicoesResp = await fetch(`/api/posicoes/disponiveis?status=${statusContainer}&unidade=SUZANO&container_size=${containerSize}`);
+    const posicoesResult = await posicoesResp.json();
+    
+    if (!posicoesResult.success) {
+      throw new Error('Erro ao buscar posições');
+    }
+    
+    // Processar posições
+    const posicoes = posicoesResult.posicoes
+      .map(p => `${p.baia_posicao}-${p.altura}`)
+      .filter(p => p !== posicaoAtual)
+      .sort();
+    
+    console.log('📊 Posições encontradas:', posicoes.length);
+    
+    // Construir HTML simples
+    let html = '<option value="">Selecione a nova posição</option>';
+    posicoes.forEach(pos => {
+      html += `<option value="${pos}">${pos}</option>`;
+    });
+    
+    select.innerHTML = html;
+    select.disabled = false;
+    
+    alert(`✅ ${posicoes.length} posições carregadas com sucesso!`);
+    
+  } catch (error) {
+    console.error('❌ Erro:', error);
+    select.innerHTML = '<option value="">Erro - Tente novamente</option>';
+    select.disabled = false;
+    alert('Erro: ' + error.message);
+  }
+};
+
+// Função para testar se a página está responsiva
+window.testarPagina = function() {
+  console.log('✅ Página está responsiva!');
+  alert('✅ Página funcionando normalmente!');
+};
+
+console.log('🔧 Funções de emergência disponíveis:');
+console.log('  • carregarPosicoesManual() - Carregar posições manualmente');
+console.log('  • testarPagina() - Testar se a página está responsiva');
+console.log('🚨 MODO EMERGÊNCIA ATIVO - Sem execução automática');
+
+// IMPORTANTE: Não executar nada automaticamente!
+// Todas as funções devem ser chamadas manualmente via console ou botão
 
 // Configurar listeners para carregar posições quando o container mudar (debounce 500ms)
 function configurarEventosMovimentacao() {

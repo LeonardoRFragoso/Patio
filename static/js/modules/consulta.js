@@ -3,7 +3,8 @@
 // Gerencia toda a lógica relacionada à consulta e busca de containers
 // ========================================
 
-import { fetchContainers } from './api.js';
+// Usar função global em vez de import para compatibilidade
+// import { fetchContainers } from './api.js';
 
 /**
  * Estado interno do módulo de consulta
@@ -314,7 +315,7 @@ async function atualizarContainers(tipo = 'consulta') {
 window.atualizarContainers = atualizarContainers;
 window.limparConsulta = limparConsulta;
 
-export { atualizarContainers, limparConsulta };
+// export { atualizarContainers, limparConsulta }; // Comentado para compatibilidade
 
 /**
  * Mostra sugestões de containers para consulta

@@ -750,8 +750,8 @@ async function carregarPosicoesDisponiveis(statusContainer = 'CHEIO', containerS
     
     dropdown.innerHTML = '<option value="" selected disabled>Carregando posições disponíveis...</option>';
     
-    // Buscar posições da API
-    const response = await fetch(`/api/posicoes/disponiveis?status=${statusContainer}&unidade=SUZANO`);
+    // Buscar posições da API com tamanho do container
+    const response = await fetch(`/api/posicoes/disponiveis?status=${statusContainer}&unidade=SUZANO&container_size=${containerSize}`);
     
     if (!response.ok) {
       const errorText = await response.text();
@@ -777,7 +777,7 @@ async function carregarPosicoesDisponiveis(statusContainer = 'CHEIO', containerS
         return `${posicao.baia_posicao}-${posicao.altura}`;
       });
       
-      console.log(`📊 Carregando ${posicoesFormatadas.length} posições organizadas para descarga (${containerSize} TEU)`);
+      console.log(`📊 API retornou ${result.posicoes.length} posições válidas para container ${containerSize}TEU (${result.containers_no_patio || 0} containers no pátio)`);
       
       // Usar organizador de posições se disponível
       if (typeof window.organizarComboboxPosicoes === 'function') {
@@ -806,7 +806,7 @@ async function carregarPosicoesDisponiveis(statusContainer = 'CHEIO', containerS
         
         descargaState.posicaoChoices = resultado.choices;
         
-        console.log(`✅ Posições organizadas para descarga: ${resultado.stats.totalPosicoes} posições em ${Object.keys(resultado.stats.porBay).length} bays (${containerSize} TEU)`);
+        console.log(`✅ Posições organizadas para descarga: ${resultado.stats.totalPosicoes} posições em ${Object.keys(resultado.stats.porBay).length} bays (${containerSize}TEU, ${result.containers_no_patio || 0} ocupadas)`);
         
       } else {
         // Fallback para método tradicional

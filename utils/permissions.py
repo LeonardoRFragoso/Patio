@@ -143,7 +143,12 @@ def login_required(f):
     """Decorator para restringir acesso a usuários logados, independente do nível."""
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if 'username' not in session or 'logged_in' not in session:
+        # Verificar se usuário está logado (mais flexível)
+        username = session.get('username')
+        user_id = session.get('user_id')
+        
+        # Se não tem username OU user_id, não está logado
+        if not username or not user_id:
             # Verificar se é uma requisição AJAX/JSON
             if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return jsonify({
@@ -153,5 +158,10 @@ def login_required(f):
             else:
                 flash('Por favor, faça login para acessar esta página.', 'warning')
                 return redirect(url_for('auth.login'))
+        
+        # Se tem username e user_id mas não tem logged_in, adicionar para compatibilidade
+        if 'logged_in' not in session:
+            session['logged_in'] = True
+            
         return f(*args, **kwargs)
     return decorated_function

@@ -556,6 +556,24 @@ def atualizar_formato_posicoes():
         }), 500
 
 # ✅ ROTA PRINCIPAL: Dados para visualização 3D (APENAS DADOS REAIS)
+def converter_baia_para_visualizacao_3d(baia_original):
+    """
+    🔴 FUNÇÃO CORRIGIDA: Não faz mais conversão para evitar desalinhamento
+    
+    A lógica física correta é:
+    - Container 20ft: ocupa 1 posição física ímpar (A01, A03, A05, etc.)
+    - Container 40ft: ocupa 2 posições físicas ímpares consecutivas (A01+A03, A03+A05, etc.)
+    - Posições pares são apenas lógicas (A02 representa container 40ft em A01+A03)
+    
+    Args:
+        baia_original (int): Baia original do banco de dados (1-20)
+        
+    Returns:
+        int: Baia sem conversão para manter alinhamento backend/frontend
+    """
+    # 🔴 CORREÇÃO: Retornar baia original sem inversão
+    return baia_original
+
 @containers_bp.route('/operacoes/containers/patio-3d', methods=['GET'])
 @login_required
 def obter_dados_patio_3d():
@@ -563,6 +581,7 @@ def obter_dados_patio_3d():
     Retorna dados dos containers REAIS para visualização 3D do pátio
     Inclui validação de empilhamento e detecção de containers flutuantes
     ✅ TRABALHA EXCLUSIVAMENTE COM DADOS REAIS DO BANCO
+    🔴 CORREÇÃO: Converte baias para corresponder à numeração física da visualização 3D
     """
     try:
         # Verificar se o usuário está autenticado
@@ -632,6 +651,9 @@ def obter_dados_patio_3d():
                     # Usar tamanho real do container ou padrão 20
                     tamanho_container = tamanho_real if tamanho_real else 20
                     
+                    # 🔴 CORREÇÃO: Converter baia para numeração física da visualização 3D
+                    baia_visual = converter_baia_para_visualizacao_3d(baia)
+                    
                     # 🔧 BUSCAR DADOS COMPLETOS DE VISTORIAS
                     cursor.execute('''
                         SELECT data_vistoria, status, lacre, condicao, observacoes_gerais, 
@@ -661,16 +683,21 @@ def obter_dados_patio_3d():
                     ''', (container_id,))
                     container_extra = cursor.fetchone()
                     
+                    # 🔴 CORREÇÃO: Criar posição formatada com baia convertida para visualização 3D
+                    posicao_visual = f"{row}{baia_visual:02d}-{altura}"
+                    
                     container_data = {
                         'id': container_id,
                         'numero': numero,
                         'status': status,
-                        'posicao': posicao_formatada,
-                        'posicao_atual': posicao_formatada,  # Para compatibilidade
-                        'baia': baia,  # Agora é numérico (01-20)
+                        'posicao': posicao_visual,  # 🔴 Posição convertida para visualização 3D
+                        'posicao_atual': posicao_visual,  # Para compatibilidade
+                        'posicao_original': posicao_formatada,  # 🔍 Manter referência da posição original do banco
+                        'baia': baia_visual,  # 🔴 Baia convertida para visualização 3D
+                        'baia_original': baia,  # 🔍 Manter referência da baia original do banco
                         'linha': row,  # Agora é o row (A-E) - mantendo nome 'linha' para compatibilidade
                         'row': row,  # Nome alternativo
-                        'bay': baia,  # Nome alternativo
+                        'bay': baia_visual,  # 🔴 Nome alternativo com baia convertida
                         'altura': altura,
                         'tamanho': tamanho_container,
                         'tamanho_teu': tamanho_container,  # Nome alternativo
@@ -715,7 +742,7 @@ def obter_dados_patio_3d():
                     
                     containers.append(container_data)
                     
-                    # Registrar posição ocupada
+                    # Registrar posição ocupada (usando baia original para controle interno)
                     chave_posicao = f"{row}{baia:02d}"
                     if chave_posicao not in posicoes_ocupadas:
                         posicoes_ocupadas[chave_posicao] = {}
@@ -723,15 +750,20 @@ def obter_dados_patio_3d():
                     
                     # 🔴 LÓGICA CORRIGIDA: Container de 40 TEU ocupa 2 baias consecutivas (N e N+1)
                     if tamanho_container == 40:
-                        # Container 40ft ocupa a posição atual + próxima baia
+                        # Container 40ft ocupa a posição atual + próxima baia (usando baias originais para lógica)
                         if baia < 20:  # Verificar se há espaço para a segunda baia
-                            pos_ocupada_adicional = f"{row}{baia+1:02d}-{altura}"
+                            # 🔴 Converter segunda baia para visualização 3D
+                            segunda_baia_original = baia + 1
+                            segunda_baia_visual = converter_baia_para_visualizacao_3d(segunda_baia_original)
+                            pos_ocupada_adicional = f"{row}{segunda_baia_visual:02d}-{altura}"
+                            
                             container_ocupado_adicional = {
                                 'id': f"{container_id}_ocupado",
                                 'numero': f"{numero}_OCUPA",
                                 'status': 'ocupado_40ft',
                                 'posicao': pos_ocupada_adicional,
-                                'baia': baia + 1,  # Segunda baia ocupada
+                                'baia': segunda_baia_visual,  # 🔴 Segunda baia convertida
+                                'baia_original': segunda_baia_original,  # 🔍 Manter referência original
                                 'linha': row,  # Mesmo row
                                 'altura': altura,
                                 'tamanho': 40,
@@ -757,10 +789,10 @@ def obter_dados_patio_3d():
         # Verificar containers flutuantes (apenas nos REAIS)
         for container in containers:
             if container['tipo_container'] == 'real' and container['altura'] > 1:
-                baia = container['baia']  # Agora é numérico
+                baia_original = container['baia_original']  # 🔴 Usar baia original para lógica interna
                 row = container['linha']  # Agora é o row (A-E)
                 altura = container['altura']
-                chave_posicao = f"{row}{baia:02d}"
+                chave_posicao = f"{row}{baia_original:02d}"
                 
                 # Verificar se há containers em todas as alturas abaixo
                 flutuante = False

@@ -1,10 +1,8 @@
-{% extends "base.html" %}
+{% extends "admin/base.html" %}
 
 {% block title %}Histórico de Containers - Admin Administrativo{% endblock %}
 
 {% block extra_css %}
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <link href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css" rel="stylesheet">
 <style>
     .filter-card {
@@ -72,26 +70,17 @@
 </style>
 {% endblock %}
 
+{% block page_title %}<i class="fas fa-history me-2"></i>Histórico de Containers{% endblock %}
+
+{% block page_actions %}
+<a href="{{ url_for('admin.admin_administrativo_dashboard') }}" class="btn btn-outline-secondary">
+    <i class="fas fa-arrow-left me-2"></i>Voltar ao Dashboard
+</a>
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid py-4">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h1 class="h3 mb-0">
-                        <i class="fas fa-history me-2"></i>Histórico de Containers
-                    </h1>
-                    <p class="text-muted mb-0">Visualização completa do histórico de containers com filtros avançados</p>
-                </div>
-                <div class="text-end">
-                    <a href="{{ url_for('admin.admin_administrativo_dashboard') }}" class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-left me-2"></i>Voltar ao Dashboard
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
+<div class="container-fluid">
+    <p class="text-muted mb-4">Visualização completa do histórico de containers com filtros avançados</p>
 
     <!-- Filtros -->
     <div class="row mb-4">
@@ -244,8 +233,9 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+{{ super() }}
 <script>
+/* VERSÃO CORRIGIDA - 31/07/2025 13:43 - SEM REPLACE() */
 class HistoricoContainers {
     constructor() {
         console.log('🚀 HistoricoContainers constructor iniciado');
@@ -519,7 +509,7 @@ class HistoricoContainers {
             <tr class="container-details" data-container-id="${container.id}">
                 <td><strong>${container.numero}</strong></td>
                 <td>${container.unidade}</td>
-                <td><span class="status-badge status-${container.status.replace(' ', '-')}">${container.status}</span></td>
+                <td><span class="status-badge status-${(container.status || '').replace(' ', '-')}">${container.status}</span></td>
                 <td>${container.posicao_atual || '-'}</td>
                 <td>${container.tamanho || '-'}</td>
                 <td>${container.armador || '-'}</td>
@@ -627,113 +617,115 @@ class HistoricoContainers {
     
     async verDetalhes(containerId) {
         try {
+            console.log('🔍 Buscando detalhes do container ID:', containerId);
             const response = await fetch(`/admin/api/container-detalhes/${containerId}`);
+            console.log('📡 Response status:', response.status);
+            
             const data = await response.json();
+            console.log('📦 Data recebida da API:', data);
             
             if (data.success) {
+                console.log('✅ Dados válidos, chamando renderDetalhesModal...');
                 this.renderDetalhesModal(data);
                 const modal = new bootstrap.Modal(document.getElementById('containerModal'));
                 modal.show();
             } else {
+                console.error('❌ API retornou erro:', data.error);
                 this.showError('Erro ao carregar detalhes: ' + data.error);
             }
         } catch (error) {
-            console.error('Erro ao carregar detalhes:', error);
+            console.error('❌ Erro ao carregar detalhes:', error);
             this.showError('Erro de conexão ao carregar detalhes');
         }
     }
     
     renderDetalhesModal(data) {
-        const { container, operacoes, vistorias, correcoes } = data;
+        console.log('🔍 NOVA renderDetalhesModal chamada com:', data);
         
-        const modalBody = document.getElementById('containerModalBody');
-        modalBody.innerHTML = `
-            <div class="row">
-                <!-- Dados do Container -->
-                <div class="col-md-6 mb-4">
-                    <h6><i class="fas fa-box me-2"></i>Dados do Container</h6>
-                    <table class="table table-sm">
-                        <tr><td><strong>Número:</strong></td><td>${container.numero}</td></tr>
-                        <tr><td><strong>Status:</strong></td><td><span class="status-badge status-${container.status.replace(' ', '-')}">${container.status}</span></td></tr>
-                        <tr><td><strong>Unidade:</strong></td><td>${container.unidade}</td></tr>
-                        <tr><td><strong>Posição Atual:</strong></td><td>${container.posicao_atual || '-'}</td></tr>
-                        <tr><td><strong>Tamanho:</strong></td><td>${container.tamanho || '-'}</td></tr>
-                        <tr><td><strong>Tipo:</strong></td><td>${container.tipo_container || '-'}</td></tr>
-                        <tr><td><strong>Armador:</strong></td><td>${container.armador || '-'}</td></tr>
-                        <tr><td><strong>Booking:</strong></td><td>${container.booking || '-'}</td></tr>
-                        <tr><td><strong>Capacidade:</strong></td><td>${container.capacidade || '-'}</td></tr>
-                        <tr><td><strong>Tara:</strong></td><td>${container.tara || '-'}</td></tr>
-                    </table>
-                </div>
-                
-                <!-- Histórico de Operações -->
-                <div class="col-md-6 mb-4">
-                    <h6><i class="fas fa-history me-2"></i>Histórico de Operações</h6>
-                    <div style="max-height: 300px; overflow-y: auto;">
-                        ${operacoes.length > 0 ? operacoes.map(op => `
-                            <div class="card mb-2">
-                                <div class="card-body p-2">
-                                    <div class="d-flex justify-content-between">
-                                        <strong>${op.tipo}</strong>
-                                        <small class="text-muted">${this.formatDate(op.data_operacao)}</small>
-                                    </div>
-                                    ${op.modo ? `<small>Modo: ${op.modo}</small><br>` : ''}
-                                    ${op.posicao ? `<small>Posição: ${op.posicao}</small><br>` : ''}
-                                    ${op.usuario ? `<small>Usuário: ${op.usuario}</small><br>` : ''}
-                                    ${op.observacoes ? `<small>Obs: ${op.observacoes}</small>` : ''}
-                                </div>
-                            </div>
-                        `).join('') : '<p class="text-muted">Nenhuma operação registrada</p>'}
-                    </div>
-                </div>
-            </div>
+        try {
+            // Validação básica
+            if (!data || !data.container) {
+                console.error('❌ Dados inválidos:', data);
+                this.showError('Dados do container não encontrados');
+                return;
+            }
+
+            const container = data.container || {};
+            const operacoes = data.operacoes || [];
+            const vistorias = data.vistorias || [];
+            const correcoes = data.correcoes || [];
             
-            <div class="row">
-                <!-- Vistorias -->
-                <div class="col-md-6 mb-4">
-                    <h6><i class="fas fa-clipboard-check me-2"></i>Vistorias</h6>
-                    <div style="max-height: 200px; overflow-y: auto;">
-                        ${vistorias.length > 0 ? vistorias.map(v => `
-                            <div class="card mb-2">
-                                <div class="card-body p-2">
-                                    <div class="d-flex justify-content-between">
-                                        <strong>Vistoria</strong>
-                                        <small class="text-muted">${this.formatDate(v.data_vistoria)}</small>
-                                    </div>
-                                    ${v.condicao ? `<small>Condição: ${v.condicao}</small><br>` : ''}
-                                    ${v.lacre ? `<small>Lacre: ${v.lacre}</small><br>` : ''}
-                                    ${v.observacoes ? `<small>Obs: ${v.observacoes}</small>` : ''}
-                                </div>
-                            </div>
-                        `).join('') : '<p class="text-muted">Nenhuma vistoria registrada</p>'}
+            console.log('📦 Container processado:', container);
+            
+            // Função helper para valores seguros
+            const safe = (value) => value || '-';
+            const safeClass = (status) => {
+                if (!status) return '';
+                return String(status).toLowerCase().replace(/\s+/g, '-');
+            };
+            
+            // Criar timeline simples
+            let timelineHtml = '<p class="text-muted">Carregando histórico...</p>';
+            
+            const modalBody = document.getElementById('containerModalBody');
+            if (!modalBody) {
+                console.error('❌ Modal body não encontrado');
+                return;
+            }
+
+            // HTML simples e seguro
+            modalBody.innerHTML = `
+                <div class="row">
+                    <div class="col-12 mb-4">
+                        <h6><i class="fas fa-box me-2"></i>Dados do Container</h6>
+                        <table class="table table-sm">
+                            <tr><td><strong>Número:</strong></td><td>${safe(container.numero)}</td></tr>
+                            <tr><td><strong>Status:</strong></td><td><span class="badge bg-primary">${safe(container.status)}</span></td></tr>
+                            <tr><td><strong>Unidade:</strong></td><td>${safe(container.unidade)}</td></tr>
+                            <tr><td><strong>Posição Atual:</strong></td><td>${safe(container.posicao_atual)}</td></tr>
+                            <tr><td><strong>Tamanho:</strong></td><td>${safe(container.tamanho)}</td></tr>
+                            <tr><td><strong>Tipo:</strong></td><td>${safe(container.tipo_container)}</td></tr>
+                            <tr><td><strong>Armador:</strong></td><td>${safe(container.armador)}</td></tr>
+                            <tr><td><strong>Booking:</strong></td><td>${safe(container.booking)}</td></tr>
+                        </table>
+                    </div>
+                    <div class="col-12 mb-4">
+                        <h6><i class="fas fa-history me-2"></i>Resumo de Atividades</h6>
+                        <p><strong>Operações:</strong> ${operacoes.length} registrada(s)</p>
+                        <p><strong>Vistorias:</strong> ${vistorias.length} registrada(s)</p>
+                        <p><strong>Correções:</strong> ${correcoes.length} registrada(s)</p>
                     </div>
                 </div>
-                
-                <!-- Correções -->
-                <div class="col-md-6 mb-4">
-                    <h6><i class="fas fa-edit me-2"></i>Correções de Descarga</h6>
-                    <div style="max-height: 200px; overflow-y: auto;">
-                        ${correcoes.length > 0 ? correcoes.map(c => `
-                            <div class="card mb-2">
-                                <div class="card-body p-2">
-                                    <div class="d-flex justify-content-between">
-                                        <strong>Correção</strong>
-                                        <small class="text-muted">${this.formatDate(c.data_correcao)}</small>
-                                    </div>
-                                    ${c.posicao_anterior ? `<small>De: ${c.posicao_anterior}</small><br>` : ''}
-                                    ${c.nova_posicao ? `<small>Para: ${c.nova_posicao}</small><br>` : ''}
-                                    ${c.observacoes ? `<small>Obs: ${c.observacoes}</small>` : ''}
-                                </div>
-                            </div>
-                        `).join('') : '<p class="text-muted">Nenhuma correção registrada</p>'}
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        document.getElementById('containerModalLabel').innerHTML = `
-            <i class="fas fa-box me-2"></i>Detalhes do Container ${container.numero}
-        `;
+            `;
+            
+            // Título do modal
+            const modalLabel = document.getElementById('containerModalLabel');
+            if (modalLabel) {
+                modalLabel.innerHTML = `<i class="fas fa-box me-2"></i>Detalhes - ${safe(container.numero)}`;
+            }
+            
+            console.log('✅ Modal renderizado com sucesso (versão simples)!');
+            
+        } catch (error) {
+            console.error('❌ ERRO CRÍTICO em renderDetalhesModal:', error);
+            console.error('❌ Stack:', error.stack);
+            this.showError('Erro crítico ao renderizar modal: ' + error.message);
+        }
+    }
+    
+    safeReplace(str) {
+        try {
+            if (!str || str === null || str === undefined) {
+                console.log('🔍 safeReplace: valor vazio ou undefined:', str);
+                return '';
+            }
+            const result = String(str).replace(/\s+/g, '-').toLowerCase();
+            console.log('🔍 safeReplace: convertido', str, '->', result);
+            return result;
+        } catch (error) {
+            console.error('❌ Erro em safeReplace:', error, 'valor:', str);
+            return '';
+        }
     }
     
     formatDate(dateString) {

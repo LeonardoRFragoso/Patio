@@ -330,22 +330,33 @@ async function carregarPlacas(forceRefresh = false) {
       return carregamentoState.placasCache;
     }
     
-    console.log('🔄 Carregando placas da planilha...');
+    console.log('🔄 Carregando placas do banco de dados...');
     
-    const response = await fetch(`/api/sharepoint/placas/lista${forceRefresh ? '?refresh=true' : ''}`);
+    // Nova API do banco de dados (rota de teste temporária)
+    // Obter token CSRF
+    const metaTag = document.querySelector('meta[name="csrf-token"]');
+    const csrfToken = metaTag ? metaTag.getAttribute('content') : null;
+    
+    const response = await fetch('/api/placas/simples', {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrfToken
+      }
+    });
     const result = await response.json();
     
     if (result.success) {
-      carregamentoState.placasCache = result.data;
+      carregamentoState.placasCache = result.placas;
       
       // Atualizar cache global
       if (window.appState) {
-        window.appState.placasCache = result.data;
+        window.appState.placasCache = result.placas;
         window.appState.placasCacheTime = agora;
       }
       
-      console.log(`✅ ${result.data.length} placas carregadas`);
-      return result.data;
+      console.log(`✅ ${result.placas.length} placas carregadas do banco de dados`);
+      return result.placas;
     } else {
       console.error('❌ Erro ao carregar placas:', result.error);
       return [];
