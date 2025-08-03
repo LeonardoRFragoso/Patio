@@ -59,12 +59,7 @@ def track_login_attempt(username):
     - permitido: booleano indicando se a tentativa é permitida
     - tempo_restante_bloqueio: tempo restante em minutos se bloqueado, ou 0 se não bloqueado
     """
-    try:
-        ip = request.remote_addr
-    except RuntimeError:
-        # Fora do contexto de requisição Flask - usar IP padrão
-        ip = '127.0.0.1'
-    
+    ip = request.remote_addr
     identifier = f"{username}_{ip}" if username else ip
     
     now = datetime.now()
@@ -123,12 +118,7 @@ def is_login_blocked(username):
     - bloqueado: booleano indicando se está bloqueado
     - tempo_restante: tempo restante em minutos se bloqueado, ou 0 se não estiver
     """
-    try:
-        ip = request.remote_addr
-    except RuntimeError:
-        # Fora do contexto de requisição Flask - usar IP padrão
-        ip = '127.0.0.1'
-    
+    ip = request.remote_addr
     identifier = f"{username}_{ip}" if username else ip
     
     if identifier not in login_attempts:
@@ -149,12 +139,7 @@ def reset_login_attempts(username):
     """
     Reseta as tentativas de login após um login bem-sucedido
     """
-    try:
-        ip = request.remote_addr
-    except RuntimeError:
-        # Fora do contexto de requisição Flask - usar IP padrão
-        ip = '127.0.0.1'
-    
+    ip = request.remote_addr
     identifier = f"{username}_{ip}" if username else ip
     
     if identifier in login_attempts:

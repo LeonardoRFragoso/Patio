@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitação Enviada - Sistema Pátio</title>
+    
+    <!-- Favicon do projeto -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets/favicon.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ url_for('static', filename='assets/favicon.png') }}">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- Força reload do CSS -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <!-- Incluir CSS principal do projeto -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <style>
+        /* DESIGN MODERNO ALINHADO COM O PROJETO */
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        /* Container principal */
+        .confirmacao-container {
+            min-height: 100vh;
+            background: url('{{ url_for("static", filename="assets/fundo.png") }}') center/cover no-repeat,
+                        var(--gradient-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: slideInUp 0.8s ease-out;
+            position: relative;
+        }
+        
+        .confirmacao-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, 
+                rgba(102, 126, 234, 0.85) 0%, 
+                rgba(118, 75, 162, 0.75) 50%,
+                rgba(102, 126, 234, 0.85) 100%);
+            pointer-events: none;
+        }
+        
+        .confirmacao-card {
+            max-width: 600px;
+            width: 100%;
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3), 
+                        0 8px 32px rgba(0,0,0,0.2);
+            backdrop-filter: blur(15px);
+            background: rgba(255, 255, 255, 0.98);
+            overflow: hidden;
+            animation: slideInUp 0.6s ease-out 0.2s both;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, 
+                rgba(40, 167, 69, 0.95) 0%, 
+                rgba(25, 135, 84, 0.95) 100%);
+            backdrop-filter: blur(10px);
+            color: white;
+            text-align: center;
+            padding: 3rem 2rem;
+            border: none;
+            position: relative;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        
+        .card-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #28a745, #20c997, #17a2b8, #007bff, #6f42c1);
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .logo-container img {
+            height: 60px;
+            width: auto;
+            margin-right: 15px;
+            filter: brightness(0) invert(1);
+        }
+        
+        .success-icon {
+            font-size: 4rem;
+            color: white;
+            margin-bottom: 1rem;
+            animation: successPulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes successPulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+        }
+        
+        .confirmation-title {
+            color: white;
+            font-size: 2.5rem;
+            margin: 0;
+            font-weight: 700;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        .confirmation-subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+            margin-top: 0.5rem;
+            font-weight: 300;
+        }
+        
+        .card-body {
+            padding: 3rem 2.5rem;
+            text-align: center;
+        }
+        
+        .confirmation-message {
+            font-size: 1.2rem;
+            color: #495057;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        
+        .next-steps {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            padding: 2rem;
+            margin: 2rem 0;
+            border-left: 5px solid #007bff;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        
+        .next-steps h5 {
+            color: #007bff;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            font-size: 1.3rem;
+        }
+        
+        .next-steps ul {
+            text-align: left;
+            margin: 0;
+            padding-left: 0;
+            list-style: none;
+        }
+        
+        .next-steps li {
+            margin-bottom: 1rem;
+            color: #495057;
+            padding-left: 2rem;
+            position: relative;
+            font-size: 1rem;
+        }
+        
+        .next-steps li::before {
+            content: '\f00c';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            left: 0;
+            top: 0;
+            color: #28a745;
+            font-size: 0.9rem;
+        }
+        
+        .contact-info {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border: 1px solid #ffeaa7;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            box-shadow: 0 2px 10px rgba(255, 193, 7, 0.1);
+        }
+        
+        .contact-info h6 {
+            color: #856404;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        
+        .contact-info p {
+            color: #856404;
+            margin: 0;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        
+        .action-buttons {
+            margin-top: 2.5rem;
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+            text-decoration: none;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 123, 255, 0.4);
+            color: white;
+        }
+        
+        .btn-outline-secondary {
+            border: 2px solid #6c757d;
+            color: #6c757d;
+            background: transparent;
+            padding: 13px 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-outline-secondary:hover {
+            background: #6c757d;
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(108, 117, 125, 0.3);
+        }
+        
+        /* Animações */
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .confirmacao-container {
+                padding: 15px;
+            }
+            
+            .card-header {
+                padding: 2rem 1.5rem;
+            }
+            
+            .card-body {
+                padding: 2rem 1.5rem;
+            }
+            
+            .confirmation-title {
+                font-size: 2rem;
+            }
+            
+            .confirmation-message {
+                font-size: 1.1rem;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn-primary, .btn-outline-secondary {
+                width: 100%;
+                max-width: 280px;
+                justify-content: center;
+            }
+            
+            .next-steps {
+                padding: 1.5rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .confirmation-title {
+                font-size: 1.8rem;
+            }
+            
+            .success-icon {
+                font-size: 3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="confirmacao-container">
+        <div class="confirmacao-card">
+            <!-- Header com gradiente -->
+            <div class="card-header">
+                <div class="logo-container">
+                    <img src="{{ url_for('static', filename='assets/itracker_logo.png') }}" alt="iTracker Logo">
+                </div>
+                
+                <!-- Ícone de sucesso -->
+                <div class="success-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                
+                <!-- Título -->
+                <h1 class="confirmation-title">Solicitação Enviada!</h1>
+                <p class="confirmation-subtitle">Sua solicitação foi recebida com sucesso</p>
+            </div>
+            
+            <!-- Corpo do card -->
+            <div class="card-body">
+                <!-- Mensagem principal -->
+                <p class="confirmation-message">
+                    Sua solicitação de cadastro foi enviada com sucesso e está sendo analisada por nossa equipe administrativa. 
+                    Você receberá uma notificação por email assim que houver uma resposta.
+                </p>
+                
+                <!-- Próximos passos -->
+                <div class="next-steps">
+                    <h5><i class="fas fa-list-check me-2"></i>Próximos Passos</h5>
+                    <ul>
+                        <li><strong>Análise:</strong> Um administrador irá revisar sua solicitação</li>
+                        <li><strong>Verificação:</strong> Seus dados serão validados conforme políticas internas</li>
+                        <li><strong>Notificação:</strong> Você receberá um email com o resultado da análise</li>
+                        <li><strong>Acesso:</strong> Se aprovado, receberá suas credenciais de acesso</li>
+                    </ul>
+                </div>
+                
+                <!-- Informações de contato -->
+                <div class="contact-info">
+                    <h6><i class="fas fa-info-circle me-2"></i>Precisa de Ajuda?</h6>
+                    <p>
+                        Se tiver dúvidas sobre sua solicitação, entre em contato com o administrador do sistema 
+                        ou aguarde o retorno por email. Mantenha seus dados de contato atualizados.
+                    </p>
+                </div>
+                
+                <!-- Botões de ação -->
+                <div class="action-buttons">
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-primary">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Ir para Login
+                    </a>
+                    <a href="{{ url_for('auth.registro') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-plus"></i>
+                        Nova Solicitação
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Script para animações e funcionalidades -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animação de entrada suave
+        const card = document.querySelector('.confirmacao-card');
+        if (card) {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(30px)';
+            
+            setTimeout(function() {
+                card.style.transition = 'all 0.8s ease-out';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 200);
+        }
+        
+        // Animação dos ícones de check nos próximos passos
+        const checkIcons = document.querySelectorAll('.next-steps li');
+        checkIcons.forEach((item, index) => {
+            setTimeout(() => {
+                item.style.opacity = '0';
+                item.style.transform = 'translateX(-20px)';
+                item.style.transition = 'all 0.5s ease-out';
+                
+                setTimeout(() => {
+                    item.style.opacity = '1';
+                    item.style.transform = 'translateX(0)';
+                }, 100);
+            }, 800 + (index * 200));
+        });
+        
+        // Efeito hover nos botões
+        const buttons = document.querySelectorAll('.btn');
+        buttons.forEach(button => {
+            button.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-3px) scale(1.02)';
+            });
+            
+            button.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+        
+        // Opcional: Redirecionamento automático após 60 segundos
+        // setTimeout(function() {
+        //     window.location.href = "{{ url_for('auth.login') }}";
+        // }, 60000);
+        
+        console.log('✅ Página de confirmação carregada com sucesso');
+    });
+    </script>
+</body>
+</html>

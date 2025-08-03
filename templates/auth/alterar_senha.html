@@ -12,6 +12,7 @@
         </div>
         <div class="card-body">
             <form method="POST" action="{{ url_for('auth.alterar_senha') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <div class="mb-3">
                     <label for="senha_atual" class="form-label">Senha Atual:</label>
                     <input type="password" class="form-control" id="senha_atual" name="senha_atual" required>

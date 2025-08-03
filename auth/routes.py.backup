@@ -355,57 +355,54 @@ def registro():
         username = request.form.get('username', '').strip()
         email = request.form.get('email', '').strip()
         nome = request.form.get('nome', '').strip()
-        setor = request.form.get('setor', '').strip()  # Opcional
+        setor = request.form.get('setor', '').strip()
         unidade = request.form.get('unidade', UNIDADE_PADRAO)
         justificativa = request.form.get('justificativa', '').strip()
-        nivel_solicitado = request.form.get('nivel_solicitado', '').strip()  # Novo campo
         
-        # Justificativa é opcional - sem validação obrigatória
-        
-        # Validação de campos obrigatórios (justificativa é opcional)
+        # Validação de campos obrigatórios
         campos_validos, campos_vazios = validar_campos_obrigatorios(
-            [username, email, nome, unidade],
-            ['nome de usuário', 'email', 'nome completo', 'unidade']
+            [username, email, nome],
+            ['nome de usuário', 'email', 'nome completo']
         )
         
         if not campos_validos:
-            flash(f'Por favor, preencha todos os campos obrigatórios: {", ".join(campos_vazios)}', 'danger')
-            return render_template('auth/registro-moderno.html', unidades=UNIDADES_DISPONIVEIS)
+            flash('Por favor, preencha todos os campos obrigatórios', 'danger')
+            return render_template('auth/registro.html', unidades=UNIDADES_DISPONIVEIS)
         
         # Verificar se usuário ou email já existem
         existe, mensagem = verificar_usuario_existe(username, email)
         if existe:
             flash(mensagem, 'danger')
-            return render_template('auth/registro-moderno.html', unidades=UNIDADES_DISPONIVEIS)
+            return render_template('auth/registro.html', unidades=UNIDADES_DISPONIVEIS)
         
-        # Processar registro com novo campo
-        sucesso = processar_solicitacao_registro(nome, username, email, setor, unidade, justificativa, nivel_solicitado)
+        # Processar registro
+        sucesso = processar_solicitacao_registro(nome, username, email, setor, unidade, justificativa)
         
         if sucesso:
             # Redirecionar para página de confirmação dedicada
             return redirect(url_for('auth.registro_confirmacao'))
         else:
             flash("Erro ao processar solicitação. Tente novamente.", "danger")
-            return render_template('auth/registro-moderno.html', unidades=UNIDADES_DISPONIVEIS)
+            return render_template('auth/registro.html', unidades=UNIDADES_DISPONIVEIS)
     
     # Método GET
-    return render_template('auth/registro-moderno.html', unidades=UNIDADES_DISPONIVEIS)
+    return render_template('auth/registro.html', unidades=UNIDADES_DISPONIVEIS)
 
 @auth_bp.route('/registro/confirmacao')
 def registro_confirmacao():
     """Página de confirmação após envio de solicitação de registro"""
     return render_template('auth/registro_confirmacao.html')
 
-def processar_solicitacao_registro(nome, username, email, setor, unidade, justificativa, nivel_solicitado=None):
+def processar_solicitacao_registro(nome, username, email, setor, unidade, justificativa):
     """Processa solicitação de registro de novo usuário"""
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
                 INSERT INTO solicitacoes_registro 
-                (nome, username, email, setor, unidade, justificativa, nivel_solicitado, data_solicitacao)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """, (nome, username, email, setor, unidade, justificativa, nivel_solicitado,
+                (nome, username, email, setor, unidade, justificativa, data_solicitacao)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (nome, username, email, setor, unidade, justificativa, 
                   datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
             conn.commit()
             return True

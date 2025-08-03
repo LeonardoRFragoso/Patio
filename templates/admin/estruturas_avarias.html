@@ -8,43 +8,8 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid admin-page">
-    <div class="row">
-        <!-- Sidebar moderna -->
-        <div class="col-md-3 col-lg-2 d-md-block sidebar">
-            <div class="position-sticky">
-                <ul class="nav flex-column mt-3">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('admin.admin_dashboard') }}">
-                            <i class="fas fa-tachometer-alt"></i> Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('admin.listar_usuarios') }}">
-                            <i class="fas fa-users"></i> Usuários
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('admin.listar_solicitacoes') }}">
-                            <i class="fas fa-user-plus"></i> Solicitações
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="{{ url_for('admin.gerenciar_estruturas_avarias') }}">
-                            <i class="fas fa-tools"></i> Estruturas & Avarias
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('auth.dashboard') }}">
-                            <i class="fas fa-user"></i> Meu Perfil
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-
-        <!-- Conteúdo principal -->
-        <main class="col-md-9 ms-sm-auto col-lg-10 main-content">
+<!-- Conteúdo principal do gerenciamento de estruturas e avarias -->
+<div class="main-content">
             <!-- Header da página -->
             <div class="page-header">
                 <div class="d-flex justify-content-between align-items-center">
