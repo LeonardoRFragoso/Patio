@@ -5,7 +5,7 @@ import sqlite3
 import re
 from db import get_db, log_activity
 from auth.routes import login_required
-from utils.permissions import operador_required, inventariante_required, admin_required, admin_completo_only_required
+from utils.permissions import operador_required, admin_required, admin_completo_only_required
 from utils.csrf import csrf
 
 # Configuração de logging para este módulo

@@ -314,6 +314,333 @@
         width: 3rem;
         height: 3rem;
       }
+
+      /* Estilos Modernos para o Modal de Detalhes */
+      #containerDetailsModal {
+        --modal-primary: #2563eb;
+        --modal-secondary: #64748b;
+        --modal-success: #10b981;
+        --modal-warning: #f59e0b;
+        --modal-danger: #ef4444;
+        --modal-bg: #ffffff;
+        --modal-border: #e2e8f0;
+        --modal-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      }
+      
+      #containerDetailsModal .modal-dialog {
+        box-shadow: var(--modal-shadow);
+        border: none;
+      }
+      
+      #containerDetailsModal .modal-content {
+        border: none;
+        border-radius: 16px;
+        overflow: hidden;
+        background: var(--modal-bg);
+      }
+      
+      #containerDetailsModal .modal-header {
+        background: linear-gradient(135deg, var(--modal-primary) 0%, #1d4ed8 100%);
+        color: white;
+        border: none;
+        padding: 1.5rem 2rem;
+        position: relative;
+      }
+      
+      #containerDetailsModal .modal-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="%23ffffff" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="%23ffffff" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="%23ffffff" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>') repeat;
+        opacity: 0.1;
+      }
+      
+      #containerDetailsModal .modal-title {
+        font-weight: 700;
+        font-size: 1.5rem;
+        margin: 0;
+        position: relative;
+        z-index: 1;
+      }
+      
+      #containerDetailsModal .btn-close {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        position: relative;
+        z-index: 1;
+      }
+      
+      #containerDetailsModal .btn-close:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: rotate(90deg);
+      }
+      
+      #containerDetailsModal .modal-body {
+        padding: 0;
+        background: #fafbfc;
+      }
+      
+      /* Navegação por Abas Moderna */
+      #containerDetailsModal .nav-tabs {
+        background: white;
+        border: none;
+        margin: 0;
+        padding: 0 2rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        position: relative;
+        z-index: 2;
+      }
+      
+      #containerDetailsModal .nav-tabs .nav-link {
+        border: none;
+        border-radius: 0;
+        color: var(--modal-secondary);
+        font-weight: 600;
+        font-size: 0.9rem;
+        padding: 1.25rem 1.5rem;
+        margin-right: 0.5rem;
+        position: relative;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: transparent;
+      }
+      
+      #containerDetailsModal .nav-tabs .nav-link::before {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--modal-primary);
+        transform: scaleX(0);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      
+      #containerDetailsModal .nav-tabs .nav-link:hover {
+        color: var(--modal-primary);
+        background: rgba(37, 99, 235, 0.05);
+      }
+      
+      #containerDetailsModal .nav-tabs .nav-link:hover::before {
+        transform: scaleX(0.5);
+      }
+      
+      #containerDetailsModal .nav-tabs .nav-link.active {
+        color: var(--modal-primary);
+        background: rgba(37, 99, 235, 0.08);
+        font-weight: 700;
+      }
+      
+      #containerDetailsModal .nav-tabs .nav-link.active::before {
+        transform: scaleX(1);
+      }
+      
+      /* Conteúdo das Abas */
+      #containerDetailsModal .tab-content {
+        padding: 2rem;
+        background: white;
+        margin: 0 1rem 1rem 1rem;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+      
+      /* Grupos de Informação Modernos */
+      .info-group {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid var(--modal-border);
+        transition: all 0.3s ease;
+      }
+      
+      .info-group:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        transform: translateY(-1px);
+      }
+      
+      .info-group h6 {
+        color: var(--modal-primary);
+        font-weight: 700;
+        font-size: 1rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      
+      .info-group h6 i {
+        width: 20px;
+        text-align: center;
+      }
+      
+      .info-group p {
+        margin-bottom: 0.75rem;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.95rem;
+      }
+      
+      .info-group p:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+      }
+      
+      .info-group p strong {
+        color: #1e293b;
+        font-weight: 600;
+        min-width: 140px;
+      }
+      
+      .info-group p span {
+        color: var(--modal-secondary);
+        text-align: right;
+      }
+      
+      /* Badges Modernos */
+      .badge {
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 0.4em 0.8em;
+        border-radius: 20px;
+        letter-spacing: 0.025em;
+        border: 1px solid transparent;
+      }
+      
+      .badge.bg-success {
+        background: linear-gradient(135deg, var(--modal-success) 0%, #059669 100%) !important;
+        border-color: #10b981;
+      }
+      
+      .badge.bg-primary {
+        background: linear-gradient(135deg, var(--modal-primary) 0%, #1d4ed8 100%) !important;
+        border-color: #2563eb;
+      }
+      
+      .badge.bg-warning {
+        background: linear-gradient(135deg, var(--modal-warning) 0%, #d97706 100%) !important;
+        border-color: #f59e0b;
+        color: white !important;
+      }
+      
+      .badge.bg-danger {
+        background: linear-gradient(135deg, var(--modal-danger) 0%, #dc2626 100%) !important;
+        border-color: #ef4444;
+      }
+      
+      .badge.bg-secondary {
+        background: linear-gradient(135deg, var(--modal-secondary) 0%, #475569 100%) !important;
+        border-color: #64748b;
+      }
+      
+      /* Timeline Moderna */
+      .timeline-container {
+        position: relative;
+        padding-left: 2rem;
+      }
+      
+      .timeline-container::before {
+        content: '';
+        position: absolute;
+        left: 15px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: linear-gradient(to bottom, var(--modal-primary), #e2e8f0);
+      }
+      
+      .timeline-item {
+        position: relative;
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        margin-left: 1rem;
+        border: 1px solid var(--modal-border);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      
+      .timeline-item:hover {
+        transform: translateX(8px);
+        box-shadow: 0 8px 25px rgba(37, 99, 235, 0.15);
+        border-color: var(--modal-primary);
+      }
+      
+      .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -27px;
+        top: 24px;
+        width: 14px;
+        height: 14px;
+        background: var(--modal-primary);
+        border-radius: 50%;
+        border: 3px solid white;
+        box-shadow: 0 0 0 3px var(--modal-primary);
+        transition: all 0.3s ease;
+      }
+      
+      .timeline-item:hover::before {
+        transform: scale(1.2);
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.3);
+      }
+      
+      /* Responsividade Melhorada */
+      @media (max-width: 768px) {
+        #containerDetailsModal .modal-dialog {
+          margin: 0.5rem;
+        }
+        
+        #containerDetailsModal .nav-tabs {
+          padding: 0 1rem;
+        }
+        
+        #containerDetailsModal .nav-tabs .nav-link {
+          padding: 1rem 0.75rem;
+          font-size: 0.85rem;
+        }
+        
+        #containerDetailsModal .tab-content {
+          padding: 1.5rem;
+          margin: 0 0.5rem 0.5rem 0.5rem;
+        }
+        
+        .info-group {
+          padding: 1rem;
+        }
+        
+        .timeline-container {
+          padding-left: 1.5rem;
+        }
+        
+        .timeline-item {
+          margin-left: 0.5rem;
+          padding: 1rem;
+        }
+      }
+      
+      /* Card Improvements for Avarias */
+      .card.border-danger {
+        box-shadow: 0 2px 8px rgba(220, 53, 69, 0.2);
+      }
+      
+      .card.border-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        transition: all 0.3s ease;
+      }
     </style>
   </head>
   <body>
@@ -1006,30 +1333,45 @@
 
     <!-- Modal para Detalhes do Container -->
     <div class="modal fade" id="containerDetailsModal" tabindex="-1">
-      <div class="modal-dialog modal-lg">
+      <div class="modal-dialog modal-xl">
         <div class="modal-content">
-          <div class="modal-header">
+          <div class="modal-header bg-primary text-white">
             <h5 class="modal-title">
               <i class="fas fa-cube me-2"></i>
-              Detalhes do Container <span id="modal-container-number"></span>
+              Detalhes Completos do Container <span id="modal-container-number" class="badge bg-light text-dark ms-2"></span>
             </h5>
             <button
               type="button"
-              class="btn-close"
+              class="btn-close btn-close-white"
               data-bs-dismiss="modal"
+              aria-label="Fechar"
             ></button>
           </div>
-          <div class="modal-body" id="container-details-content">
-            <!-- Conteúdo será carregado via JavaScript -->
+          <div class="modal-body p-0" id="container-details-content" style="max-height: 70vh; overflow-y: auto;">
+            <!-- Conteúdo expandido será carregado via JavaScript -->
+            <div class="p-4">
+              <div class="text-center">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Carregando...</span>
+                </div>
+                <p class="mt-2 text-muted">Carregando detalhes do container...</p>
+              </div>
+            </div>
           </div>
-          <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              data-bs-dismiss="modal"
-            >
-              Fechar
-            </button>
+          <div class="modal-footer bg-light">
+            <div class="d-flex justify-content-between w-100">
+              <small class="text-muted align-self-center">
+                <i class="fas fa-info-circle me-1"></i>
+                Histórico completo desde descarga até carregamento
+              </small>
+              <button
+                type="button"
+                class="btn btn-outline-secondary"
+                data-bs-dismiss="modal"
+              >
+                <i class="fas fa-times me-1"></i> Fechar
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -1441,6 +1783,193 @@ function carregarConsultaContainers() {
         }
       }
 
+      function gerarConteudoModalCompleto(data) {
+        const container = data.container;
+        const historico = data.historico_operacoes || [];
+        const avarias = container.avarias || [];
+        
+        // Função auxiliar para obter ícone por tipo de operação
+        function getOperationIcon(tipo) {
+          const icons = {
+            'descarga': 'fas fa-download text-primary',
+            'movimentacao': 'fas fa-arrows-alt text-warning', 
+            'carregamento': 'fas fa-upload text-success',
+            'vistoria': 'fas fa-search text-info',
+            'inspecao': 'fas fa-eye text-secondary'
+          };
+          return icons[tipo] || 'fas fa-circle text-muted';
+        }
+        
+        // Função auxiliar para formatar status com badge
+        function getStatusBadge(status) {
+          const badges = {
+            'vistoriado': 'badge bg-success',
+            'no patio': 'badge bg-primary', 
+            'carregado': 'badge bg-warning text-dark',
+            'fora do patio': 'badge bg-secondary',
+            'pendente': 'badge bg-danger'
+          };
+          const badgeClass = badges[status?.toLowerCase()] || 'badge bg-secondary';
+          return `<span class="${badgeClass}">${status || 'N/A'}</span>`;
+        }
+        
+        return `
+          <!-- Navegação por Abas -->
+          <ul class="nav nav-tabs mb-3" id="containerDetailsTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="info-tab" data-bs-toggle="tab" data-bs-target="#info-content" type="button" role="tab">
+                <i class="fas fa-info-circle me-1"></i> Informações Básicas
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="vistoria-tab" data-bs-toggle="tab" data-bs-target="#vistoria-content" type="button" role="tab">
+                <i class="fas fa-search me-1"></i> Vistoria
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="historico-tab" data-bs-toggle="tab" data-bs-target="#historico-content" type="button" role="tab">
+                <i class="fas fa-history me-1"></i> Histórico Completo
+              </button>
+            </li>
+            ${avarias.length > 0 ? `
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="avarias-tab" data-bs-toggle="tab" data-bs-target="#avarias-content" type="button" role="tab">
+                <i class="fas fa-exclamation-triangle me-1"></i> Avarias (${avarias.length})
+              </button>
+            </li>
+            ` : ''}
+          </ul>
+          
+          <!-- Conteúdo das Abas -->
+          <div class="tab-content" id="containerDetailsTabContent">
+            
+            <!-- Aba: Informações Básicas -->
+            <div class="tab-pane fade show active" id="info-content" role="tabpanel">
+              <div class="row">
+                <div class="col-md-6">
+                  <h6 class="text-primary mb-3"><i class="fas fa-cube me-2"></i>Informações do Container</h6>
+                  <div class="info-group mb-3">
+                    <p><strong>Número:</strong> ${container.numero}</p>
+                    <p><strong>Status:</strong> ${getStatusBadge(container.status)}</p>
+                    <p><strong>Posição Atual:</strong> <span class="badge bg-info">${container.posicao_atual || 'Não informada'}</span></p>
+                    <p><strong>Unidade:</strong> ${container.unidade || '-'}</p>
+                    <p><strong>Tamanho:</strong> <span class="badge bg-secondary">${container.tamanho || '20'} TEU</span></p>
+                    <p><strong>Tipo:</strong> ${container.tipo_container || '-'}</p>
+                    <p><strong>ISO:</strong> ${container.iso_container || '-'}</p>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <h6 class="text-success mb-3"><i class="fas fa-cogs me-2"></i>Dados Técnicos</h6>
+                  <div class="info-group mb-3">
+                    <p><strong>Armador:</strong> ${container.armador || '-'}</p>
+                    <p><strong>Booking:</strong> ${container.booking || '-'}</p>
+                    <p><strong>Capacidade:</strong> ${container.capacidade ? container.capacidade + ' kg' : '-'}</p>
+                    <p><strong>Tara:</strong> ${container.tara ? container.tara + ' kg' : '-'}</p>
+                    <p><strong>Criado em:</strong> ${formatarData(container.data_criacao)}</p>
+                    <p><strong>Atualizado em:</strong> ${formatarData(container.ultima_atualizacao)}</p>
+                  </div>
+                </div>
+              </div>
+              ${container.observacoes ? `
+              <div class="mt-3">
+                <h6 class="text-warning"><i class="fas fa-sticky-note me-2"></i>Observações</h6>
+                <div class="alert alert-light">${container.observacoes}</div>
+              </div>
+              ` : ''}
+            </div>
+            
+            <!-- Aba: Vistoria -->
+            <div class="tab-pane fade" id="vistoria-content" role="tabpanel">
+              <div class="row">
+                <div class="col-md-6">
+                  <h6 class="text-info mb-3"><i class="fas fa-search me-2"></i>Dados da Vistoria</h6>
+                  <div class="info-group">
+                    <p><strong>Status:</strong> ${container.data_vistoria ? '<span class="badge bg-success">Realizada</span>' : '<span class="badge bg-danger">Pendente</span>'}</p>
+                    <p><strong>Data:</strong> ${formatarData(container.data_vistoria) || 'Não realizada'}</p>
+                    <p><strong>Lacre:</strong> ${container.lacre || '-'}</p>
+                    <p><strong>Condição:</strong> ${container.condicao ? `<span class="badge bg-${container.condicao.toLowerCase() === 'novo' ? 'success' : 'warning'}">${container.condicao}</span>` : '-'}</p>
+                    <p><strong>Tipo de Operação:</strong> ${container.tipo_operacao || '-'}</p>
+                    <p><strong>Vistoriador:</strong> ${container.vistoriador_nome || '-'}</p>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <h6 class="text-secondary mb-3"><i class="fas fa-truck me-2"></i>Dados de Transporte</h6>
+                  <div class="info-group">
+                    <p><strong>Placa:</strong> ${container.placa || '-'}</p>
+                    <p><strong>Vagão:</strong> ${container.vagao || '-'}</p>
+                  </div>
+                  ${container.observacoes_vistoria ? `
+                  <h6 class="text-warning mt-4"><i class="fas fa-comment me-2"></i>Observações da Vistoria</h6>
+                  <div class="alert alert-light">${container.observacoes_vistoria}</div>
+                  ` : ''}
+                </div>
+              </div>
+            </div>
+            
+            <!-- Aba: Histórico Completo -->
+            <div class="tab-pane fade" id="historico-content" role="tabpanel">
+              <h6 class="text-dark mb-3"><i class="fas fa-history me-2"></i>Timeline de Operações</h6>
+              ${historico.length > 0 ? `
+              <div class="timeline-container" style="max-height: 400px; overflow-y: auto;">
+                ${historico.map((op, index) => `
+                <div class="timeline-item mb-3 p-3 border-start border-3 border-primary bg-light rounded">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                      <h6 class="mb-1">
+                        <i class="${getOperationIcon(op.tipo)} me-2"></i>
+                        ${op.tipo?.toUpperCase() || 'OPERAÇÃO'}
+                        ${op.modo ? ` - ${op.modo.toUpperCase()}` : ''}
+                      </h6>
+                      <div class="row">
+                        <div class="col-md-6">
+                          ${op.posicao_anterior ? `<p class="mb-1 small"><strong>De:</strong> <span class="badge bg-secondary">${op.posicao_anterior}</span></p>` : ''}
+                          ${op.posicao ? `<p class="mb-1 small"><strong>Para:</strong> <span class="badge bg-primary">${op.posicao}</span></p>` : ''}
+                          ${op.placa ? `<p class="mb-1 small"><strong>Placa:</strong> ${op.placa}</p>` : ''}
+                          ${op.vagao ? `<p class="mb-1 small"><strong>Vagão:</strong> ${op.vagao}</p>` : ''}
+                        </div>
+                        <div class="col-md-6">
+                          ${op.operador || op.nome_operador ? `<p class="mb-1 small"><strong>Operador:</strong> ${op.nome_operador || op.operador}</p>` : ''}
+                          ${op.resultado_vistoria ? `<p class="mb-1 small"><strong>Resultado:</strong> <span class="badge bg-success">${op.resultado_vistoria}</span></p>` : ''}
+                        </div>
+                      </div>
+                      ${op.observacoes ? `<div class="alert alert-info py-1 px-2 mt-2 small">${op.observacoes}</div>` : ''}
+                    </div>
+                    <div class="text-end ms-3">
+                      <small class="text-muted">${formatarData(op.data_operacao)}</small>
+                    </div>
+                  </div>
+                </div>
+                `).join('')}
+              </div>
+              ` : '<div class="alert alert-info"><i class="fas fa-info-circle me-2"></i>Nenhuma operação registrada para este container.</div>'}
+            </div>
+            
+            <!-- Aba: Avarias (se houver) -->
+            ${avarias.length > 0 ? `
+            <div class="tab-pane fade" id="avarias-content" role="tabpanel">
+              <h6 class="text-danger mb-3"><i class="fas fa-exclamation-triangle me-2"></i>Avarias Identificadas</h6>
+              <div class="row">
+                ${avarias.map(avaria => `
+                <div class="col-md-6 mb-3">
+                  <div class="card border-danger">
+                    <div class="card-header bg-danger text-white py-2">
+                      <h6 class="mb-0">${avaria.estrutura_nome}</h6>
+                    </div>
+                    <div class="card-body py-2">
+                      <p class="mb-1"><strong>Avaria:</strong> ${avaria.avaria_nome}</p>
+                      ${avaria.observacoes ? `<p class="mb-0 small text-muted">${avaria.observacoes}</p>` : ''}
+                    </div>
+                  </div>
+                </div>
+                `).join('')}
+              </div>
+            </div>
+            ` : ''}
+            
+          </div>
+        `;
+      }
+      
       function verDetalhesContainer(numero) {
         fetch(`/vistoriador/detalhes-container/${numero}`)
           .then((response) => response.json())
@@ -1448,57 +1977,36 @@ function carregarConsultaContainers() {
             if (data.success) {
               document.getElementById("modal-container-number").textContent =
                 numero;
-              document.getElementById("container-details-content").innerHTML = `
-                <div class="row">
-                  <div class="col-md-6">
-                    <h6>Informações Básicas</h6>
-                    <p><strong>Status:</strong> ${data.container.status}</p>
-                    <p><strong>Posição:</strong> ${
-                      data.container.posicao_atual || "-"
-                    }</p>
-                    <p><strong>Armador:</strong> ${
-                      data.container.armador || "-"
-                    }</p>
-                    <p><strong>Tamanho:</strong> ${
-                      data.container.tamanho || "20"
-                    } TEU</p>
-                    <p><strong>ISO:</strong> ${
-                      data.container.iso_container || "-"
-                    }</p>
-                  </div>
-                  <div class="col-md-6">
-                    <h6>Dados Técnicos</h6>
-                    <p><strong>Capacidade:</strong> ${
-                      data.container.capacidade || "-"
-                    } kg</p>
-                    <p><strong>Tara:</strong> ${
-                      data.container.tara || "-"
-                    } kg</p>
-                    <p><strong>Tipo:</strong> ${
-                      data.container.tipo_container || "-"
-                    }</p>
-                    <p><strong>Criado em:</strong> ${formatarData(
-                      data.container.data_criacao
-                    )}</p>
-                    <p><strong>Atualizado em:</strong> ${formatarData(
-                      data.container.ultima_atualizacao
-                    )}</p>
-                  </div>
-                </div>
-                ${
-                  data.container.observacoes
-                    ? `
-                  <div class="mt-3">
-                    <h6>Observações</h6>
-                    <p>${data.container.observacoes}</p>
-                  </div>
-                `
-                    : ""
-                }
-              `;
-              new bootstrap.Modal(
+              // Gerar conteúdo expandido do modal com histórico completo
+              const modalContent = gerarConteudoModalCompleto(data);
+              document.getElementById("container-details-content").innerHTML = modalContent;
+              // Limpar overlays anteriores antes de mostrar novo modal
+              const overlaysAnteriores = document.querySelectorAll('.modal-backdrop');
+              overlaysAnteriores.forEach(overlay => overlay.remove());
+              
+              const modal = new bootstrap.Modal(
                 document.getElementById("containerDetailsModal")
-              ).show();
+              );
+              
+              // Adicionar event listener para limpeza adequada ao fechar
+              const modalElement = document.getElementById("containerDetailsModal");
+              modalElement.addEventListener('hidden.bs.modal', function () {
+                // Remover todos os overlays restantes
+                const overlaysRestantes = document.querySelectorAll('.modal-backdrop');
+                overlaysRestantes.forEach(overlay => overlay.remove());
+                
+                // Restaurar interatividade da página
+                document.body.style.overflow = '';
+                document.body.style.pointerEvents = '';
+                document.body.classList.remove('modal-open');
+                
+                // Garantir que não há classes modais no body
+                document.body.removeAttribute('style');
+                
+                console.log('✅ Modal fechado e página restaurada');
+              }, { once: true });
+              
+              modal.show();
             }
           })
           .catch((error) => console.error("Erro ao carregar detalhes:", error));

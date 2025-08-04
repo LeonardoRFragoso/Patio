@@ -1,0 +1,333 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Relatórios de Inventário{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 15px;
+        color: white;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .stats-card h5 {
+        color: rgba(255,255,255,0.9);
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stats-card .display-4 {
+        font-weight: 700;
+        color: white;
+    }
+    
+    .report-table {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    
+    .report-table th {
+        background: #f8f9fa;
+        border: none;
+        font-weight: 600;
+        color: #495057;
+    }
+    
+    .report-table td {
+        border: none;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .badge-status {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+    
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+        border-radius: 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header text-center">
+    <div class="container">
+        <h1><i class="fas fa-chart-bar me-3"></i>Relatórios de Inventário</h1>
+        <p class="lead mb-0">Análise completa do pátio e movimentação de containers</p>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <!-- Estatísticas Gerais -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="stats-card text-center">
+                <h5><i class="fas fa-boxes me-2"></i>Total de Containers</h5>
+                <div class="display-4">
+                    {% set total_containers = status_counts|sum(attribute=1) if status_counts else 0 %}
+                    {{ total_containers }}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-card text-center">
+                <h5><i class="fas fa-exchange-alt me-2"></i>Operações (30 dias)</h5>
+                <div class="display-4">
+                    {% set total_operacoes = operacoes_counts|sum(attribute=1) if operacoes_counts else 0 %}
+                    {{ total_operacoes }}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stats-card text-center">
+                <h5><i class="fas fa-warehouse me-2"></i>Unidades Ativas</h5>
+                <div class="display-4">
+                    {{ ocupacao_unidades|length if ocupacao_unidades else 0 }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Containers por Status -->
+        <div class="col-lg-6 mb-4">
+            <div class="card report-table">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-clipboard-list me-2"></i>Containers por Status</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if status_counts %}
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th class="text-end">Quantidade</th>
+                                <th class="text-end">Percentual</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for status, count in status_counts %}
+                            <tr>
+                                <td>
+                                    {% if status == 'vistoriado' %}
+                                        <span class="badge badge-status bg-success">{{ status|title }}</span>
+                                    {% elif status == 'no patio' %}
+                                        <span class="badge badge-status bg-info">{{ status|title }}</span>
+                                    {% elif status == 'descarga' %}
+                                        <span class="badge badge-status bg-warning">{{ status|title }}</span>
+                                    {% else %}
+                                        <span class="badge badge-status bg-secondary">{{ status|title }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end"><strong>{{ count }}</strong></td>
+                                <td class="text-end">
+                                    {% set percentage = (count / total_containers * 100)|round(1) if total_containers > 0 else 0 %}
+                                    {{ percentage }}%
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Nenhum container encontrado</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Operações por Tipo -->
+        <div class="col-lg-6 mb-4">
+            <div class="card report-table">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>Operações (Últimos 30 dias)</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if operacoes_counts %}
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Tipo de Operação</th>
+                                <th class="text-end">Quantidade</th>
+                                <th class="text-end">Percentual</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tipo, count in operacoes_counts %}
+                            <tr>
+                                <td>
+                                    {% if tipo == 'descarga' %}
+                                        <i class="fas fa-download text-primary me-2"></i>
+                                    {% elif tipo == 'movimentacao' %}
+                                        <i class="fas fa-arrows-alt text-info me-2"></i>
+                                    {% elif tipo == 'vistoria' %}
+                                        <i class="fas fa-search text-warning me-2"></i>
+                                    {% else %}
+                                        <i class="fas fa-cog text-secondary me-2"></i>
+                                    {% endif %}
+                                    {{ tipo|title }}
+                                </td>
+                                <td class="text-end"><strong>{{ count }}</strong></td>
+                                <td class="text-end">
+                                    {% set percentage = (count / total_operacoes * 100)|round(1) if total_operacoes > 0 else 0 %}
+                                    {{ percentage }}%
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Nenhuma operação nos últimos 30 dias</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ocupação por Unidade -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card report-table">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-map-marker-alt me-2"></i>Ocupação por Unidade</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if ocupacao_unidades %}
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Unidade</th>
+                                <th class="text-end">Containers no Pátio</th>
+                                <th class="text-end">Percentual do Total</th>
+                                <th class="text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for unidade, count in ocupacao_unidades %}
+                            <tr>
+                                <td>
+                                    <i class="fas fa-building text-primary me-2"></i>
+                                    <strong>{{ unidade }}</strong>
+                                </td>
+                                <td class="text-end"><strong>{{ count }}</strong></td>
+                                <td class="text-end">
+                                    {% set total_ocupados = ocupacao_unidades|sum(attribute=1) %}
+                                    {% set percentage = (count / total_ocupados * 100)|round(1) if total_ocupados > 0 else 0 %}
+                                    {{ percentage }}%
+                                </td>
+                                <td class="text-center">
+                                    {% if count > 50 %}
+                                        <span class="badge bg-danger">Alta Ocupação</span>
+                                    {% elif count > 20 %}
+                                        <span class="badge bg-warning">Ocupação Média</span>
+                                    {% else %}
+                                        <span class="badge bg-success">Baixa Ocupação</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-warehouse fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">Nenhuma unidade com containers no pátio</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ações Rápidas -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Ações Rápidas</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <a href="{{ url_for('admin.historico_containers') }}" class="btn btn-primary btn-lg w-100 mb-2">
+                                <i class="fas fa-history me-2"></i>
+                                Histórico Completo
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ url_for('admin.corrigir_descarga') }}" class="btn btn-success btn-lg w-100 mb-2">
+                                <i class="fas fa-edit me-2"></i>
+                                Corrigir Descargas
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ url_for('admin.admin_administrativo_dashboard') }}" class="btn btn-info btn-lg w-100 mb-2">
+                                <i class="fas fa-tachometer-alt me-2"></i>
+                                Dashboard
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <button onclick="window.print()" class="btn btn-secondary btn-lg w-100 mb-2">
+                                <i class="fas fa-print me-2"></i>
+                                Imprimir Relatório
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Adicionar animação aos cards de estatísticas
+    const statsCards = document.querySelectorAll('.stats-card');
+    statsCards.forEach((card, index) => {
+        setTimeout(() => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'all 0.5s ease';
+            
+            setTimeout(() => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 100);
+        }, index * 200);
+    });
+    
+    // Adicionar tooltip aos badges de status
+    const badges = document.querySelectorAll('.badge-status');
+    badges.forEach(badge => {
+        badge.setAttribute('title', 'Status do container');
+        badge.setAttribute('data-bs-toggle', 'tooltip');
+    });
+    
+    // Inicializar tooltips se Bootstrap estiver disponível
+    if (typeof bootstrap !== 'undefined') {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    }
+});
+</script>
+{% endblock %}

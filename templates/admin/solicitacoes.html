@@ -300,12 +300,14 @@
                                                             <label for="nivel-{{ solicitacao.id }}" class="form-label">
                                                                 <i class="fas fa-user-shield me-1"></i>Nível de acesso:
                                                             </label>
-                                                            <select class="form-select" id="nivel-{{ solicitacao.id }}" name="nivel" required>
-                                                                <option value="" disabled selected>Selecione o nível</option>
-                                                                <option value="operador">Operador</option>
-                                                                <option value="vistoriador">Vistoriador</option>
-                                                                <option value="admin">Administrador</option>
-                                                            </select>
+                                                             <select class="form-select" id="nivel-{{ solicitacao.id }}" name="nivel" required>
+                                                                 <option value="" disabled selected>Selecione o nível</option>
+                                                                 <option value="operador">Operador</option>
+                                                                 <option value="vistoriador">Vistoriador</option>
+                                                                 <option value="inventariante">Inventariante</option>
+                                                                 <option value="admin_administrativo">Admin Administrativo</option>
+                                                                 <option value="admin">Administrador Completo</option>
+                                                             </select>
                                                         </div>
                                                         
                                                         <div class="mb-3">
@@ -313,14 +315,14 @@
                                                                 <i class="fas fa-key me-1"></i>Senha inicial:
                                                             </label>
                                                             <div class="input-group">
-                                                                <input type="text" class="form-control" id="senha-{{ solicitacao.id }}" name="senha_gerada" required minlength="8" placeholder="Senha será gerada automaticamente">
+                                                                <input type="text" class="form-control" id="senha-{{ solicitacao.id }}" name="senha_gerada" required placeholder="Senha inicial: 1234">
                                                                 <button class="btn password-generator generate-password" type="button" data-target="senha-{{ solicitacao.id }}">
                                                                     <i class="fas fa-key"></i> Gerar
                                                                 </button>
                                                             </div>
                                                             <div class="form-text">
                                                                 <i class="fas fa-info-circle me-1"></i>
-                                                                A senha deve ter no mínimo 8 caracteres. O usuário poderá alterá-la depois.
+                                                                Senha padrão é "1234". O usuário deverá alterá-la no primeiro acesso.
                                                             </div>
                                                         </div>
                                                         

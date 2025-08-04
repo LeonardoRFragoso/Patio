@@ -8,7 +8,7 @@ from flask_wtf.csrf import validate_csrf
 from werkzeug.exceptions import BadRequest
 from db import get_db, log_activity
 from auth.routes import login_required
-from utils.permissions import operador_required, admin_required
+from utils.permissions import operador_required, inventariante_required, admin_required
 from posicoes_suzano import patio_suzano
 
 # Configuração de logging para este módulo
@@ -1510,8 +1510,38 @@ def detalhe_container(container_id):
         flash(f'Erro ao exibir detalhes do container: {str(e)}', 'danger')
         return redirect(url_for('operacoes.listar_containers'))
 
-# Rota para obter dados para relatórios - FUNCIONALIDADE MIGRADA PARA /admin/relatorios
-# Esta funcionalidade foi consolidada no perfil admin_administrativo
+# Rota para obter dados para relatórios
+@operacoes_bp.route('/relatorio')
+@inventariante_required
+def relatorio():
+    """Exibir relatório de operações"""
+    try:
+        db = get_db()
+        cursor = db.cursor()
+        
+        # Contagem de containers por status
+        cursor.execute('''
+            SELECT status, COUNT(*) as total
+            FROM containers
+            GROUP BY status
+        ''')
+        status_counts = cursor.fetchall()
+        
+        # Contagem de operações por tipo
+        cursor.execute('''
+            SELECT tipo, COUNT(*) as total
+            FROM operacoes
+            GROUP BY tipo
+        ''')
+        tipo_counts = cursor.fetchall()
+        
+        return render_template('operacoes/relatorio.html', 
+                              status_counts=status_counts,
+                              tipo_counts=tipo_counts)
+    
+    except Exception as e:
+        flash(f'Erro ao gerar relatório: {str(e)}', 'danger')
+        return redirect(url_for('operacoes.index'))
 
 @operacoes_bp.route('/registrar_operacao', methods=['POST'])
 @suzano_required

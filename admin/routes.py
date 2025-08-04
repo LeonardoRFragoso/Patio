@@ -947,8 +947,8 @@ def aprovar_solicitacao(solicitacao_id):
         senha_gerada = request.form.get('senha_gerada')
         
         # Validar senha
-        if not senha_gerada or len(senha_gerada) < 8:
-            flash("A senha gerada precisa ter no mínimo 8 caracteres", "danger")
+        if not senha_gerada or len(senha_gerada.strip()) == 0:
+            flash("É necessário informar uma senha inicial", "danger")
             return redirect(url_for('admin.listar_solicitacoes'))
             
         # Gerar hash da senha
@@ -956,15 +956,14 @@ def aprovar_solicitacao(solicitacao_id):
         
         # Inserir o novo usuário
         cursor.execute("""
-            INSERT INTO usuarios (username, email, nome, nivel, unidade, setor, password_hash, data_criacao) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO usuarios (username, email, nome, nivel, unidade, password_hash, created_at) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         """, (
             solicitacao['username'],
             solicitacao['email'],
             solicitacao['nome'],
             nivel,
             solicitacao['unidade'],
-            solicitacao['setor'],
             password_hash,
             datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         ))
@@ -1366,4 +1365,48 @@ def remigracao_completa():
         
     except Exception as e:
         logger.error(f"❌ Erro na remigração: {e}")
+
+@admin_bp.route('/relatorios')
+@admin_administrativo_only_required
+def relatorios():
+    """Relatórios de inventário para admin administrativo"""
+    try:
+        db = get_db()
+        cursor = db.cursor()
+        
+        # Contagem de containers por status
+        cursor.execute("""
+            SELECT status, COUNT(*) as total
+            FROM containers
+            GROUP BY status
+        """)
+        status_counts = cursor.fetchall()
+        
+        # Contagem de operações por tipo
+        cursor.execute("""
+            SELECT tipo, COUNT(*) as total
+            FROM operacoes
+            WHERE DATE(data_operacao) >= DATE('now', '-30 days')
+            GROUP BY tipo
+        """)
+        operacoes_counts = cursor.fetchall()
+        
+        # Ocupação por unidade
+        cursor.execute("""
+            SELECT unidade, COUNT(*) as total
+            FROM containers
+            WHERE posicao_atual IS NOT NULL AND posicao_atual != ''
+            GROUP BY unidade
+        """)
+        ocupacao_unidades = cursor.fetchall()
+        
+        return render_template('admin/relatorios.html',
+                             status_counts=status_counts,
+                             operacoes_counts=operacoes_counts,
+                             ocupacao_unidades=ocupacao_unidades)
+        
+    except Exception as e:
+        flash(f'Erro ao gerar relatórios: {str(e)}', 'danger')
+        return redirect(url_for('admin.admin_administrativo_dashboard'))
+
         return jsonify({'success': False, 'error': str(e)}), 500

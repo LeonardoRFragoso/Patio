@@ -336,15 +336,26 @@ def obter_detalhes_container(container_numero):
                 c.tamanho            AS tamanho_container,
                 c.tipo_container     AS tipo_container,
                 c.ultima_atualizacao AS ultima_atualizacao,
+                c.data_criacao       AS data_criacao,
+                c.armador            AS armador_container,
+                c.booking            AS booking,
+                c.capacidade         AS capacidade_container,
+                c.tara               AS tara_container,
                 v.id                 AS vistoria_id,
                 v.status             AS status_vistoria,
                 v.iso_container      AS iso_container,
-                v.tamanho_teu        AS tamanho_teu,
+                v.tamanho            AS tamanho_teu,
                 v.data_vistoria      AS data_vistoria,
                 v.lacre              AS lacre,
-                v.observacoes        AS obs_vistoria,
+                v.observacoes_gerais AS obs_vistoria,
                 v.vagao              AS vagao,
-                v.placa              AS placa
+                v.placa              AS placa,
+                v.armador            AS armador_vistoria,
+                v.capacidade         AS capacidade_vistoria,
+                v.tara               AS tara_vistoria,
+                v.tipo_operacao      AS tipo_operacao,
+                v.condicao           AS condicao,
+                v.usuario_id         AS vistoriador_id
             FROM containers c
             LEFT JOIN (
                 SELECT * FROM vistorias 
@@ -368,34 +379,55 @@ def obter_detalhes_container(container_numero):
         
         # Agrupar dados relevantes para o card
         container_data = {
+            # Dados básicos do container
             'numero': row_dict.get('numero'),
             'status': row_dict.get('status_vistoria') or row_dict.get('status_container'),
             'posicao_atual': row_dict.get('posicao_atual'),
+            'unidade': row_dict.get('unidade'),
+            'data_criacao': row_dict.get('data_criacao'),
+            'ultima_atualizacao': row_dict.get('ultima_atualizacao'),
+            
+            # Dados técnicos do container
             'tamanho': row_dict.get('tamanho_teu') or row_dict.get('tamanho_container') or '20',
             'tipo_container': row_dict.get('tipo_container') or row_dict.get('iso_container'),
-            'ultima_atualizacao': row_dict.get('ultima_atualizacao') or row_dict.get('data_vistoria'),
+            'iso_container': row_dict.get('iso_container'),
+            'armador': row_dict.get('armador_vistoria') or row_dict.get('armador_container'),
+            'booking': row_dict.get('booking'),
+            'capacidade': row_dict.get('capacidade_vistoria') or row_dict.get('capacidade_container'),
+            'tara': row_dict.get('tara_vistoria') or row_dict.get('tara_container'),
+            
+            # Dados da vistoria
+            'vistoria_id': row_dict.get('vistoria_id'),
+            'data_vistoria': row_dict.get('data_vistoria'),
             'lacre': row_dict.get('lacre'),
-            'observacoes': row_dict.get('obs_vistoria'),
+            'condicao': row_dict.get('condicao'),
+            'tipo_operacao': row_dict.get('tipo_operacao'),
+            'observacoes_vistoria': row_dict.get('obs_vistoria'),
+            'vistoriador_id': row_dict.get('vistoriador_id'),
+            
+            # Dados de transporte
             'vagao': row_dict.get('vagao'),
             'placa': row_dict.get('placa')
         }
         
-        # Buscar histórico de operações
+        # Buscar histórico COMPLETO de operações (sem limite)
         cursor.execute('''
             SELECT 
                 o.tipo,
                 o.modo,
                 o.posicao,
+                o.posicao_anterior,
                 o.placa,
                 o.vagao,
                 o.data_operacao,
                 o.observacoes,
-                u.username as operador
+                o.resultado_vistoria,
+                u.username as operador,
+                u.nome as nome_operador
             FROM operacoes o
             LEFT JOIN usuarios u ON o.usuario_id = u.id
             WHERE o.container_id = ?
-            ORDER BY o.data_operacao DESC
-            LIMIT 20
+            ORDER BY o.data_operacao ASC
         ''', (container[0],))
         
         historico_operacoes = []
@@ -404,12 +436,54 @@ def obter_detalhes_container(container_numero):
                 'tipo': op[0],
                 'modo': op[1],
                 'posicao': op[2],
-                'placa': op[3],
-                'vagao': op[4],
-                'data_operacao': op[5],
-                'observacoes': op[6],
-                'operador': op[7]
+                'posicao_anterior': op[3],
+                'placa': op[4],
+                'vagao': op[5],
+                'data_operacao': op[6],
+                'observacoes': op[7],
+                'resultado_vistoria': op[8],
+                'operador': op[9],
+                'nome_operador': op[10]
             })
+        
+        # Buscar operações de carregamento
+        cursor.execute('''
+            SELECT 
+                oc.tipo,
+                'carregamento' as modo,
+                '' as posicao,
+                '' as posicao_anterior,
+                oc.placa,
+                oc.vagao,
+                oc.data_hora as data_operacao,
+                oc.observacoes,
+                '' as resultado_vistoria,
+                u.username as operador,
+                u.nome as nome_operador
+            FROM operacoes_carregamento oc
+            LEFT JOIN usuarios u ON oc.usuario_id = u.id
+            WHERE oc.container_id = ?
+            ORDER BY oc.data_hora ASC
+        ''', (container[0],))
+        
+        # Adicionar operações de carregamento ao histórico
+        for op in cursor.fetchall():
+            historico_operacoes.append({
+                'tipo': op[0],
+                'modo': op[1],
+                'posicao': op[2],
+                'posicao_anterior': op[3],
+                'placa': op[4],
+                'vagao': op[5],
+                'data_operacao': op[6],
+                'observacoes': op[7],
+                'resultado_vistoria': op[8],
+                'operador': op[9],
+                'nome_operador': op[10]
+            })
+        
+        # Ordenar todo o histórico por data (cronológico)
+        historico_operacoes.sort(key=lambda x: x['data_operacao'] if x['data_operacao'] else '')
         
         # Buscar avarias da vistoria, se houver
         if container[13]:  # Se há data de vistoria
@@ -437,6 +511,18 @@ def obter_detalhes_container(container_numero):
                 })
             
             container_data['avarias'] = avarias
+        
+        # Buscar nome do vistoriador se houver vistoria
+        if row_dict.get('vistoriador_id'):
+            cursor.execute('''
+                SELECT username, nome 
+                FROM usuarios 
+                WHERE id = ?
+            ''', (row_dict.get('vistoriador_id'),))
+            
+            vistoriador = cursor.fetchone()
+            if vistoriador:
+                container_data['vistoriador_nome'] = vistoriador[1] or vistoriador[0]
         
         db.close()
         

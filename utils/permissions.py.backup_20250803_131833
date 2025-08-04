@@ -1,6 +1,6 @@
 """
 Módulo de gerenciamento de permissões para controle de acesso baseado em níveis de usuário.
-Implementa verificações para os níveis: Operador, Vistoriador e Admin.
+Implementa verificações para os três níveis: Operador, Inventariante e Admin.
 """
 from functools import wraps
 from flask import session, redirect, url_for, flash, request, jsonify
@@ -9,6 +9,7 @@ from flask import session, redirect, url_for, flash, request, jsonify
 ROLES = {
     'operador': 0,  # Acesso básico
     'vistoriador': 1,  # Acesso para vistorias
+    'inventariante': 2,  # Acesso intermediário
     'admin_administrativo': 3,  # Admin com acesso apenas à correção de descarga
     'admin': 4  # Acesso completo
 }
@@ -24,7 +25,7 @@ def has_role(required_role):
     Verifica se o usuário tem o nível de acesso necessário.
     
     Args:
-        required_role (str): Nível mínimo necessário ('operador', 'vistoriador' ou 'admin')
+        required_role (str): Nível mínimo necessário ('operador', 'inventariante' ou 'admin')
     
     Returns:
         bool: True se o usuário tem o nível necessário, False caso contrário
@@ -41,7 +42,7 @@ def role_required(required_role):
     Decorator para restringir acesso a rotas com base no nível do usuário.
     
     Args:
-        required_role (str): Nível mínimo necessário ('operador', 'vistoriador' ou 'admin')
+        required_role (str): Nível mínimo necessário ('operador', 'inventariante' ou 'admin')
     
     Returns:
         function: Decorator que verifica o nível de acesso
@@ -126,10 +127,12 @@ def admin_administrativo_only_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-
+def inventariante_required(f):
+    """Decorator para restringir acesso a inventariantes e administradores."""
+    return role_required('inventariante')(f)
 
 def vistoriador_required(f):
-    """Decorator para restringir acesso a vistoriadores e administradores."""
+    """Decorator para restringir acesso a vistoriadores, inventariantes e administradores."""
     return role_required('vistoriador')(f)
 
 def operador_required(f):

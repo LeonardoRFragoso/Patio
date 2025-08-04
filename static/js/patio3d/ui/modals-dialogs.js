@@ -365,18 +365,24 @@ export class ModalsDialogs {
 
         const modal = this.criarModal('modal-container-detalhes', `Container ${container.numero}`, 'shipping-fast');
         
-        // 🔧 DADOS CORRIGIDOS: Usando campos reais do banco de dados
+        // 🔧 DADOS COMPLETOS: Usando todos os campos do banco de dados
         const tamanho = container.tamanho || '20';
         const status = container.status || 'Normal';
         const posicao = container.posicao_atual || container.posicao || 'Não informada';
         const armador = container.armador || 'Não informado';
         const capacidade = container.capacidade || 'Não informada';
         const tara = container.tara || 'Não informada';
-        const booking = container.booking || 'Não informado';  // 🔧 Agora vem da API corrigida
+        const booking = container.booking || 'Não informado';
         const dataEntrada = container.data_criacao || 'Não informada';
         const dataAtualizacao = container.ultima_atualizacao || 'Não informada';
         const unidade = container.unidade || 'Não informada';
         const tipo = container.tipo_container === 'real' ? 'Standard' : (container.tipo_container || 'Standard');
+        const isoContainer = container.iso_container || 'Não informado';
+        const vistoriadorNome = container.vistoriador_nome || 'Não informado';
+        
+        // Dados adicionais da vistoria
+        const vistoriaId = container.vistoria_id || 'N/A';
+        const condicaoContainer = container.condicao || 'Não informada';
         
         // 🔧 CORREÇÃO: Lógica de vistoria baseada na regra de negócio
         // Se container está no pátio (tem posição), foi obrigatoriamente vistoriado
@@ -446,14 +452,16 @@ export class ModalsDialogs {
                     <p><strong>Status:</strong> <span class="badge bg-info">${status}</span></p>
                     <p><strong>Posição Atual:</strong> <span class="badge bg-secondary">${posicao}</span></p>
                     <p><strong>Tamanho:</strong> ${tamanho} TEU</p>
-                    <p><strong>Tipo:</strong> ${tipo}</p>
+                    <p><strong>Tipo Container:</strong> ${tipo}</p>
+                    <p><strong>ISO Container:</strong> ${isoContainer}</p>
                   </div>
                   <div class="col-md-6">
                     <p><strong>Armador:</strong> ${armador}</p>
-                    <p><strong>Capacidade:</strong> ${capacidade}</p>
-                    <p><strong>Tara:</strong> ${tara}</p>
+                    <p><strong>Capacidade:</strong> ${capacidade} kg</p>
+                    <p><strong>Tara:</strong> ${tara} kg</p>
                     <p><strong>Booking:</strong> ${booking}</p>
                     <p><strong>Unidade:</strong> ${unidade}</p>
+                    <p><strong>ID Sistema:</strong> ${container.id || 'N/A'}</p>
                   </div>
                 </div>
               </div>
@@ -489,13 +497,15 @@ export class ModalsDialogs {
                 <div class="row">
                   <div class="col-md-6">
                     <p><strong>Status:</strong> <span class="badge ${statusVistoria === 'Realizada' ? 'bg-success' : 'bg-warning'}">${statusVistoria}</span></p>
-                    <p><strong>Data:</strong> ${this.formatarData(dataVistoria)}</p>
-                    <p><strong>Condição:</strong> ${condicaoVistoria}</p>
+                    <p><strong>Data Vistoria:</strong> ${this.formatarData(dataVistoria)}</p>
+                    <p><strong>Condição:</strong> <span class="badge ${condicaoContainer === 'NOVO' ? 'bg-success' : condicaoContainer === 'USADO' ? 'bg-warning' : 'bg-secondary'}">${condicaoContainer}</span></p>
+                    <p><strong>Tipo Operação:</strong> ${tipoOperacao}</p>
                   </div>
                   <div class="col-md-6">
                     <p><strong>Lacre:</strong> ${lacre}</p>
-                    <p><strong>Observações:</strong> ${observacoesVistoria}</p>
-                    </div>
+                    <p><strong>Vistoriador:</strong> ${vistoriadorNome}</p>
+                    <p><strong>ID Vistoria:</strong> ${vistoriaId}</p>
+                    <p><strong>Observações:</strong> <small class="text-muted">${observacoesVistoria}</small></p>
                   </div>
                 </div>
               </div>
@@ -550,27 +560,56 @@ export class ModalsDialogs {
               </div>
             </div>
             
-            <!-- Histórico de Operações -->
+            <!-- Histórico Cronológico Completo -->
             ${container.operacoes && container.operacoes.length > 0 ? `
             <div class="row mb-4">
               <div class="col-12">
                 <h5 class="text-warning mb-3">
-                  <i class="fas fa-history me-2"></i>Histórico de Operações
+                  <i class="fas fa-history me-2"></i>Histórico Cronológico Completo
+                  <span class="badge bg-secondary ms-2">${container.operacoes.length} operações</span>
                 </h5>
-                <div class="timeline">
-                  ${container.operacoes.slice(0, 5).map(op => 
-                    `<div class="timeline-item mb-2 p-2 border-start border-warning border-2">
-                       <small class="text-muted">${this.formatarData(op.data_operacao)}</small>
-                       <p class="mb-1"><strong>${op.tipo}</strong> ${op.modo ? `- ${op.modo}` : ''}</p>
-                       <div class="small text-muted">
-                         ${op.posicao ? `<div>Posição: ${op.posicao}</div>` : ''}
-                         ${op.placa ? `<div>Placa: ${op.placa}</div>` : ''}
-                         ${op.vagao ? `<div>Vagão: ${op.vagao}</div>` : ''}
-                         ${op.observacoes ? `<div>Obs: ${op.observacoes}</div>` : ''}
-                       </div>
-                     </div>`
-                  ).join('')}
-                  ${container.operacoes.length > 5 ? '<small class="text-muted">... e mais operações</small>' : ''}
+                <div class="timeline-container" style="max-height: 400px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; padding: 1rem;">
+                  ${container.operacoes.map((op, index) => {
+                    const isFirst = index === 0;
+                    const isLast = index === container.operacoes.length - 1;
+                    const tipoIcon = this.getOperationIcon(op.tipo);
+                    const tipoColor = this.getOperationColor(op.tipo);
+                    const operadorNome = op.nome_operador || op.operador || 'Sistema';
+                    
+                    return `
+                    <div class="timeline-item mb-3 p-3 border-start border-3" style="border-color: ${tipoColor} !important; background: linear-gradient(90deg, rgba(255,255,255,0.05) 0%, transparent 100%); border-radius: 0 10px 10px 0;">
+                      <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div class="d-flex align-items-center">
+                          <i class="${tipoIcon} me-2" style="color: ${tipoColor}; font-size: 1.2rem;"></i>
+                          <strong style="color: ${tipoColor}; text-transform: uppercase;">${op.tipo}</strong>
+                          ${op.modo && op.modo !== op.tipo ? `<span class="badge bg-secondary ms-2">${op.modo}</span>` : ''}
+                          ${isFirst ? '<span class="badge bg-success ms-2"><i class="fas fa-play"></i> Início</span>' : ''}
+                          ${isLast ? '<span class="badge bg-danger ms-2"><i class="fas fa-stop"></i> Última</span>' : ''}
+                        </div>
+                        <small class="text-muted">${this.formatarData(op.data_operacao)}</small>
+                      </div>
+                      
+                      <div class="row">
+                        <div class="col-md-6">
+                          ${op.posicao ? `<div class="mb-1"><i class="fas fa-map-marker-alt text-info me-1"></i><strong>Posição:</strong> ${op.posicao}</div>` : ''}
+                          ${op.posicao_anterior ? `<div class="mb-1"><i class="fas fa-arrow-left text-warning me-1"></i><strong>De:</strong> ${op.posicao_anterior}</div>` : ''}
+                          ${op.placa ? `<div class="mb-1"><i class="fas fa-truck text-primary me-1"></i><strong>Placa:</strong> ${op.placa}</div>` : ''}
+                          ${op.vagao ? `<div class="mb-1"><i class="fas fa-train text-success me-1"></i><strong>Vagão:</strong> ${op.vagao}</div>` : ''}
+                        </div>
+                        <div class="col-md-6">
+                          <div class="mb-1"><i class="fas fa-user text-secondary me-1"></i><strong>Operador:</strong> ${operadorNome}</div>
+                          ${op.resultado_vistoria ? `<div class="mb-1"><i class="fas fa-check-circle text-success me-1"></i><strong>Resultado:</strong> ${op.resultado_vistoria}</div>` : ''}
+                          ${op.observacoes ? `<div class="mb-1"><i class="fas fa-comment text-muted me-1"></i><strong>Obs:</strong> <small>${op.observacoes}</small></div>` : ''}
+                        </div>
+                      </div>
+                    </div>`;
+                  }).join('')}
+                </div>
+                <div class="mt-3 text-center">
+                  <small class="text-muted">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Histórico completo desde a descarga até o carregamento
+                  </small>
                 </div>
               </div>
             </div>
@@ -630,6 +669,38 @@ export class ModalsDialogs {
       };
       
       return statusColors[status] || '#757575';
+    }
+    
+    // Método auxiliar para obter ícone de acordo com o tipo de operação
+    getOperationIcon(tipo) {
+      const operationIcons = {
+        'descarga': 'fas fa-truck-loading',
+        'movimentacao': 'fas fa-arrows-alt',
+        'carregamento': 'fas fa-shipping-fast',
+        'vistoria': 'fas fa-search',
+        'inspecao': 'fas fa-eye',
+        'manutencao': 'fas fa-wrench',
+        'entrada': 'fas fa-sign-in-alt',
+        'saida': 'fas fa-sign-out-alt'
+      };
+      
+      return operationIcons[tipo?.toLowerCase()] || 'fas fa-cog';
+    }
+    
+    // Método auxiliar para obter cor de acordo com o tipo de operação
+    getOperationColor(tipo) {
+      const operationColors = {
+        'descarga': '#2196F3',
+        'movimentacao': '#FF9800', 
+        'carregamento': '#4CAF50',
+        'vistoria': '#9C27B0',
+        'inspecao': '#673AB7',
+        'manutencao': '#FF5722',
+        'entrada': '#00BCD4',
+        'saida': '#F44336'
+      };
+      
+      return operationColors[tipo?.toLowerCase()] || '#757575';
     }
   
     // ===== MÉTODO PARA FORMATAR DATAS =====
@@ -761,8 +832,16 @@ export class ModalsDialogs {
     }
   
     mostrarModal(modal) {
+      // Salvar elemento com foco atual para restaurar depois
+      this.elementoComFocoAnterior = document.activeElement;
+      
       document.body.appendChild(modal);
       this.modalAtivo = modal;
+      
+      // Adicionar atributo para acessibilidade
+      modal.setAttribute('role', 'dialog');
+      modal.setAttribute('aria-modal', 'true');
+      modal.setAttribute('aria-labelledby', modal.id + '-title');
       
       // Animar entrada
       setTimeout(() => {
@@ -771,11 +850,25 @@ export class ModalsDialogs {
         if (dialog) {
           dialog.style.transform = 'scale(1)';
         }
+        
+        // Focar no primeiro elemento focável do modal
+        const primeiroElementoFocavel = modal.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        if (primeiroElementoFocavel) {
+          primeiroElementoFocavel.focus();
+        }
       }, 10);
     }
   
     fecharModal(modal) {
       if (!modal) return;
+      
+      // Remover foco de todos os elementos dentro do modal
+      const elementosComFoco = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+      elementosComFoco.forEach(elemento => {
+        if (elemento === document.activeElement) {
+          elemento.blur();
+        }
+      });
       
       // Animar saída
       modal.style.opacity = '0';
@@ -785,12 +878,56 @@ export class ModalsDialogs {
       }
       
       setTimeout(() => {
-        if (modal.parentNode) {
-          modal.parentNode.removeChild(modal);
+        // Remover modal do DOM de forma mais robusta
+        try {
+          if (modal && modal.parentNode) {
+            modal.parentNode.removeChild(modal);
+          } else if (modal) {
+            modal.remove();
+          }
+        } catch (e) {
+          console.warn('Erro ao remover modal:', e);
         }
+        
+        // Limpar estado do modal
         if (this.modalAtivo === modal) {
           this.modalAtivo = null;
         }
+        
+        // Garantir que não há overlays restantes
+        const overlaysRestantes = document.querySelectorAll('.modal-personalizado');
+        overlaysRestantes.forEach(overlay => {
+          try {
+            overlay.remove();
+          } catch (e) {
+            console.warn('Erro ao remover overlay restante:', e);
+          }
+        });
+        
+        // Restaurar interatividade da página
+        document.body.style.overflow = '';
+        document.body.style.pointerEvents = '';
+        
+        // Restaurar foco para o elemento anterior
+        if (this.elementoComFocoAnterior && this.elementoComFocoAnterior.focus) {
+          try {
+            this.elementoComFocoAnterior.focus();
+          } catch (e) {
+            // Se não conseguir focar no elemento anterior, focar no body
+            document.body.focus();
+          }
+        } else {
+          // Garantir que o foco seja removido de qualquer elemento
+          if (document.activeElement && document.activeElement.blur) {
+            document.activeElement.blur();
+          }
+          document.body.focus();
+        }
+        
+        // Limpar referência
+        this.elementoComFocoAnterior = null;
+        
+        console.log('✅ Modal fechado e página restaurada');
       }, 300);
     }
   

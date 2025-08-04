@@ -96,6 +96,7 @@ def create_app(config_class=Config):
             'current_user': session.get('username', None),
             'user_role': get_user_role(),
             'is_admin': has_role('admin'),
+            'is_inventariante': has_role('inventariante'),
             'is_vistoriador': has_role('vistoriador'),
             'is_operador': has_role('operador')
         }
