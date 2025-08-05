@@ -323,14 +323,19 @@ def primeiro_login():
                     (password_hash, datetime.now().strftime('%Y-%m-%d %H:%M:%S'), session.get('user_id'))
                 )
                 conn.commit()
-
-            log_auth_activity(session.get('username'), 'ALTERAR_SENHA', 'Senha definida no primeiro login')
-            session['primeiro_login'] = 0
-            flash('Senha atualizada com sucesso!', 'success')
-            return redirecionar_por_nivel(session.get('nivel'))
         except Exception as e:
             logger.error(f"Erro ao definir nova senha: {e}")
             flash('Erro ao atualizar senha. Tente novamente.', 'danger')
+            return render_template('auth/primeiro_login.html')
+
+        try:
+            log_auth_activity(session.get('username'), 'ALTERAR_SENHA', 'Senha definida no primeiro login')
+        except Exception as e:
+            logger.error(f"Erro ao registrar log de primeiro login: {e}")
+
+        session['primeiro_login'] = 0
+        flash('Senha atualizada com sucesso!', 'success')
+        return redirecionar_por_nivel(session.get('nivel'))
 
     return render_template('auth/primeiro_login.html')
 
