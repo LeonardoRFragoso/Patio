@@ -245,33 +245,39 @@ def login():
             return render_template('auth/login.html')
         
         # Login bem-sucedido
+        # Resetar contador de tentativas (erros não bloqueiam fluxo)
         try:
-            # Resetar contador de tentativas
             reset_login_attempts(username)
-            
-            # Atualizar último login
-            atualizar_ultimo_login(user['id'])
-            
-            # Configurar sessão
-            configurar_sessao_usuario(user)
-            
-            # Registrar atividade
+        except Exception as e:
+            logger.error(f"Erro ao resetar tentativas de login: {e}")
+
+        # Atualizar último login
+        if not atualizar_ultimo_login(user['id']):
+            logger.error("Falha ao atualizar último login")
+
+        # Configurar sessão
+        configurar_sessao_usuario(user)
+
+        # Registrar atividade sem interromper fluxo em caso de falha
+        try:
             log_auth_activity(username, 'LOGIN', "Login realizado com sucesso")
+        except Exception as e:
+            logger.error(f"Erro ao registrar log de login: {e}")
 
-            flash(f'Bem-vindo(a), {username}!', 'success')
+        flash(f'Bem-vindo(a), {username}!', 'success')
 
+        if session.get('primeiro_login'):
+            flash('Por favor, defina uma nova senha para continuar.', 'warning')
+            return redirect(url_for('auth.primeiro_login'))
 
-                flash('Por favor, defina uma nova senha para continuar.', 'warning')
-                return redirect(url_for('auth.primeiro_login'))
-
+        try:
             # Redirecionar com base no nível de acesso
             return redirecionar_por_nivel(user['nivel'])
-            
         except Exception as e:
-            logger.error(f"Erro durante configuração de login: {e}")
+            logger.error(f"Erro ao redirecionar após login: {e}")
             flash('Ocorreu um erro durante o login. Por favor, tente novamente.', 'danger')
-    
-    # Método GET
+
+    # Método GET ou erro no fluxo
     return render_template('auth/login.html')
 
 def redirecionar_por_nivel(nivel):
@@ -323,14 +329,19 @@ def primeiro_login():
                     (password_hash, datetime.now().strftime('%Y-%m-%d %H:%M:%S'), session.get('user_id'))
                 )
                 conn.commit()
-
-            log_auth_activity(session.get('username'), 'ALTERAR_SENHA', 'Senha definida no primeiro login')
-            session['primeiro_login'] = 0
-            flash('Senha atualizada com sucesso!', 'success')
-            return redirecionar_por_nivel(session.get('nivel'))
         except Exception as e:
             logger.error(f"Erro ao definir nova senha: {e}")
             flash('Erro ao atualizar senha. Tente novamente.', 'danger')
+            return render_template('auth/primeiro_login.html')
+
+        try:
+            log_auth_activity(session.get('username'), 'ALTERAR_SENHA', 'Senha definida no primeiro login')
+        except Exception as e:
+            logger.error(f"Erro ao registrar log de primeiro login: {e}")
+
+        session['primeiro_login'] = 0
+        flash('Senha atualizada com sucesso!', 'success')
+        return redirecionar_por_nivel(session.get('nivel'))
 
     return render_template('auth/primeiro_login.html')
 
