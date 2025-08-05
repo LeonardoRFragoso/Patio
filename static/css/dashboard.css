@@ -144,12 +144,47 @@ body {
 }
 
 .user-info {
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 0.95rem;
+  color: var(--white-color);
   font-weight: 500;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: var(--border-radius-xl);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+  gap: var(--spacing-xs);
+  min-width: 260px;
+}
+
+.user-role-badge {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--border-radius-full);
+  padding: 0.25rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.user-welcome {
   display: flex;
   align-items: center;
   gap: var(--spacing-xs);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.user-access {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .header-logo {
