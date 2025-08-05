@@ -132,6 +132,7 @@ def configurar_sessao_usuario(user):
     # sqlite3.Row não possui método get; acesso direto garantindo chave presente
     session['primeiro_login'] = user['primeiro_login'] if 'primeiro_login' in user.keys() else 0
 
+
 def obter_solicitacoes_pendentes():
     """Obtém solicitações pendentes para administradores"""
     try:
@@ -259,8 +260,7 @@ def login():
 
             flash(f'Bem-vindo(a), {username}!', 'success')
 
-            # Verificar se é o primeiro login do usuário
-            if user['primeiro_login'] == 1:
+
                 flash('Por favor, defina uma nova senha para continuar.', 'warning')
                 return redirect(url_for('auth.primeiro_login'))
 
