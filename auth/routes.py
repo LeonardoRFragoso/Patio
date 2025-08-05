@@ -251,9 +251,6 @@ def login():
         except Exception as e:
             logger.error(f"Erro ao resetar tentativas de login: {e}")
 
-        # Atualizar último login
-        if not atualizar_ultimo_login(user['id']):
-            logger.error("Falha ao atualizar último login")
 
         # Configurar sessão
         configurar_sessao_usuario(user)
@@ -268,7 +265,7 @@ def login():
             return redirecionar_por_nivel(user['nivel'])
         except Exception as e:
             logger.error(f"Erro ao redirecionar após login: {e}")
-            flash('Ocorreu um erro durante o login. Por favor, tente novamente.', 'danger')
+
 
     # Método GET ou erro no fluxo
     return render_template('auth/login.html')
