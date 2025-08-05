@@ -108,7 +108,11 @@
                 <div class="user-actions">
                   <span class="user-info me-3">
                     <i class="fas fa-user-circle me-1"></i>
-                    Operador
+                    <span class="d-flex flex-column text-end">
+                      <strong>{{ user_role|title }} | {{ unidade }}</strong>
+                      <span>Bem-vindo(a), {{ user.nome if user.nome else user.username }}!</span>
+                      <span class="badge bg-light text-dark">Nível de acesso: {{ user_role|title }} {{ unidade }}</span>
+                    </span>
                   </span>
                   <button class="btn btn-logout" onclick="confirmarLogout()">
                     <i class="fas fa-sign-out-alt me-1"></i>
@@ -121,10 +125,10 @@
             <div class="card-body">
               <!-- Seção de Boas-vindas -->
               <div class="welcome-section">
-                <h4 class="welcome-title">Bem-vindo(a), Operador!</h4>
+                <h4 class="welcome-title">Bem-vindo(a), {{ user.nome if user.nome else user.username }}!</h4>
                 <p class="access-level">
                   Nível de acesso:
-                  <span class="badge bg-secondary">Operador</span>
+                  <span class="badge bg-light text-dark">{{ user_role|title }} {{ unidade }}</span>
                 </p>
               </div>
 

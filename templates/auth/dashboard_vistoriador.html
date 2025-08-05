@@ -659,10 +659,13 @@
                   Sistema de Pátio
                 </h5>
                 <div class="user-actions">
-                  <span class="user-info me-3">
+                  <span class="user-info me-3 d-flex align-items-center">
                     <i class="fas fa-user-circle me-1"></i>
-                    Bem-vindo(a), {{ user.nome if user.nome else user.username }}!<br />
-                    Nível de acesso: Vistoriador {{ unidade }}
+                    <span class="d-flex flex-column text-end">
+                      <strong>{{ user_role|title }} | {{ unidade }}</strong>
+                      <span>Bem-vindo(a), {{ user.nome if user.nome else user.username }}!</span>
+                      <span class="badge bg-light text-dark">Nível de acesso: {{ user_role|title }} {{ unidade }}</span>
+                    </span>
                   </span>
                   <button class="btn btn-logout" onclick="confirmarLogout()">
                     <i class="fas fa-sign-out-alt me-1"></i>
@@ -679,7 +682,8 @@
                   Bem-vindo(a), {{ user.nome if user.nome else user.username }}!
                 </h4>
                 <p class="mb-3 text-dark">
-                  Nível de acesso: Vistoriador {{ unidade }}
+                  Nível de acesso:
+                  <span class="badge bg-light text-dark">{{ user_role|title }} {{ unidade }}</span>
                 </p>
 
                 <!-- Botão de Visualização 3D -->
