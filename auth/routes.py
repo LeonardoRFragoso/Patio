@@ -129,7 +129,7 @@ def configurar_sessao_usuario(user):
     session['nivel'] = user['nivel']  # Para nova lógica de permissões
     session['unidade'] = user['unidade']
     session['logged_in'] = True  # ✅ CORREÇÃO: Adicionar chave logged_in para @login_required
-    session['primeiro_login'] = user.get('primeiro_login', 0)
+
 
 def obter_solicitacoes_pendentes():
     """Obtém solicitações pendentes para administradores"""
@@ -258,7 +258,7 @@ def login():
 
             flash(f'Bem-vindo(a), {username}!', 'success')
 
-            if user.get('primeiro_login') == 1:
+
                 flash('Por favor, defina uma nova senha para continuar.', 'warning')
                 return redirect(url_for('auth.primeiro_login'))
 
@@ -638,11 +638,11 @@ def user_info():
         
         return {
             'username': user['username'],
-            'nome': user.get('nome', ''),
-            'email': user.get('email', ''),
+            'nome': user['nome'] if 'nome' in user.keys() else '',
+            'email': user['email'] if 'email' in user.keys() else '',
             'role': user['nivel'],
             'unidade': user['unidade'],
-            'last_login': user.get('last_login', '')
+            'last_login': user['last_login'] if 'last_login' in user.keys() else ''
         }, 200
         
     except Exception as e:
