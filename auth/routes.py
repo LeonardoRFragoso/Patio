@@ -265,7 +265,8 @@ def login():
             return redirecionar_por_nivel(user['nivel'])
         except Exception as e:
             logger.error(f"Erro ao redirecionar após login: {e}")
-
+            flash('Erro ao redirecionar após login. Redirecionando para o dashboard padrão.', 'warning')
+            return redirect(url_for('auth.dashboard'))
 
     # Método GET ou erro no fluxo
     return render_template('auth/login.html')
