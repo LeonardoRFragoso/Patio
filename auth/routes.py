@@ -260,7 +260,7 @@ def login():
 
             flash(f'Bem-vindo(a), {username}!', 'success')
 
-
+            if session.get('primeiro_login'):
                 flash('Por favor, defina uma nova senha para continuar.', 'warning')
                 return redirect(url_for('auth.primeiro_login'))
 
