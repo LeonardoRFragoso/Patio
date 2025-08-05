@@ -245,33 +245,32 @@ def login():
             return render_template('auth/login.html')
         
         # Login bem-sucedido
+        # Resetar contador de tentativas (erros não bloqueiam fluxo)
         try:
-            # Resetar contador de tentativas
             reset_login_attempts(username)
-            
-            # Atualizar último login
-            atualizar_ultimo_login(user['id'])
-            
-            # Configurar sessão
-            configurar_sessao_usuario(user)
-            
-            # Registrar atividade
-            log_auth_activity(username, 'LOGIN', "Login realizado com sucesso")
+        except Exception as e:
+            logger.error(f"Erro ao resetar tentativas de login: {e}")
 
-            flash(f'Bem-vindo(a), {username}!', 'success')
+        # Atualizar último login
+        if not atualizar_ultimo_login(user['id']):
+            logger.error("Falha ao atualizar último login")
 
-            if session.get('primeiro_login'):
-                flash('Por favor, defina uma nova senha para continuar.', 'warning')
-                return redirect(url_for('auth.primeiro_login'))
+        # Configurar sessão
+        configurar_sessao_usuario(user)
 
+
+        if session.get('primeiro_login'):
+            flash('Por favor, defina uma nova senha para continuar.', 'warning')
+            return redirect(url_for('auth.primeiro_login'))
+
+        try:
             # Redirecionar com base no nível de acesso
             return redirecionar_por_nivel(user['nivel'])
-            
         except Exception as e:
-            logger.error(f"Erro durante configuração de login: {e}")
+            logger.error(f"Erro ao redirecionar após login: {e}")
             flash('Ocorreu um erro durante o login. Por favor, tente novamente.', 'danger')
-    
-    # Método GET
+
+    # Método GET ou erro no fluxo
     return render_template('auth/login.html')
 
 def redirecionar_por_nivel(nivel):
