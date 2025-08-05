@@ -69,6 +69,36 @@
 </div>
 
 <div class="container-fluid">
+    <!-- Download de Relatórios -->
+    <div class="card mb-4">
+        <div class="card-header bg-secondary text-white">
+            <h5 class="mb-0"><i class="fas fa-download me-2"></i>Baixar Relatório de Containers</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Unidade</label>
+                    <select id="relatorio-unidade" class="form-select">
+                        <option value="">Todas</option>
+                        {% for unidade, _ in ocupacao_unidades %}
+                        <option value="{{ unidade }}">{{ unidade }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4 align-self-end">
+                    <button type="button" class="btn btn-success w-100" onclick="baixarRelatorio('xlsx')">
+                        <i class="fas fa-file-excel me-2"></i>Excel
+                    </button>
+                </div>
+                <div class="col-md-4 align-self-end">
+                    <button type="button" class="btn btn-danger w-100" onclick="baixarRelatorio('pdf')">
+                        <i class="fas fa-file-pdf me-2"></i>PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Estatísticas Gerais -->
     <div class="row mb-4">
         <div class="col-md-4">
@@ -271,7 +301,7 @@
                             </a>
                         </div>
                         <div class="col-md-3">
-                            <a href="{{ url_for('admin.corrigir_descarga') }}" class="btn btn-success btn-lg w-100 mb-2">
+                            <a href="{{ url_for('admin.pagina_corrigir_descarga') }}" class="btn btn-success btn-lg w-100 mb-2">
                                 <i class="fas fa-edit me-2"></i>
                                 Corrigir Descargas
                             </a>
@@ -329,5 +359,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+function baixarRelatorio(formato) {
+    const unidade = document.getElementById('relatorio-unidade').value;
+    const params = new URLSearchParams();
+    if (unidade) {
+        params.append('unidade', unidade);
+    }
+    params.append('formato', formato);
+    window.open(`/admin/api/download-relatorio-containers?${params.toString()}`, '_blank');
+}
 </script>
 {% endblock %}

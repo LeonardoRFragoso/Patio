@@ -340,18 +340,25 @@
                 <p class="text-muted">Selecione uma das opções abaixo para gerenciar o sistema</p>
             </div>
             <div class="row justify-content-center">
-                <div class="col-lg-5 col-md-6 mb-3">
+                <div class="col-lg-4 col-md-6 mb-3">
                     <a href="{{ url_for('admin.pagina_corrigir_descarga') }}" class="action-btn w-100 text-center" style="display: block; padding: 2rem;">
                         <i class="fas fa-tools fa-2x mb-2"></i>
                         <h5 class="mb-2">Corrigir Descargas</h5>
                         <small>Ajustar posições e dados de containers de todas as unidades</small>
                     </a>
                 </div>
-                <div class="col-lg-5 col-md-6 mb-3">
+                <div class="col-lg-4 col-md-6 mb-3">
                     <a href="{{ url_for('admin.historico_containers') }}" class="action-btn secondary w-100 text-center" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; color: white !important; text-decoration: none;">
                         <i class="fas fa-history fa-2x mb-2"></i>
                         <h5 class="mb-2">Histórico Completo</h5>
                         <small>Visualizar histórico completo com filtros avançados</small>
+                    </a>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-3">
+                    <a href="{{ url_for('admin.relatorios') }}" class="action-btn w-100 text-center" style="display: block; padding: 2rem;">
+                        <i class="fas fa-chart-bar fa-2x mb-2"></i>
+                        <h5 class="mb-2">Relatórios</h5>
+                        <small>Baixar relatórios em PDF ou Excel</small>
                     </a>
                 </div>
             </div>

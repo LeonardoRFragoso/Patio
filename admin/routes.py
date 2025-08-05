@@ -219,105 +219,123 @@ def api_historico_containers():
 @admin_bp.route('/api/download-relatorio-containers')
 @admin_administrativo_only_required
 def download_relatorio_containers():
-    """Download de relatório de containers em CSV - TODAS AS UNIDADES para Admin Administrativo"""
+    """Download de relatório de containers em CSV, Excel ou PDF"""
     try:
-        import csv
-        from io import StringIO
+        from io import StringIO, BytesIO
         from datetime import datetime
-        
+        import pandas as pd
+
+        formato = request.args.get('formato', 'csv').lower()
+
         # Parâmetros de filtro (mesmos da API de busca)
         unidade = request.args.get('unidade', '')
         numero = request.args.get('numero', '')
         status = request.args.get('status', '')
         data_inicio = request.args.get('data_inicio', '')
         data_fim = request.args.get('data_fim', '')
-        
+
         db = get_db()
         cursor = db.cursor()
-        
+
         # Construir query - Admin Administrativo vê TODAS as unidades
         where_clauses = []
         params = []
-        
+
         if unidade:
             where_clauses.append("c.unidade = ?")
             params.append(unidade)
-            
+
         if numero:
             where_clauses.append("c.numero LIKE ?")
             params.append(f"%{numero}%")
-            
+
         if status:
             where_clauses.append("c.status = ?")
             params.append(status)
-            
+
         if data_inicio:
             where_clauses.append("c.data_criacao >= ?")
             params.append(data_inicio)
-            
+
         if data_fim:
             where_clauses.append("c.data_criacao <= ?")
             params.append(data_fim + ' 23:59:59')
-        
+
         where_sql = " AND ".join(where_clauses) if where_clauses else "1=1"
-        
-        # Buscar todos os containers (sem paginação para relatório)
+
         query = f"""
-            SELECT c.numero, c.unidade, c.status, c.posicao_atual, c.tamanho, 
+            SELECT c.numero, c.unidade, c.status, c.posicao_atual, c.tamanho,
                    c.armador, c.data_criacao, c.ultima_operacao, c.data_ultima_operacao,
                    c.tipo, c.lacre, c.peso_bruto, c.tara, c.payload
             FROM containers c
             WHERE {where_sql}
             ORDER BY c.data_criacao DESC, c.numero ASC
         """
-        
+
         cursor.execute(query, params)
         containers = cursor.fetchall()
-        
-        # Criar CSV
-        output = StringIO()
-        writer = csv.writer(output)
-        
-        # Cabeçalho do CSV
-        writer.writerow([
+
+        columns = [
             'Número', 'Unidade', 'Status', 'Posição Atual', 'Tamanho',
             'Armador', 'Data Criação', 'Última Operação', 'Data Última Operação',
             'Tipo', 'Lacre', 'Peso Bruto', 'Tara', 'Payload'
-        ])
-        
-        # Dados dos containers
-        for container in containers:
-            writer.writerow([
-                container[0] or '',  # numero
-                container[1] or '',  # unidade
-                container[2] or '',  # status
-                container[3] or '',  # posicao_atual
-                container[4] or '',  # tamanho
-                container[5] or '',  # armador
-                container[6] or '',  # data_criacao
-                container[7] or '',  # ultima_operacao
-                container[8] or '',  # data_ultima_operacao
-                container[9] or '',  # tipo
-                container[10] or '', # lacre
-                container[11] or 0,  # peso_bruto
-                container[12] or 0,  # tara
-                container[13] or 0   # payload
+        ]
+        rows = []
+        for c in containers:
+            rows.append([
+                c[0] or '', c[1] or '', c[2] or '', c[3] or '', c[4] or '',
+                c[5] or '', c[6] or '', c[7] or '', c[8] or '', c[9] or '',
+                c[10] or '', c[11] or 0, c[12] or 0, c[13] or 0
             ])
-        
-        # Preparar resposta
-        output.seek(0)
-        response = make_response(output.getvalue())
-        response.headers['Content-Type'] = 'text/csv; charset=utf-8'
-        
-        # Nome do arquivo com timestamp
+
+        df = pd.DataFrame(rows, columns=columns)
+
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        filename = f'relatorio_containers_{timestamp}.csv'
+
+        if formato == 'xlsx':
+            output = BytesIO()
+            df.to_excel(output, index=False)
+            output.seek(0)
+            response = make_response(output.getvalue())
+            response.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            filename = f'relatorio_containers_{timestamp}.xlsx'
+        elif formato == 'pdf':
+            output = BytesIO()
+            from reportlab.lib.pagesizes import letter
+            from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+            from reportlab.lib import colors
+
+            doc = SimpleDocTemplate(output, pagesize=letter)
+            data = [columns] + df.fillna('').values.tolist()
+            table = Table(data, repeatRows=1)
+            table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('GRID', (0, 0), (-1, -1), 0.25, colors.grey)
+            ]))
+            doc.build([table])
+            output.seek(0)
+            response = make_response(output.getvalue())
+            response.headers['Content-Type'] = 'application/pdf'
+            filename = f'relatorio_containers_{timestamp}.pdf'
+        else:
+            output = StringIO()
+            df.to_csv(output, index=False)
+            output.seek(0)
+            response = make_response(output.getvalue())
+            response.headers['Content-Type'] = 'text/csv; charset=utf-8'
+            filename = f'relatorio_containers_{timestamp}.csv'
+
         response.headers['Content-Disposition'] = f'attachment; filename={filename}'
-        
-        logger.info(f"Admin Administrativo baixou relatório: {len(containers)} containers")
-        
+
+        logger.info(
+            f"Admin Administrativo baixou relatório: {len(containers)} containers (formato {formato})"
+        )
+
         return response
-        
+
     except Exception as e:
         logger.error(f"Erro ao gerar relatório de containers: {str(e)}")
         return jsonify({

@@ -5,4 +5,6 @@ python-dotenv==1.0.0
 requests==2.31.0
 pandas==2.1.4
 openpyxl==3.1.5
+# Library for generating PDF reports
+reportlab==4.2.0
 # numpy==1.24.3  # Commented out as we're using numpy 2.3.0 which is compatible with Python 3.12
