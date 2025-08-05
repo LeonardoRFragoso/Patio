@@ -251,20 +251,10 @@ def login():
         except Exception as e:
             logger.error(f"Erro ao resetar tentativas de login: {e}")
 
-        # Atualizar último login
-        if not atualizar_ultimo_login(user['id']):
-            logger.error("Falha ao atualizar último login")
 
         # Configurar sessão
         configurar_sessao_usuario(user)
 
-        # Registrar atividade sem interromper fluxo em caso de falha
-        try:
-            log_auth_activity(username, 'LOGIN', "Login realizado com sucesso")
-        except Exception as e:
-            logger.error(f"Erro ao registrar log de login: {e}")
-
-        flash(f'Bem-vindo(a), {username}!', 'success')
 
         if session.get('primeiro_login'):
             flash('Por favor, defina uma nova senha para continuar.', 'warning')
@@ -275,8 +265,7 @@ def login():
             return redirecionar_por_nivel(user['nivel'])
         except Exception as e:
             logger.error(f"Erro ao redirecionar após login: {e}")
-            flash('Redirecionamento não disponível, carregando painel padrão.', 'warning')
-            return redirect(url_for('auth.dashboard'))
+
 
     # Método GET ou erro no fluxo
     return render_template('auth/login.html')
