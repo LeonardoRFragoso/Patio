@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Definir Senha - Sistema Base{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <h2 class="text-center mb-4">Definir Nova Senha</h2>
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Defina sua senha definitiva</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('auth.primeiro_login') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Nova Senha:</label>
+                    <input type="password" class="form-control" id="password" name="nova_senha" required>
+                </div>
+                <div class="mb-3">
+                    {% include "shared/password_requirements.html" %}
+                </div>
+                <div class="mb-3">
+                    <label for="confirmar_senha" class="form-label">Confirmar Nova Senha:</label>
+                    <input type="password" class="form-control" id="confirmar_senha" name="confirmar_senha" required>
+                </div>
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary">Definir Senha</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
