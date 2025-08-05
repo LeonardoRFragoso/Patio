@@ -129,8 +129,7 @@ def configurar_sessao_usuario(user):
     session['nivel'] = user['nivel']  # Para nova lógica de permissões
     session['unidade'] = user['unidade']
     session['logged_in'] = True  # ✅ CORREÇÃO: Adicionar chave logged_in para @login_required
-    # sqlite3.Row não possui método get; acesso direto garantindo chave presente
-    session['primeiro_login'] = user['primeiro_login'] if 'primeiro_login' in user.keys() else 0
+
 
 def obter_solicitacoes_pendentes():
     """Obtém solicitações pendentes para administradores"""
@@ -259,8 +258,7 @@ def login():
 
             flash(f'Bem-vindo(a), {username}!', 'success')
 
-            # sqlite3.Row não possui método get
-            if user['primeiro_login'] == 1:
+
                 flash('Por favor, defina uma nova senha para continuar.', 'warning')
                 return redirect(url_for('auth.primeiro_login'))
 
