@@ -258,13 +258,6 @@ def login():
         # Configurar sessão
         configurar_sessao_usuario(user)
 
-        # Registrar atividade sem interromper fluxo em caso de falha
-        try:
-            log_auth_activity(username, 'LOGIN', "Login realizado com sucesso")
-        except Exception as e:
-            logger.error(f"Erro ao registrar log de login: {e}")
-
-        flash(f'Bem-vindo(a), {username}!', 'success')
 
         if session.get('primeiro_login'):
             flash('Por favor, defina uma nova senha para continuar.', 'warning')
