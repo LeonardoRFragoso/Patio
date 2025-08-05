@@ -71,6 +71,11 @@
                                 <i class="fas fa-history me-2"></i> Histórico Completo
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white {% if 'relatorios' in request.path %}active{% endif %}" href="{{ url_for('admin.relatorios') }}">
+                                <i class="fas fa-file-alt me-2"></i> Relatórios
+                            </a>
+                        </li>
                         {% endif %}
                         
                         <!-- Item visível para ambos os tipos de admin -->
