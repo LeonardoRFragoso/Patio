@@ -129,6 +129,7 @@ def configurar_sessao_usuario(user):
     session['nivel'] = user['nivel']  # Para nova lógica de permissões
     session['unidade'] = user['unidade']
     session['logged_in'] = True  # ✅ CORREÇÃO: Adicionar chave logged_in para @login_required
+    session['primeiro_login'] = user.get('primeiro_login', 0)
 
 def obter_solicitacoes_pendentes():
     """Obtém solicitações pendentes para administradores"""
@@ -170,6 +171,9 @@ def login_required(f):
         if 'username' not in session:
             flash('Você precisa fazer login para acessar esta página', 'danger')
             return redirect(url_for('auth.login'))
+        if session.get('primeiro_login') and request.endpoint != 'auth.primeiro_login':
+            flash('Você precisa definir uma nova senha antes de continuar', 'warning')
+            return redirect(url_for('auth.primeiro_login'))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -251,9 +255,13 @@ def login():
             
             # Registrar atividade
             log_auth_activity(username, 'LOGIN', "Login realizado com sucesso")
-            
+
             flash(f'Bem-vindo(a), {username}!', 'success')
-            
+
+            if user.get('primeiro_login') == 1:
+                flash('Por favor, defina uma nova senha para continuar.', 'warning')
+                return redirect(url_for('auth.primeiro_login'))
+
             # Redirecionar com base no nível de acesso
             return redirecionar_por_nivel(user['nivel'])
             
@@ -274,6 +282,55 @@ def redirecionar_por_nivel(nivel):
         return redirect(url_for('auth.dashboard', tipo='vistoriador'))
     else:
         return redirect(url_for('auth.dashboard'))
+
+@auth_bp.route('/primeiro-login', methods=['GET', 'POST'])
+@login_required
+def primeiro_login():
+    """Força a definição de nova senha no primeiro acesso"""
+    if not session.get('primeiro_login'):
+        return redirect(url_for('auth.dashboard'))
+
+    if request.method == 'POST':
+        nova_senha = request.form.get('nova_senha', '')
+        confirmar_senha = request.form.get('confirmar_senha', '')
+
+        campos_validos, _ = validar_campos_obrigatorios([nova_senha, confirmar_senha])
+        if not campos_validos:
+            flash('Por favor, preencha todos os campos', 'danger')
+            return render_template('auth/primeiro_login.html')
+
+        if nova_senha != confirmar_senha:
+            flash('Nova senha e confirmação não coincidem', 'danger')
+            return render_template('auth/primeiro_login.html')
+
+        senha_forte, mensagem = is_strong_password(nova_senha)
+        if not senha_forte:
+            flash(f'A senha não atende aos requisitos de segurança: {mensagem}', 'danger')
+            return render_template('auth/primeiro_login.html')
+
+        try:
+            password_hash = generate_password_hash(nova_senha, method='pbkdf2:sha256')
+            with get_db_connection() as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    """
+                    UPDATE usuarios
+                    SET password_hash = ?, senha_temporaria = 0, primeiro_login = 0, ultima_alteracao_senha = ?
+                    WHERE id = ?
+                    """,
+                    (password_hash, datetime.now().strftime('%Y-%m-%d %H:%M:%S'), session.get('user_id'))
+                )
+                conn.commit()
+
+            log_auth_activity(session.get('username'), 'ALTERAR_SENHA', 'Senha definida no primeiro login')
+            session['primeiro_login'] = 0
+            flash('Senha atualizada com sucesso!', 'success')
+            return redirecionar_por_nivel(session.get('nivel'))
+        except Exception as e:
+            logger.error(f"Erro ao definir nova senha: {e}")
+            flash('Erro ao atualizar senha. Tente novamente.', 'danger')
+
+    return render_template('auth/primeiro_login.html')
 
 @auth_bp.route('/logout')
 def logout():
