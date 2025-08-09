@@ -48,8 +48,8 @@
                         <li class="nav-item">
                             <a class="nav-link text-white {% if 'solicitacoes' in request.path %}active{% endif %}" href="{{ url_for('admin.listar_solicitacoes') }}">
                                 <i class="fas fa-clipboard-list me-2"></i> Solicitações
-                                {% if solicitacoes_pendentes and solicitacoes_pendentes|length > 0 %}
-                                <span class="badge bg-danger rounded-pill ms-2">{{ solicitacoes_pendentes|length }}</span>
+                                {% if solicitacoes_pendentes_count and solicitacoes_pendentes_count > 0 %}
+                                <span class="badge bg-danger rounded-pill ms-2">{{ solicitacoes_pendentes_count }}</span>
                                 {% endif %}
                             </a>
                         </li>

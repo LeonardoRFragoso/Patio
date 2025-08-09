@@ -9,7 +9,8 @@
   margin-bottom: 10px;
 }
 
-.form-control, .form-select {
+.form-control,
+.form-select {
   min-height: 60px;
   padding: 18px;
   font-size: 1.2rem;
@@ -24,7 +25,7 @@
   font-weight: 600;
   transition: all 0.3s ease;
   touch-action: manipulation;
-  -webkit-tap-highlight-color: rgba(0,0,0,0);
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
 
 .btn-primary-action {
@@ -44,7 +45,7 @@
 .vistoria-card {
   background: #fff;
   border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   padding: 25px;
   margin-bottom: 30px;
 }
@@ -100,7 +101,7 @@
   .action-buttons {
     flex-direction: column;
   }
-  
+
   .vistoria-card {
     padding: 20px 15px;
   }
@@ -125,7 +126,7 @@
 
 .indicator-card.clickable:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
 }
 
 .indicator-card.clickable:active {
@@ -134,9 +135,17 @@
 
 /* Efeito de clique para os indicadores */
 @keyframes card-click-effect {
-  0% { transform: scale(1); }
-  50% { transform: scale(0.95); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(0.95);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 .indicator-card.clicked {
@@ -208,7 +217,7 @@
 .avaria-item:hover {
   background: #e9ecef;
   transform: translateY(-2px);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .avaria-info {
@@ -269,8 +278,23 @@
     align-items: flex-start;
     gap: 10px;
   }
-  
+
   .avaria-acoes {
     align-self: flex-end;
   }
+}
+
+/* Forçando visibilidade para a área de nível de acesso */
+.user-access {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.25rem !important;
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+  color: #212529 !important;
+  background-color: #ffebc7 !important;
+  border-radius: 8px !important;
+  padding: 5px 12px !important;
+  border: 2px solid #ffb74d !important;
+  box-shadow: 0 2px 6px rgba(255, 152, 0, 0.4) !important;
 }

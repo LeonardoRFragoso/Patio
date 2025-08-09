@@ -6,7 +6,8 @@ import logging
 from werkzeug.security import generate_password_hash, check_password_hash
 from utils.db import get_db
 from utils.security import is_strong_password
-from utils.permissions import admin_required, admin_completo_required, admin_administrativo_required, admin_completo_only_required, admin_administrativo_only_required
+from utils.permissions import admin_required, admin_completo_only_required, admin_administrativo_only_required
+from utils.csrf import csrf
 
 # Configuração de logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -914,24 +915,36 @@ def excluir_usuario(usuario_id):
         flash(f"Erro ao excluir usuário: {e}", "danger")
         return redirect(url_for('admin.listar_usuarios'))
 
+
 @admin_bp.route('/solicitacoes')
 @admin_completo_only_required
 def listar_solicitacoes():
-    """Rota para listar todas as solicitações de registro pendentes"""
+    """Rota para listar todas as solicitações pendentes (registro e recuperação de senha)"""
     try:
         db = get_db()
         cursor = db.cursor()
         
-        # Buscar todas as solicitações pendentes
+        # Buscar solicitações de registro pendentes
         cursor.execute("""
             SELECT * FROM solicitacoes_registro 
             WHERE status = 'pendente'
             ORDER BY data_solicitacao DESC
         """)
-        solicitacoes = cursor.fetchall()
+        solicitacoes_registro = cursor.fetchall()
+        
+        # Buscar solicitações de recuperação de senha pendentes
+        cursor.execute("""
+            SELECT s.*, u.username, u.email 
+            FROM solicitacoes_senha s
+            JOIN usuarios u ON s.usuario_id = u.id
+            WHERE s.status = 'pendente'
+            ORDER BY s.data_solicitacao DESC
+        """)
+        solicitacoes_senha = cursor.fetchall()
         
         return render_template('admin/solicitacoes.html', 
-                              solicitacoes=solicitacoes,
+                              solicitacoes_registro=solicitacoes_registro,
+                              solicitacoes_senha=solicitacoes_senha,
                               username=session.get('username'))
 
     except Exception as e:
@@ -1427,4 +1440,125 @@ def relatorios():
         flash(f'Erro ao gerar relatórios: {str(e)}', 'danger')
         return redirect(url_for('admin.admin_administrativo_dashboard'))
 
-        return jsonify({'success': False, 'error': str(e)}), 500
+@admin_bp.route('/processar-solicitacao-senha/<int:solicitacao_id>', methods=['POST'])
+@csrf
+@admin_required
+def processar_solicitacao_senha(solicitacao_id):
+    """Rota para processar (aprovar/rejeitar) solicitações de recuperação de senha"""
+    try:
+        # Aceitar dados tanto de JSON quanto de formulário
+        if request.is_json:
+            data = request.get_json()
+            acao = data.get('acao')  # 'aprovar' ou 'rejeitar'
+            motivo = data.get('motivo', '')
+        else:
+            acao = request.form.get('acao')  # 'aprovar' ou 'rejeitar'
+            motivo = request.form.get('motivo', '')
+        
+        if acao not in ['aprovar', 'rejeitar']:
+            if request.is_json:
+                return jsonify({
+                    'success': False,
+                    'message': 'Ação inválida. Use "aprovar" ou "rejeitar".'
+                }), 400
+            else:
+                flash('Ação inválida. Use "aprovar" ou "rejeitar".', 'danger')
+                return redirect(url_for('admin.listar_solicitacoes'))
+        
+        db = get_db()
+        cursor = db.cursor()
+        
+        # Buscar a solicitação
+        cursor.execute("""
+            SELECT s.*, u.username, u.email, u.id as user_id
+            FROM solicitacoes_senha s
+            JOIN usuarios u ON s.usuario_id = u.id
+            WHERE s.id = ? AND s.status = 'pendente'
+        """, (solicitacao_id,))
+        
+        solicitacao = cursor.fetchone()
+        
+        if not solicitacao:
+            if request.is_json:
+                return jsonify({
+                    'success': False,
+                    'message': 'Solicitação não encontrada ou já foi processada.'
+                }), 404
+            else:
+                flash('Solicitação não encontrada ou já foi processada.', 'danger')
+                return redirect(url_for('admin.listar_solicitacoes'))
+        
+        admin_username = session.get('username')
+        data_processamento = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        
+        if acao == 'aprovar':
+            # Definir senha padrão como solicitado pelo usuário
+            nova_senha_temporaria = "1234"
+            password_hash = generate_password_hash(nova_senha_temporaria, method='pbkdf2:sha256')
+            
+            # Atualizar senha do usuário e forçar troca no próximo login
+            cursor.execute("""
+                UPDATE usuarios 
+                SET password_hash = ?, primeiro_login = 1, ultima_alteracao_senha = ?
+                WHERE id = ?
+            """, (password_hash, data_processamento, solicitacao['user_id']))
+            
+            # Atualizar status da solicitação
+            cursor.execute("""
+                UPDATE solicitacoes_senha 
+                SET status = 'aprovada', data_processamento = ?, processado_por = ?
+                WHERE id = ?
+            """, (data_processamento, admin_username, solicitacao_id))
+            
+            # Registrar ação nos logs
+            log_admin_action(
+                admin_username,
+                "APROVAÇÃO RECUPERAÇÃO SENHA",
+                f"Senha redefinida para usuário {solicitacao['username']} - Nova senha temporária: {nova_senha_temporaria}"
+            )
+            
+            message = f"""Solicitação aprovada com sucesso!
+            
+Nova senha temporária para {solicitacao['username']}: {nova_senha_temporaria}
+
+IMPORTANTE: 
+- Informe esta senha ao usuário por um canal seguro
+- O usuário será obrigado a alterar a senha no próximo login
+- Esta senha é temporária e deve ser alterada imediatamente"""
+            
+        else:  # rejeitar
+            # Atualizar status da solicitação
+            cursor.execute("""
+                UPDATE solicitacoes_senha 
+                SET status = 'rejeitada', data_processamento = ?, processado_por = ?
+                WHERE id = ?
+            """, (data_processamento, admin_username, solicitacao_id))
+            
+            # Registrar ação nos logs
+            log_admin_action(
+                admin_username,
+                "REJEIÇÃO RECUPERAÇÃO SENHA",
+                f"Solicitação de recuperação de senha rejeitada para usuário {solicitacao['username']}"
+            )
+            
+            message = f"Solicitação de {solicitacao['username']} foi rejeitada."
+        
+        if request.is_json:
+            return jsonify({
+                'success': True,
+                'message': message
+            })
+        else:
+            flash(message, 'success')
+            return redirect(url_for('admin.listar_solicitacoes'))
+        
+    except Exception as e:
+        logger.error(f"Erro ao processar solicitação de senha: {e}")
+        if request.is_json:
+            return jsonify({
+                'success': False,
+                'message': f'Erro interno do servidor: {str(e)}'
+            }), 500
+        else:
+            flash(f'Erro ao processar solicitação: {str(e)}', 'danger')
+            return redirect(url_for('admin.listar_solicitacoes'))

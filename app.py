@@ -99,6 +99,39 @@ def create_app(config_class=Config):
             'is_vistoriador': has_role('vistoriador'),
             'is_operador': has_role('operador')
         }
+        
+        # Adicionar contador de solicitações pendentes para admins
+        if has_role('admin'):
+            try:
+                from db import get_db
+                db = get_db()
+                cursor = db.cursor()
+                
+                # Contar solicitações de registro pendentes
+                cursor.execute("SELECT COUNT(*) FROM solicitacoes_registro WHERE status = 'pendente'")
+                registro_pendentes = cursor.fetchone()[0]
+                
+                # Contar solicitações de senha pendentes
+                cursor.execute("SELECT COUNT(*) FROM solicitacoes_senha WHERE status = 'pendente'")
+                senha_pendentes = cursor.fetchone()[0]
+                
+                # Total de solicitações pendentes
+                total_pendentes = registro_pendentes + senha_pendentes
+                
+                user_data.update({
+                    'solicitacoes_pendentes_count': total_pendentes,
+                    'registro_pendentes_count': registro_pendentes,
+                    'senha_pendentes_count': senha_pendentes
+                })
+                
+            except Exception as e:
+                # Em caso de erro, não quebrar a aplicação
+                user_data.update({
+                    'solicitacoes_pendentes_count': 0,
+                    'registro_pendentes_count': 0,
+                    'senha_pendentes_count': 0
+                })
+        
         return user_data
     
     @app.route('/')

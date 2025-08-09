@@ -66,6 +66,74 @@
                 </div>
             </div>
 
+            <!-- Solicitações de Recuperação de Senha -->
+            {% if senha_pendentes %}
+            <div class="admin-card mb-4 slide-in-left">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-key me-2"></i>
+                        Solicitações de Recuperação de Senha
+                        <span class="badge bg-warning ms-2">{{ senha_pendentes|length }}</span>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Data/Hora</th>
+                                    <th>Usuário</th>
+                                    <th>Email</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for solicitacao in senha_pendentes %}
+                                <tr>
+                                    <td>
+                                        <i class="fas fa-clock me-1 text-muted"></i>
+                                        {{ solicitacao.data_solicitacao }}
+                                    </td>
+                                    <td>
+                                        <i class="fas fa-user me-1 text-muted"></i>
+                                        {{ solicitacao.username }}
+                                    </td>
+                                    <td>
+                                        <i class="fas fa-envelope me-1 text-muted"></i>
+                                        {{ solicitacao.email }}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-warning">
+                                            <i class="fas fa-hourglass-half me-1"></i>
+                                            Pendente
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-success btn-sm" 
+                                                    onclick="processarSolicitacaoSenha({{ solicitacao.id }}, '{{ solicitacao.username }}', 'aprovar')"
+                                                    title="Aprovar e redefinir senha">
+                                                <i class="fas fa-check me-1"></i>
+                                                Aprovar
+                                            </button>
+                                            <button type="button" class="btn btn-danger btn-sm" 
+                                                    onclick="processarSolicitacaoSenha({{ solicitacao.id }}, '{{ solicitacao.username }}', 'rejeitar')"
+                                                    title="Rejeitar solicitação">
+                                                <i class="fas fa-times me-1"></i>
+                                                Rejeitar
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
             <!-- Logs recentes -->
             <div class="admin-card mb-4 slide-in-right">
                 <div class="card-header">
@@ -134,5 +202,77 @@
             card.classList.add('fade-in-up');
         });
     });
+
+    // Função para processar solicitações de recuperação de senha
+    async function processarSolicitacaoSenha(solicitacaoId, username, acao) {
+        const acaoTexto = acao === 'aprovar' ? 'aprovar' : 'rejeitar';
+        const acaoTitulo = acao === 'aprovar' ? 'Aprovar' : 'Rejeitar';
+        
+        // Confirmação
+        const result = await Swal.fire({
+            title: `${acaoTitulo} Solicitação`,
+            text: `Deseja ${acaoTexto} a solicitação de recuperação de senha do usuário "${username}"?`,
+            icon: acao === 'aprovar' ? 'question' : 'warning',
+            showCancelButton: true,
+            confirmButtonColor: acao === 'aprovar' ? '#28a745' : '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: `Sim, ${acaoTexto}`,
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (!result.isConfirmed) return;
+
+        try {
+            // Mostrar loading
+            Swal.fire({
+                title: 'Processando...',
+                text: `${acaoTitulo}ando solicitação de senha`,
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            const response = await fetch(`/admin/processar-solicitacao-senha/${solicitacaoId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('meta[name=csrf-token]')?.getAttribute('content') || ''
+                },
+                body: JSON.stringify({
+                    acao: acao,
+                    csrf_token: document.querySelector('input[name="csrf_token"]')?.value || ''
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                await Swal.fire({
+                    title: 'Sucesso!',
+                    text: data.message,
+                    icon: 'success',
+                    confirmButtonColor: '#28a745'
+                });
+                
+                // Recarregar a página para atualizar a lista
+                window.location.reload();
+            } else {
+                throw new Error(data.message || 'Erro desconhecido');
+            }
+
+        } catch (error) {
+            console.error('Erro ao processar solicitação:', error);
+            Swal.fire({
+                title: 'Erro!',
+                text: error.message || 'Erro ao processar solicitação de senha',
+                icon: 'error',
+                confirmButtonColor: '#dc3545'
+            });
+        }
+    }
+
+    // Expor função globalmente
+    window.processarSolicitacaoSenha = processarSolicitacaoSenha;
 </script>
 {% endblock %}

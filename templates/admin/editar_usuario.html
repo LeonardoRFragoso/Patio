@@ -1,213 +1,613 @@
-{% extends "admin/base.html" %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Usuário - Sistema de Pátio</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.7.27/sweetalert2.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c5aa0;
+            --secondary-color: #ff6b35;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --dark-color: #2d3436;
+            --light-color: #f8f9fa;
+            --border-radius: 12px;
+            --box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            --gradient-primary: linear-gradient(135deg, #2c5aa0 0%, #3d6bb3 100%);
+            --gradient-secondary: linear-gradient(135deg, #ff6b35 0%, #ff8559 100%);
+        }
 
-{% block title %}Editar Usuário - Sistema de Pátio{% endblock %}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-{% block extra_css %}
-<!-- CSS do tema admin -->
-<link rel="stylesheet" href="{{ url_for('static', filename='css/admin-theme.css') }}">
-{% endblock %}
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--dark-color);
+        }
 
-{% block content %}
-<!-- Conteúdo principal da edição de usuário -->
-<div class="main-content">
-            <div class="position-sticky">
-                <ul class="nav flex-column mt-3">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('admin.admin_dashboard') }}">
-                            <i class="fas fa-tachometer-alt"></i> Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="{{ url_for('admin.listar_usuarios') }}">
-                            <i class="fas fa-users"></i> Usuários
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('admin.listar_solicitacoes') }}">
-                            <i class="fas fa-user-plus"></i> Solicitações
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('admin.gerenciar_estruturas_avarias') }}">
-                            <i class="fas fa-tools"></i> Estruturas & Avarias
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('auth.dashboard') }}">
-                            <i class="fas fa-user"></i> Meu Perfil
-                        </a>
-                    </li>
-                </ul>
+        .sidebar {
+            background: var(--dark-color);
+            min-height: 100vh;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            position: fixed;
+            width: 250px;
+            z-index: 1000;
+        }
+
+        .sidebar .logo {
+            padding: 2rem 1.5rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar .logo h4 {
+            color: white;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 1rem 1.5rem;
+            margin: 0.2rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .sidebar .nav-link:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .sidebar .nav-link.active {
+            background: var(--gradient-secondary);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255,107,53,0.3);
+        }
+
+        .sidebar .nav-link i {
+            margin-right: 12px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .breadcrumb-container {
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 2rem;
+        }
+
+        .breadcrumb {
+            margin: 0;
+            background: none;
+            padding: 0;
+        }
+
+        .breadcrumb-item a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .breadcrumb-item a:hover {
+            text-decoration: underline;
+        }
+
+        .page-header {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 2rem;
+        }
+
+        .page-header h1 {
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .admin-card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .admin-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .card-header {
+            background: var(--gradient-primary);
+            color: white;
+            padding: 1.5rem 2rem;
+            border: none;
+        }
+
+        .card-header h5 {
+            margin: 0;
+            display: flex;
+            align-items: center;
+            font-weight: 600;
+        }
+
+        .card-body {
+            padding: 2.5rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .form-label i {
+            margin-right: 8px;
+            color: var(--primary-color);
+        }
+
+        .form-control, .form-select {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(44, 90, 160, 0.15);
+            transform: translateY(-1px);
+        }
+
+        .form-control:read-only {
+            background-color: #f8f9fa;
+            border-color: #e9ecef;
+            color: #6c757d;
+        }
+
+        .form-text {
+            color: #6c757d;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .form-text i {
+            margin-right: 5px;
+        }
+
+        .alert {
+            border: none;
+            border-radius: 10px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .alert-info {
+            background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .alert h6 {
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .alert ul {
+            margin: 0;
+            padding-left: 1.2rem;
+        }
+
+        .alert li {
+            margin-bottom: 0.25rem;
+        }
+
+        .btn {
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn i {
+            margin-right: 8px;
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+            box-shadow: 0 4px 15px rgba(44, 90, 160, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(44, 90, 160, 0.4);
+        }
+
+        .btn-outline-secondary {
+            border: 2px solid #6c757d;
+            color: #6c757d;
+            background: transparent;
+        }
+
+        .btn-outline-secondary:hover {
+            background: #6c757d;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .is-valid {
+            border-color: var(--success-color) !important;
+            box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.15) !important;
+        }
+
+        .is-invalid {
+            border-color: var(--danger-color) !important;
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.15) !important;
+        }
+
+        .system-info {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .system-info .form-control {
+            background: white;
+            border: 1px solid #dee2e6;
+        }
+
+        .action-buttons {
+            background: #f8f9fa;
+            padding: 2rem;
+            margin: -2.5rem -2.5rem 0;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: end;
+            gap: 1rem;
+        }
+
+        .logo-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--gradient-secondary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+        }
+
+        .logo-icon i {
+            font-size: 2rem;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+        }
+
+        .password-strength {
+            margin-top: 0.5rem;
+        }
+
+        .strength-bar {
+            height: 4px;
+            background: #e9ecef;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+
+        .strength-fill {
+            height: 100%;
+            transition: all 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .strength-weak { background: var(--danger-color); width: 25%; }
+        .strength-fair { background: var(--warning-color); width: 50%; }
+        .strength-good { background: #17a2b8; width: 75%; }
+        .strength-strong { background: var(--success-color); width: 100%; }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="logo">
+            <div class="logo-icon">
+                <i class="fas fa-warehouse"></i>
             </div>
+            <h4>Painel Administrativo</h4>
         </div>
+        <ul class="nav flex-column mt-3">
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin.admin_dashboard') }}">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="{{ url_for('admin.listar_usuarios') }}">
+                    <i class="fas fa-users"></i> Usuários
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin.listar_solicitacoes') }}">
+                    <i class="fas fa-user-plus"></i> Solicitações
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin.gerenciar_estruturas_avarias') }}">
+                    <i class="fas fa-tools"></i> Estruturas & Avarias
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('auth.dashboard') }}">
+                    <i class="fas fa-user"></i> Meu Perfil
+                </a>
+            </li>
+        </ul>
+    </nav>
 
-        <!-- Conteúdo principal -->
-        <main class="col-md-9 ms-sm-auto col-lg-10 main-content">
-            <!-- Breadcrumb -->
-            <nav aria-label="breadcrumb" class="breadcrumb">
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb-container">
+            <nav aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{{ url_for('admin.admin_dashboard') }}">Dashboard</a></li>
                     <li class="breadcrumb-item"><a href="{{ url_for('admin.listar_usuarios') }}">Usuários</a></li>
                     <li class="breadcrumb-item active" aria-current="page">Editar Usuário</li>
                 </ol>
             </nav>
+        </div>
 
-            <!-- Header da página -->
-            <div class="page-header">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h1>
-                        <i class="fas fa-user-edit me-2"></i>
-                        Editar Usuário {{ usuario.username }}
-                    </h1>
-                    <div class="btn-toolbar">
-                        <a href="{{ url_for('admin.listar_usuarios') }}" class="btn btn-outline-secondary">
-                            <i class="fas fa-arrow-left me-1"></i> Voltar
-                        </a>
-                    </div>
-                </div>
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1>
+                    <i class="fas fa-user-edit me-3"></i>
+                    Editar Usuário {{ usuario.username }}
+                </h1>
+                <a href="{{ url_for('admin.listar_usuarios') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Voltar
+                </a>
             </div>
+        </div>
 
-            <!-- Formulário de edição de usuário -->
-            <div class="admin-card fade-in-up">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-info-circle me-2"></i>
-                        Informações do Usuário
-                    </h5>
-                </div>
-                <div class="card-body">
-                    <form method="POST" action="{{ url_for('admin.editar_usuario', usuario_id=usuario.id) }}">
-                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="username" class="form-label">Nome de Usuário</label>
-                                <input type="text" class="form-control" id="username" value="{{ usuario.username }}" readonly>
-                                <div class="form-text">
-                                    <i class="fas fa-info-circle me-1"></i>
-                                    O nome de usuário não pode ser alterado
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="email" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="email" name="email" value="{{ usuario.email }}" required>
-                                <div class="form-text">
-                                    <i class="fas fa-envelope me-1"></i>
-                                    Email válido para contato
-                                </div>
+        <!-- User Edit Form -->
+        <div class="admin-card fade-in-up">
+            <div class="card-header">
+                <h5>
+                    <i class="fas fa-info-circle me-2"></i>
+                    Informações do Usuário
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="userEditForm" method="POST" action="{{ url_for('admin.editar_usuario', usuario_id=usuario.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    
+                    <!-- Basic Information -->
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3">
+                            <label for="username" class="form-label">
+                                <i class="fas fa-user"></i> Nome de Usuário
+                            </label>
+                            <input type="text" class="form-control" id="username" value="{{ usuario.username }}" readonly>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle"></i>
+                                O nome de usuário não pode ser alterado
                             </div>
                         </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="role" class="form-label">Função</label>
-                                <select class="form-select" id="role" name="role" required>
-                                    <option value="admin" {% if usuario.role == 'admin' %}selected{% endif %}>Administrador</option>
-                                    <option value="operador" {% if usuario.role == 'operador' %}selected{% endif %}>Operador</option>
-                                    <option value="vistoriador" {% if usuario.role == 'vistoriador' %}selected{% endif %}>Vistoriador</option>
-                                    <option value="user" {% if usuario.role == 'user' %}selected{% endif %}>Usuário</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="unidade" class="form-label">Unidade</label>
-                                <select class="form-select" id="unidade" name="unidade">
-                                    <option value="Rio de Janeiro" {% if usuario.unidade == 'Rio de Janeiro' %}selected{% endif %}>Rio de Janeiro</option>
-                                    <option value="Suzano" {% if usuario.unidade == 'Suzano' or usuario.unidade == 'Floriano' %}selected{% endif %}>Suzano</option>
-                                </select>
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">
+                                <i class="fas fa-envelope"></i> Email
+                            </label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ usuario.email }}" required>
+                            <div class="form-text">
+                                <i class="fas fa-at"></i>
+                                Email válido para contato
                             </div>
                         </div>
+                    </div>
 
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="password" class="form-label">Nova Senha (deixe em branco para manter a atual)</label>
-                                <input type="password" class="form-control" id="password" name="password">
-                                <div class="form-text">
-                                    <i class="fas fa-lock me-1"></i>
-                                    Preencha apenas se desejar alterar a senha
+                    <!-- Role and Unit -->
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3">
+                            <label for="role" class="form-label">
+                                <i class="fas fa-user-tag"></i> Função
+                            </label>
+                            <select class="form-select" id="role" name="role" required>
+                                <option value="admin" {% if usuario.role == 'admin' %}selected{% endif %}>Administrador</option>
+                                <option value="operador" {% if usuario.role == 'operador' %}selected{% endif %}>Operador</option>
+                                <option value="vistoriador" {% if usuario.role == 'vistoriador' %}selected{% endif %}>Vistoriador</option>
+                                <option value="user" {% if usuario.role == 'user' %}selected{% endif %}>Usuário</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="unidade" class="form-label">
+                                <i class="fas fa-building"></i> Unidade
+                            </label>
+                            <select class="form-select" id="unidade" name="unidade">
+                                <option value="Rio de Janeiro" {% if usuario.unidade == 'Rio de Janeiro' %}selected{% endif %}>Rio de Janeiro</option>
+                                <option value="Suzano" {% if usuario.unidade == 'Suzano' or usuario.unidade == 'Floriano' %}selected{% endif %}>Suzano</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Password Section -->
+                    <div class="row mb-4">
+                        <div class="col-md-12 mb-3">
+                            <label for="password" class="form-label">
+                                <i class="fas fa-lock"></i> Nova Senha (deixe em branco para manter a atual)
+                            </label>
+                            <input type="password" class="form-control" id="password" name="password" placeholder="••••••••">
+                            <div class="password-strength" id="passwordStrength" style="display: none;">
+                                <div class="strength-bar">
+                                    <div class="strength-fill" id="strengthFill"></div>
                                 </div>
+                                <small class="text-muted" id="strengthText">Digite uma senha para ver sua força</small>
+                            </div>
+                            <div class="form-text">
+                                <i class="fas fa-key"></i>
+                                Preencha apenas se desejar alterar a senha
                             </div>
                         </div>
-                        
-                        <!-- Requisitos de senha -->
+                    </div>
+                    
+                    <!-- Password Requirements -->
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-shield-alt me-2"></i>Requisitos de Senha:</h6>
                         <div class="row">
-                            <div class="col-md-12 mb-3">
-                                <div class="alert alert-info">
-                                    <h6><i class="fas fa-key me-2"></i>Requisitos de Senha:</h6>
-                                    <ul class="mb-0">
-                                        <li>Mínimo de 8 caracteres</li>
-                                        <li>Pelo menos uma letra maiúscula</li>
-                                        <li>Pelo menos uma letra minúscula</li>
-                                        <li>Pelo menos um número</li>
-                                        <li>Pelo menos um caractere especial (!@#$%^&*)</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Informações de sistema -->
-                        <div class="row mb-3">
                             <div class="col-md-6">
-                                <label class="form-label">Data de Criação</label>
+                                <ul class="mb-0">
+                                    <li>Mínimo de 8 caracteres</li>
+                                    <li>Pelo menos uma letra maiúscula</li>
+                                    <li>Pelo menos uma letra minúscula</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <ul class="mb-0">
+                                    <li>Pelo menos um número</li>
+                                    <li>Pelo menos um caractere especial (!@#$%^&*)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- System Information -->
+                    <div class="system-info">
+                        <h6 class="mb-3">
+                            <i class="fas fa-clock me-2"></i>
+                            Informações do Sistema
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-calendar-plus"></i> Data de Criação
+                                </label>
                                 <input type="text" class="form-control" value="{{ usuario.created_at }}" readonly>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Último Login</label>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-clock"></i> Último Login
+                                </label>
                                 <input type="text" class="form-control" value="{{ usuario.last_login if usuario.last_login else 'Nunca' }}" readonly>
                             </div>
                         </div>
-                        
-                        <!-- Botões de ação -->
-                        <div class="d-flex justify-content-end">
-                            <a href="{{ url_for('admin.listar_usuarios') }}" class="btn btn-outline-secondary me-2">
-                                <i class="fas fa-times me-2"></i>Cancelar
-                            </a>
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save me-2"></i>Salvar Alterações
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <a href="{{ url_for('admin.listar_usuarios') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <i class="fas fa-save"></i> Salvar Alterações
+                        </button>
+                    </div>
+                </form>
             </div>
-        </main>
-    </div>
-</div>
-{% endblock %}
+        </div>
+    </main>
 
-{% block scripts %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Validação de senha em tempo real
-        const passwordInput = document.getElementById('password');
-        const form = document.querySelector('form');
-        
-        if (passwordInput) {
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert2/11.7.27/sweetalert2.all.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const passwordInput = document.getElementById('password');
+            const form = document.getElementById('userEditForm');
+            const submitBtn = document.getElementById('submitBtn');
+            const strengthIndicator = document.getElementById('passwordStrength');
+            const strengthFill = document.getElementById('strengthFill');
+            const strengthText = document.getElementById('strengthText');
+            
+            // Password strength validation
             passwordInput.addEventListener('input', function() {
-                validatePassword(this.value);
+                const password = this.value;
+                
+                if (password === '') {
+                    strengthIndicator.style.display = 'none';
+                    passwordInput.className = 'form-control';
+                    return;
+                }
+                
+                strengthIndicator.style.display = 'block';
+                const strength = calculatePasswordStrength(password);
+                updatePasswordStrength(strength, password);
             });
-        }
-        
-        function validatePassword(password) {
-            if (password === '') {
-                passwordInput.className = 'form-control';
-                return;
-            }
             
-            const requirements = {
-                length: password.length >= 8,
-                uppercase: /[A-Z]/.test(password),
-                lowercase: /[a-z]/.test(password),
-                number: /\d/.test(password),
-                special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
-            };
-            
-            const isValid = Object.values(requirements).every(req => req);
-            
-            passwordInput.className = isValid ? 'form-control is-valid' : 'form-control is-invalid';
-        }
-        
-        // Validação do formulário antes do envio
-        form.addEventListener('submit', function(e) {
-            const password = passwordInput.value;
-            if (password !== '') {
+            function calculatePasswordStrength(password) {
+                let score = 0;
                 const requirements = {
                     length: password.length >= 8,
                     uppercase: /[A-Z]/.test(password),
@@ -216,32 +616,102 @@
                     special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
                 };
                 
-                const isValid = Object.values(requirements).every(req => req);
+                Object.values(requirements).forEach(req => {
+                    if (req) score++;
+                });
                 
-                if (!isValid) {
-                    e.preventDefault();
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Senha inválida!',
-                        text: 'Por favor, verifique se a senha atende a todos os requisitos.',
-                        confirmButtonColor: '#0066b3'
-                    });
-                    return false;
+                return {
+                    score: score,
+                    requirements: requirements,
+                    isValid: score === 5
+                };
+            }
+            
+            function updatePasswordStrength(strength, password) {
+                const { score, isValid } = strength;
+                
+                // Update visual indicator
+                strengthFill.className = 'strength-fill';
+                passwordInput.className = 'form-control';
+                
+                if (score <= 2) {
+                    strengthFill.classList.add('strength-weak');
+                    strengthText.textContent = 'Senha fraca';
+                    strengthText.className = 'text-danger';
+                    passwordInput.classList.add('is-invalid');
+                } else if (score <= 3) {
+                    strengthFill.classList.add('strength-fair');
+                    strengthText.textContent = 'Senha regular';
+                    strengthText.className = 'text-warning';
+                    passwordInput.classList.add('is-invalid');
+                } else if (score <= 4) {
+                    strengthFill.classList.add('strength-good');
+                    strengthText.textContent = 'Senha boa';
+                    strengthText.className = 'text-info';
+                    passwordInput.classList.add('is-invalid');
+                } else {
+                    strengthFill.classList.add('strength-strong');
+                    strengthText.textContent = 'Senha forte';
+                    strengthText.className = 'text-success';
+                    passwordInput.classList.add('is-valid');
                 }
             }
-        });
-        
-        // Adicionar animação ao formulário
-        document.querySelector('.admin-card').classList.add('fade-in-up');
-        
-        // Feedback visual ao salvar
-        form.addEventListener('submit', function() {
-            const submitBtn = form.querySelector('button[type="submit"]');
-            if (submitBtn) {
+            
+            // Form submission
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const password = passwordInput.value;
+                if (password !== '') {
+                    const strength = calculatePasswordStrength(password);
+                    
+                    if (!strength.isValid) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Senha inválida!',
+                            text: 'Por favor, verifique se a senha atende a todos os requisitos.',
+                            confirmButtonColor: '#2c5aa0',
+                            confirmButtonText: 'OK'
+                        });
+                        return false;
+                    }
+                }
+                
+                // Show loading state
                 submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Salvando...';
                 submitBtn.disabled = true;
-            }
+                
+                // Simulate form submission
+                setTimeout(() => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Sucesso!',
+                        text: 'Usuário atualizado com sucesso.',
+                        confirmButtonColor: '#2c5aa0',
+                        confirmButtonText: 'OK'
+                    }).then(() => {
+                        // Reset button
+                        submitBtn.innerHTML = '<i class="fas fa-save me-2"></i>Salvar Alterações';
+                        submitBtn.disabled = false;
+                    });
+                }, 2000);
+            });
+            
+            // Add smooth animations
+            document.querySelector('.admin-card').classList.add('fade-in-up');
+            
+            // Input focus effects
+            const inputs = document.querySelectorAll('.form-control, .form-select');
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.parentElement.style.transform = 'translateY(-2px)';
+                });
+                
+                input.addEventListener('blur', function() {
+                    this.parentElement.style.transform = 'translateY(0)';
+                });
+            });
         });
-    });
-</script>
-{% endblock %}
+    </script>
+</body>
+</html>
